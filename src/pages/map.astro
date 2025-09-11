@@ -1,0 +1,31 @@
+---
+// ---
+import MSPALayout from '../layouts/MSPALayout.astro';
+import { books } from '../content.js';
+
+export function getStaticPaths() { return [{ params: {}}]; }
+---
+
+<MSPALayout title="Browse Adventures" description="Jump into any chapter at start, middle, or end." canonical={Astro.site ? new URL('/map', Astro.site).toString() : undefined}>
+  <h1 class="mspa-title">BROWSE ADVENTURES</h1>
+  <p class="mspa-sub">Choose a book, then jump into the start, middle, or end of any chapter.</p>
+
+  {books.map((b) => (
+    <section>
+      <h2 class="mspa-book-title">BOOK {b.id}</h2>
+
+      {b.chapters.map((c) => (
+        <div class="mspa-chapter">
+          <div class="mspa-chapter-header">Chapter {c.chapterInBook} – "{c.title}" – {c.totalPages} pages</div>
+          <div class="mspa-waypoints">
+            {c.waypoints.map((w) => (
+              <a class="mspa-waypoint" href={`/read/${c.id}/${w.page}`} aria-label={`${w.label} of ${c.title}`} title={`${w.label}`}>
+                <img src={w.thumb} alt="" loading="lazy" />
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  ))}
+</MSPALayout>

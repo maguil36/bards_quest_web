@@ -1,0 +1,272 @@
+/*
+  Public stylesheet
+  - Theme variables and system (12 aspect themes)
+  - Global layout, typography, utilities
+  - Bards Quest layout (nav, card, footer, sprites)
+  - Reader (frame, utility links, quest log)
+  - Options page (single-column list)
+  - Map page (books → chapters → 3-waypoint grid)
+*/
+
+/* =============================
+   Theme variables (defaults)
+   ============================= */
+:root {
+  /* Core surfaces and text */
+  --bg: #0f1014;
+  --bg-soft: linear-gradient(180deg, #0f1014, #0a0b0e);
+  --text: #e8e9ec;
+  --muted: #a9acb5;
+  --card: #13141a;
+  --surface: #111217;
+  --border: #23242c;
+  --overlay: rgba(0,0,0,.45);
+
+  /* Accent (overridden by themes) */
+  --accent: #4da3ff;
+
+  /* Reader sizing */
+  --reader-title: 38px;
+  --reader-text: 18px; /* only comic/log body text, not titles */
+
+  /* Quest log persona defaults */
+  --p1: #00AEEF; /* cyan */
+  --p2: #FF0066; /* magenta */
+}
+
+/* =============================
+   Aspect themes (tint surfaces so whole UI changes)
+   ============================= */
+html[data-theme="breath"] {
+  --accent: #00c8ff;
+  --bg: color-mix(in srgb, #0f1014 70%, #00c8ff 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #00c8ff 15%), color-mix(in srgb, #0a0b0e 85%, #00c8ff 15%));
+  --card: color-mix(in srgb, #13141a 85%, #00c8ff 15%);
+  --surface: color-mix(in srgb, #111217 85%, #00c8ff 15%);
+  --border: color-mix(in srgb, #23242c 70%, #00c8ff 30%);
+}
+html[data-theme="light"] {
+  --accent: #ffd64d;
+  --bg: color-mix(in srgb, #0f1014 70%, #ffd64d 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #ffd64d 15%), color-mix(in srgb, #0a0b0e 85%, #ffd64d 15%));
+  --card: color-mix(in srgb, #13141a 85%, #ffd64d 15%);
+  --surface: color-mix(in srgb, #111217 85%, #ffd64d 15%);
+  --border: color-mix(in srgb, #23242c 70%, #ffd64d 30%);
+}
+html[data-theme="time"] {
+  --accent: #ff4d4d;
+  --bg: color-mix(in srgb, #0f1014 70%, #ff4d4d 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #ff4d4d 15%), color-mix(in srgb, #0a0b0e 85%, #ff4d4d 15%));
+  --card: color-mix(in srgb, #13141a 85%, #ff4d4d 15%);
+  --surface: color-mix(in srgb, #111217 85%, #ff4d4d 15%);
+  --border: color-mix(in srgb, #23242c 70%, #ff4d4d 30%);
+}
+html[data-theme="space"] {
+  --accent: #d1d5db;
+  --bg: color-mix(in srgb, #0f1014 70%, #d1d5db 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #d1d5db 15%), color-mix(in srgb, #0a0b0e 85%, #d1d5db 15%));
+  --card: color-mix(in srgb, #13141a 85%, #d1d5db 15%);
+  --surface: color-mix(in srgb, #111217 85%, #d1d5db 15%);
+  --border: color-mix(in srgb, #23242c 70%, #d1d5db 30%);
+}
+html[data-theme="heart"] {
+  --accent: #ff4da6;
+  --bg: color-mix(in srgb, #0f1014 70%, #ff4da6 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #ff4da6 15%), color-mix(in srgb, #0a0b0e 85%, #ff4da6 15%));
+  --card: color-mix(in srgb, #13141a 85%, #ff4da6 15%);
+  --surface: color-mix(in srgb, #111217 85%, #ff4da6 15%);
+  --border: color-mix(in srgb, #23242c 70%, #ff4da6 30%);
+}
+html[data-theme="mind"] {
+  --accent: #00c2a0;
+  --bg: color-mix(in srgb, #0f1014 70%, #00c2a0 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #00c2a0 15%), color-mix(in srgb, #0a0b0e 85%, #00c2a0 15%));
+  --card: color-mix(in srgb, #13141a 85%, #00c2a0 15%);
+  --surface: color-mix(in srgb, #111217 85%, #00c2a0 15%);
+  --border: color-mix(in srgb, #23242c 70%, #00c2a0 30%);
+}
+html[data-theme="hope"] {
+  --accent: #ffd700;
+  --bg: color-mix(in srgb, #0f1014 70%, #ffd700 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #ffd700 15%), color-mix(in srgb, #0a0b0e 85%, #ffd700 15%));
+  --card: color-mix(in srgb, #13141a 85%, #ffd700 15%);
+  --surface: color-mix(in srgb, #111217 85%, #ffd700 15%);
+  --border: color-mix(in srgb, #23242c 70%, #ffd700 30%);
+}
+html[data-theme="rage"] {
+  --accent: #a855f7;
+  --bg: color-mix(in srgb, #0f1014 70%, #a855f7 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #a855f7 15%), color-mix(in srgb, #0a0b0e 85%, #a855f7 15%));
+  --card: color-mix(in srgb, #13141a 85%, #a855f7 15%);
+  --surface: color-mix(in srgb, #111217 85%, #a855f7 15%);
+  --border: color-mix(in srgb, #23242c 70%, #a855f7 30%);
+}
+html[data-theme="life"] {
+  --accent: #22c55e;
+  --bg: color-mix(in srgb, #0f1014 70%, #22c55e 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #22c55e 15%), color-mix(in srgb, #0a0b0e 85%, #22c55e 15%));
+  --card: color-mix(in srgb, #13141a 85%, #22c55e 15%);
+  --surface: color-mix(in srgb, #111217 85%, #22c55e 15%);
+  --border: color-mix(in srgb, #23242c 70%, #22c55e 30%);
+}
+html[data-theme="doom"] {
+  --accent: #14b8a6;
+  --bg: color-mix(in srgb, #0f1014 70%, #14b8a6 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #14b8a6 15%), color-mix(in srgb, #0a0b0e 85%, #14b8a6 15%));
+  --card: color-mix(in srgb, #13141a 85%, #14b8a6 15%);
+  --surface: color-mix(in srgb, #111217 85%, #14b8a6 15%);
+  --border: color-mix(in srgb, #23242c 70%, #14b8a6 30%);
+}
+html[data-theme="blood"] {
+  --accent: #b91c1c;
+  --bg: color-mix(in srgb, #0f1014 70%, #b91c1c 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #b91c1c 15%), color-mix(in srgb, #0a0b0e 85%, #b91c1c 15%));
+  --card: color-mix(in srgb, #13141a 85%, #b91c1c 15%);
+  --surface: color-mix(in srgb, #111217 85%, #b91c1c 15%);
+  --border: color-mix(in srgb, #23242c 70%, #b91c1c 30%);
+}
+html[data-theme="void"] {
+  --accent: #4f46e5;
+  --bg: color-mix(in srgb, #0f1014 70%, #4f46e5 30%);
+  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #4f46e5 15%), color-mix(in srgb, #0a0b0e 85%, #4f46e5 15%));
+  --card: color-mix(in srgb, #13141a 85%, #4f46e5 15%);
+  --surface: color-mix(in srgb, #111217 85%, #4f46e5 15%);
+  --border: color-mix(in srgb, #23242c 70%, #4f46e5 30%);
+}
+
+/* Desktop mode tweaks */
+html[data-desktop="1"] .wrap { width: min(1100px, 100%); }
+
+/* High-contrast text adjustments */
+html[data-contrast="high"] .pesterlog .person1 .handle,
+html[data-contrast="high"] .pesterlog .person1 .msg { color: #58d7ff; text-shadow: 0 0 2px rgba(0,0,0,.6); }
+html[data-contrast="high"] .pesterlog .person2 .handle,
+html[data-contrast="high"] .pesterlog .person2 .msg { color: #ff6aa3; text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+/* =============================
+   Global reset and utilities
+   ============================= */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg-soft); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+/* Font switches (Options page) */
+body[data-font="inter"] { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+body[data-font="comic"] { font-family: "Comic Sans MS", "Comic Sans", cursive, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+.container { width: min(1200px, 100%); margin: 0 auto; padding: 0 1rem; }
+.mt-1 { margin-top: 1rem; }
+.mt-05 { margin-top: .5rem; }
+.mt-02 { margin-top: .2rem; }
+.muted { color: var(--muted); }
+.narrow { max-width: 700px; }
+.hidden { display: none !important; }
+
+/* =============================
+   Header and footer (site header)
+   ============================= */
+.header { position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--border); }
+.navbar { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+.brand { display: flex; align-items: center; gap: .6rem; text-decoration: none; color: var(--text); }
+.brand-logo { width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, #ff7549, #ff3d00); box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset; }
+.brand-title { font-weight: 700; letter-spacing: .2px; }
+.nav-links a { color: var(--muted); text-decoration: none; margin-left: 1rem; padding: .4rem .6rem; border-radius: 8px; }
+.nav-links a:hover { color: var(--text); background: color-mix(in srgb, var(--surface) 85%, white 15%); }
+
+.footer { border-top: 1px solid var(--border); margin-top: 2rem; padding: 1rem 0; color: var(--muted); }
+
+/* =============================
+   Bards Quest layout
+   ============================= */
+body.mspa { background: var(--bg); color: var(--text); }
+.wrap { width: min(920px, 100%); margin: 0 auto; padding: 0 1rem 4rem; position: relative; }
+
+.mspa-nav { margin: 0 auto; margin-top: 1rem; min-height: 30px; display: flex; align-items: center; justify-content: center; gap: .5rem; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0 .5rem; }
+.mspa-nav a { color: var(--accent); text-decoration: none; font-size: 13px; letter-spacing: .3px; }
+.mspa-nav a:hover { text-decoration: underline; }
+.mspa-nav .dot { color: var(--muted); font-size: 14px; }
+
+.mspa-card { margin-top: 1.2rem; background: var(--card); border: 1px solid var(--border); padding: 1.2rem; }
+.mspa-card .panel { background: var(--surface); border: 1px solid var(--border); padding: 1.2rem; text-align: center; max-width: 720px; margin: 0 auto; }
+.mspa-card h1 { margin: .2rem 0 .8rem; font-size: var(--reader-title, 38px); letter-spacing: .5px; color: var(--text); }
+.mspa-card p { margin: .5rem 0; color: var(--text); }
+.mspa-card a { color: var(--accent); }
+.mspa-card a:hover { text-decoration: underline; }
+
+.ctas { margin-top: 1rem; display: grid; gap: .6rem; justify-items: center; }
+.cta { font-size: 22px; text-decoration: underline; color: var(--accent); }
+
+.mspa-footer { text-align: center; color: var(--muted); margin-top: 1.4rem; }
+.mspa-footer a { color: var(--accent); }
+
+/* Decorative sprites */
+.sprite { position: absolute; bottom: 10px; width: 72px; height: 72px; object-fit: contain; opacity: .9; }
+.sprite.left { left: 10px; }
+.sprite.right { right: 10px; }
+
+/* =============================
+  Reader
+   ============================= */
+.reader .frame { margin-top: .8rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0; overflow: hidden; box-shadow: none; }
+.reader img.page { display: block; width: 100%; height: auto; }
+
+/* Toggle above quest log */
+.mspa-pester-toggle-wrap { text-align: center; margin: .6rem 0 .2rem; }
+.mspa-pester-toggle { display: inline-flex; align-items: center; justify-content: center; height: 28px; padding: 0 12px; background: var(--surface); color: var(--text); border: 1px solid var(--border); cursor: pointer; }
+.mspa-pester-toggle:hover { background: color-mix(in srgb, var(--surface) 85%, white 15%); }
+
+/* Utility links row */
+.mspa-utility { display: flex; justify-content: space-between; align-items: center; gap: .4rem; margin-top: .8rem; font-size: 12px; }
+.mspa-utility .left, .mspa-utility .right { display: inline-flex; align-items: center; gap: .3rem; }
+.mspa-utility a, .mspa-utility .as-link { color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+.mspa-utility .sep { color: var(--muted); }
+
+/* Command line (Next) */
+.mspa-command { text-align: left; margin: .8rem 0 0; font-size: 28px; line-height: 1.15; }
+.mspa-command a { color: var(--accent); text-decoration: underline; display: inline-block; }
+
+/* Quest Log */
+.pesterlog { margin-top: .6rem; border: 1px solid var(--border); background: var(--surface); padding: .6rem; }
+.pesterlog-content { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: var(--reader-text, 18px); line-height: 1.6; color: var(--text); }
+.pesterlog .line { margin: .25rem 0; }
+.pesterlog .handle { font-weight: 700; }
+/* Persona coloring for both handle and msg */
+.pesterlog .person1 .handle, .pesterlog .person1 .msg { color: var(--p1); }
+.pesterlog .person2 .handle, .pesterlog .person2 .msg { color: var(--p2); }
+
+/* =============================
+   Options page (single-column list)
+   ============================= */
+.opt-list { text-align: left; background: var(--card); border: 1px solid var(--border); }
+.opt-row { display: block; padding: .7rem .8rem; border-top: 1px solid var(--border); }
+.opt-row:first-child { border-top: 0; }
+.opt-control { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; }
+.check-line { display: inline-flex; align-items: center; gap: .5rem; }
+.check-line input[type="checkbox"] { width: 18px; height: 18px; }
+.opt-title { font-weight: 800; color: var(--text); }
+.opt-desc { color: var(--muted); font-size: .95rem; max-width: 60ch; }
+.range-val { color: var(--text); min-width: 48px; text-align: right; }
+
+/* Basic inputs/buttons */
+.opt-control select { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0 .6rem; height: 30px; line-height: 30px; min-width: 220px; }
+.opt-control .btn { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0 .6rem; height: 30px; line-height: 28px; cursor: pointer; }
+.opt-control .btn:hover { background: color-mix(in srgb, var(--surface) 85%, white 15%); }
+.opt-control .btn.danger { background: color-mix(in srgb, var(--surface) 70%, #b91c1c 30%); border-color: color-mix(in srgb, var(--border) 70%, #b91c1c 30%); }
+
+/* Range styling */
+.opt-control input[type=range] { width: 260px; background: transparent; }
+.opt-control input[type=range]::-webkit-slider-runnable-track { height: 6px; background: var(--border); border-radius: 999px; }
+.opt-control input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; margin-top: -5px; }
+.opt-control input[type=range]::-moz-range-track { height: 6px; background: var(--border); border: 0; border-radius: 999px; }
+.opt-control input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; }
+
+/* =============================
+   Map page (book → chapters → waypoints)
+   ============================= */
+.mspa-chapter { margin-top: 1rem; }
+.mspa-chapter-header { margin: .4rem 0 .6rem; color: var(--muted); font-size: 14px; }
+.mspa-waypoints { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+.mspa-waypoint { display: block; border: 1px solid var(--border); background: var(--surface); }
+.mspa-waypoint img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }

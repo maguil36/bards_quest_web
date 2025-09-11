@@ -1,0 +1,96 @@
+---
+// Base layout without TypeScript-only interfaces
+const {
+  title = 'Bards Quest',
+  description = 'A cinematic, immersive comic experience with images, videos, and playable moments.',
+  ogImage = '/placeholder/hero.svg',
+  canonical = undefined,
+  showHeader = true,
+  showFooter = true,
+  bodyClass = '',
+} = Astro.props;
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/map', label: 'Map' },
+  { href: '/watch/intro', label: 'Intro' },
+  { href: '/games', label: 'Games' },
+];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImage} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0f1014" />
+
+    <!-- Apply saved Options (theme, font, desktop mode, etc.) globally before CSS loads -->
+    <script>
+      (function(){
+        try {
+          var d = document.documentElement;
+          // Theme
+          var theme = (function(){ try { return localStorage.getItem('mspa:theme') || 'default'; } catch { return 'default'; } })();
+          if (theme && theme !== 'default') d.setAttribute('data-theme', theme); else d.removeAttribute('data-theme');
+          // Desktop layout toggle
+          var desktop = (function(){ try { return localStorage.getItem('mspa:ui:desktop') === '1'; } catch { return false; } })();
+          d.setAttribute('data-desktop', desktop ? '1' : '0');
+          // Keyboard navigation flag (for scripts to read)
+          var kbd = (function(){ try { return localStorage.getItem('mspa:nav:keyboard') === '1'; } catch { return false; } })();
+          d.setAttribute('data-kbd', kbd ? '1' : '0');
+          // High-contrast text colors
+          var contrast = (function(){ try { return localStorage.getItem('mspa:text:contrast') === '1'; } catch { return false; } })();
+          d.setAttribute('data-contrast', contrast ? 'high' : 'normal');
+          // Reader/comic text size CSS var
+          var textSize = (function(){ try { return localStorage.getItem('mspa:text-size') || '18'; } catch { return '18'; } })();
+          d.style.setProperty('--reader-text', String(textSize) + 'px');
+          // Page/UI font lives on body, which may not be present yet in <head>
+          function applyBodyFont(){
+            try {
+              var b = document.body; if (!b) return;
+              var font = localStorage.getItem('mspa:font-ui') || 'system';
+              b.setAttribute('data-font', font);
+            } catch {}
+          }
+          if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyBodyFont); else applyBodyFont();
+        } catch(e) {}
+      })();
+    </script>
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <slot name="head" />
+  </head>
+  <body class={bodyClass}>
+    {showHeader && (
+      <header class="header">
+        <div class="container navbar">
+          <a class="brand" href="/">
+            <div class="brand-logo"></div>
+            <div class="brand-title">Bards Quest</div>
+          </a>
+          <nav class="nav-links">
+            {links.map((l) => (
+              <a href={l.href}>{l.label}</a>
+            ))}
+          </nav>
+        </div>
+      </header>
+    )}
+
+    <slot />
+
+    {showFooter && (
+      <footer class="footer">
+        <div class="container">© {new Date().getFullYear()} Bards Quest</div>
+      </footer>
+    )}
+  </body>
+</html>

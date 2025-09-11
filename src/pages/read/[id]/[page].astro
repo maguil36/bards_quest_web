@@ -1,0 +1,85 @@
+---
+import MSPALayout from '../../../layouts/MSPALayout.astro';
+import { chapters, getChapter } from '../../../content.js';
+
+export function getStaticPaths() {
+  const paths = [];
+  for (const c of chapters) {
+    for (let p = 1; p <= c.totalPages; p++) {
+      paths.push({ params: { id: String(c.id), page: String(p) } });
+    }
+  }
+  return paths;
+}
+
+const params = Astro.params || {};
+const id = params.id;
+const page = params.page;
+let chapter;
+try {
+  chapter = getChapter(id);
+} catch (e) {
+  return Astro.redirect('/map');
+}
+const cur = Number(page);
+const next = cur < chapter.totalPages ? cur + 1 : null;
+const imgSrc = `/placeholder/page-${((cur - 1) % 3) + 1}.svg`;
+const nextImgSrc = next ? `/placeholder/page-${(cur % 3) + 1}.svg` : null;
+
+function pageTitle(ch, p) {
+  const verbs = ['Examine', 'Deploy', 'Converse', 'Investigate', 'Acquire', 'Combine', 'Confront', 'Consult'];
+  const subjects = ['Widget', 'Terminal', 'Memo', 'Artifact', 'Instrument', 'Contraption', 'Console', 'Cache'];
+  const v = verbs[(ch.id + p) % verbs.length];
+  const s = subjects[(ch.bookId + p) % subjects.length];
+  return `${v} ${s}.`;
+}
+const curTitle = pageTitle(chapter, cur);
+const nextTitle = next ? pageTitle(chapter, next) : null;
+---
+<MSPALayout title={curTitle}>
+  {nextImgSrc && <link slot="head" rel="preload" as="image" href={nextImgSrc} />}
+
+  <article id="reader-root" class="reader" data-chapter={chapter.id} data-total={chapter.totalPages} data-page={cur}>
+    <h1 class="mspa-title">{curTitle}</h1>
+
+    <div class="frame mt-05" style="text-align:center">
+      <img src={imgSrc} alt={curTitle} class="page" loading="eager" />
+    </div>
+
+    <div class="mspa-pester-toggle-wrap">
+      <button id="btn-toggle-log" class="mspa-pester-toggle">Show Dialog</button>
+    </div>
+
+    <section id="pesterlog" class="pesterlog" hidden>
+      <div class="pesterlog-content">
+        <div class="line person1"><span class="handle">person1</span>: <span class="msg">text</span></div>
+        <div class="line person2"><span class="handle">person2</span>: <span class="msg">text2</span></div>
+      </div>
+    </section>
+
+    {next && (
+      <p class="mspa-command">
+        <a id="cmd-next" href={`/read/${chapter.id}/${next}`}>&gt; {nextTitle}</a>
+      </p>
+    )}
+
+    <div class="mspa-utility">
+      <div class="left">
+        <a id="link-start" href="/read/1/1">Begin Anew</a>
+        <span class="sep">|</span>
+        <a id="link-back" href="#">Go Back</a>
+      </div>
+      <div class="right">
+        <a id="link-save" href="#">Log Location</a>
+        <span class="sep">|</span>
+        <button id="link-auto" class="as-link" aria-pressed="false">Auto Log: OFF</button>
+        <span class="sep">|</span>
+        <a id="link-load" href="#">Go to Location</a>
+        <span class="sep">|</span>
+        <a id="link-delete" href="#">Remove Log</a>
+      </div>
+    </div>
+  </article>
+
+  <script src="/js/reader.js" defer></script>
+</MSPALayout>

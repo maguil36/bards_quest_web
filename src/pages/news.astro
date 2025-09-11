@@ -1,0 +1,12 @@
+---
+import MSPALayout from '../layouts/MSPALayout.astro';
+const canonical = Astro.site ? new URL('/news', Astro.site).toString() : undefined;
+---
+<MSPALayout title="News" description="Latest updates and announcements." canonical={canonical}>
+  <h1>News</h1>
+  <p>Updates and announcements about Bards Quest.</p>
+  <div class="ctas">
+    <a href="/news/update-1" class="cta">&gt; Update: Bards Quest Website Launch.</a>
+    <a href="/news/update-2" class="cta">&gt; Update: Bards Quest First Chapter release.</a>
+  </div>
+</MSPALayout>
