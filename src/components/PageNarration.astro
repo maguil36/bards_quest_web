@@ -1,0 +1,61 @@
+---
+export interface Props {
+  chapter: any;
+  page: number;
+}
+
+const { chapter, page } = Astro.props;
+
+function getNarrationContent(ch: any, p: number): { hasNarration: boolean; narration: string } {
+  // Special content for Bard's Quest first page
+  if (ch.id === 1) {
+    if (p === 1) return {
+      hasNarration: true,
+      narration: `A young man stands in his bedroom. It just so happens that today, the 13th of April, 2009, is this young man's birthday. Though it was thirteen years ago he was given life, it is only today he will be given a name!\n\nWhat will the name of this young man be?`
+    };
+    if (p === 2) return {
+      hasNarration: true,
+      narration: `Well that was strange, looks like for some reason you can't enter a name. In fact, where did he go in general?`
+    };
+    if (p === 3) return {
+      hasNarration: true,
+      narration: `There he is, hey wait a minute, something isn't right...`
+    };
+    if (p === 4) return {
+      hasNarration: true,
+      narration: 'And there is goes again, man the story just started and its already broken? What an awaful story. You should demand a refund!'
+    };
+    if (p === 5) return {
+      hasNarration: true,
+      narration: 'Well its back again, but again at what point were at is anyones guess.'
+    };
+    if (p === 6) return {
+      hasNarration: true,
+      narration: 'And there it goes again. Lets just try again with someone else, as it seems focusing on that guy just keeps breaking the story.'
+    };
+    if (p === 7) return {
+      hasNarration: true,
+      narration: "Well looks like we're back! And whoever this is looks way better then that last guy!\n\n But wait, this isn't right, did we miss something?\n\nIt looks like we've moved very far foward in the story now. Oh well, not like anyone likes the start of these advetures anyways, I hear they tend to be slow hell."
+    };
+  }
+  
+  // Add more special narration cases here as needed
+  // if (ch.id === 1 && p === 3) { ... }
+  
+  // Default: no narration
+  return {
+    hasNarration: false,
+    narration: ''
+  };
+}
+
+const content = getNarrationContent(chapter, page);
+---
+
+{content.hasNarration && (
+  <div class="mspa-narration">
+    {content.narration.split('\n\n').map(paragraph => (
+      <p>{paragraph}</p>
+    ))}
+  </div>
+)}

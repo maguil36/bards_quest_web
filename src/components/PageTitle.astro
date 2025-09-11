@@ -1,0 +1,13 @@
+---
+import { getPageTitle } from '../utils/pageUtils';
+
+export interface Props {
+  chapter: any;
+  page: number;
+}
+
+const { chapter, page } = Astro.props;
+const title = getPageTitle(chapter, page);
+---
+
+<h1 class="mspa-title">{title}</h1>

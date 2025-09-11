@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { localStorage.setItem(autoKey, on ? '1' : '0'); } catch {}
     if (linkAuto) {
       linkAuto.setAttribute('aria-pressed', on ? 'true' : 'false');
-      linkAuto.textContent = on ? 'Auto Save: ON' : 'Auto Save: OFF';
+      linkAuto.textContent = on ? 'Auto Log: ON' : 'Auto Log: OFF';
     }
   };
   const getAuto = () => {

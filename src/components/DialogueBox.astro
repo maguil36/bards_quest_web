@@ -1,0 +1,54 @@
+---
+export interface Props {
+  chapter: any;
+  page: number;
+}
+
+const { chapter, page } = Astro.props;
+
+function getDialogueContent(ch: any, p: number): { 
+  showDialog: boolean; 
+  dialogueLines: Array<{ person: string; handle: string; message: string }> 
+} {
+  // Special cases where dialogue should be hidden
+   if (ch.id === 1) {
+    if (p === 1) return {showDialog: false, dialogueLines: []};
+    if (p === 2) return {showDialog: false, dialogueLines: []};
+    if (p === 3) return {showDialog: false, dialogueLines: []};
+    if (p === 4) return {showDialog: false, dialogueLines: []};
+    if (p === 5) return {showDialog: false, dialogueLines: []};
+    if (p === 6) return {showDialog: false, dialogueLines: []};
+    if (p === 7) return {showDialog: false, dialogueLines: []};
+  }
+  
+  // Add specific dialogue content for different pages here
+  // For now, using placeholder content
+  return {
+    showDialog: true,
+    dialogueLines: [
+      { person: 'person1', handle: 'person1', message: 'text' },
+      { person: 'person2', handle: 'person2', message: 'text2' }
+    ]
+  };
+}
+
+const dialogueData = getDialogueContent(chapter, page);
+---
+
+{dialogueData.showDialog && (
+  <>
+    <div class="mspa-pester-toggle-wrap">
+      <button id="btn-toggle-log" class="mspa-pester-toggle">Show Dialog</button>
+    </div>
+
+    <section id="pesterlog" class="pesterlog" hidden>
+      <div class="pesterlog-content">
+        {dialogueData.dialogueLines.map(line => (
+          <div class={`line ${line.person}`}>
+            <span class="handle">{line.handle}</span>: <span class="msg">{line.message}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  </>
+)}

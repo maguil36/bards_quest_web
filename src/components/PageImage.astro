@@ -1,0 +1,15 @@
+---
+import { getImageSrc } from '../utils/pageUtils';
+
+export interface Props {
+  page: number;
+  title: string;
+}
+
+const { page, title } = Astro.props;
+const imgSrc = getImageSrc(page);
+---
+
+<div class="frame mt-05" style="text-align:center">
+  <img src={imgSrc} alt={title} class="page" loading="eager" />
+</div>

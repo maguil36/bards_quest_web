@@ -1,0 +1,19 @@
+---
+import { getPageTitle, getNextPage } from '../utils/pageUtils';
+
+export interface Props {
+  chapter: any;
+  currentPage: number;
+}
+
+const { chapter, currentPage } = Astro.props;
+
+const nextPage = getNextPage(chapter, currentPage);
+const nextTitle = nextPage ? getPageTitle(chapter, nextPage) : null;
+---
+
+{nextPage && (
+  <p class="mspa-command">
+    <a id="cmd-next" href={`/read/${chapter.id}/${nextPage}`}>&gt; {nextTitle}</a>
+  </p>
+)}
