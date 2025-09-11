@@ -1,4 +1,4 @@
-# Comic Universe
+# Bards Quest
 
 A static Astro site for a multimedia comic with YouTube embeds and HTML5 games.
 
