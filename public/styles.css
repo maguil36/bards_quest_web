@@ -35,45 +35,52 @@
 }
 
 /* =============================
-   Aspect themes (tint surfaces so whole UI changes)
+  Aspect themes (tint surfaces so whole UI changes) 
    ============================= */
+
 html[data-theme="breath"] {
-  --accent: #00c8ff;
-  --bg: color-mix(in srgb, #0f1014 70%, #00c8ff 30%);
-  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #00c8ff 15%), color-mix(in srgb, #0a0b0e 85%, #00c8ff 15%));
-  --card: color-mix(in srgb, #13141a 85%, #00c8ff 15%);
-  --surface: color-mix(in srgb, #111217 85%, #00c8ff 15%);
-  --border: color-mix(in srgb, #23242c 70%, #00c8ff 30%);
+  --accent: #007eb4;
+  --bg: #F3F4F9;
+  --bg-soft: linear-gradient(180deg, #D6DAF0, #C5CAE9);
+  --text: #000000;
+  --muted: #666666;
+  --card: #D6DAF0;
+  --surface: #D6DAF0;
+  --border: #D6DAF0;
 }
 html[data-theme="light"] {
-  --accent: #ffd64d;
-  --bg: color-mix(in srgb, #0f1014 70%, #ffd64d 30%);
+  --accent: #ff8000;
+  --bg: #ffffff;
   --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #ffd64d 15%), color-mix(in srgb, #0a0b0e 85%, #ffd64d 15%));
-  --card: color-mix(in srgb, #13141a 85%, #ffd64d 15%);
-  --surface: color-mix(in srgb, #111217 85%, #ffd64d 15%);
-  --border: color-mix(in srgb, #23242c 70%, #ffd64d 30%);
+  --text: #000000;
+  --muted: #ff8000;
+  --card: #dddddd;
+  --surface: #dddddd;
+  --border: #cccccc;
 }
 html[data-theme="time"] {
   --accent: #ff4d4d;
   --bg: color-mix(in srgb, #0f1014 70%, #ff4d4d 30%);
   --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #ff4d4d 15%), color-mix(in srgb, #0a0b0e 85%, #ff4d4d 15%));
-  --card: color-mix(in srgb, #13141a 85%, #ff4d4d 15%);
+  --card: color-mix(in srgb, #13141a 80%, #ff4d4d 20%);
   --surface: color-mix(in srgb, #111217 85%, #ff4d4d 15%);
   --border: color-mix(in srgb, #23242c 70%, #ff4d4d 30%);
 }
 html[data-theme="space"] {
-  --accent: #d1d5db;
-  --bg: color-mix(in srgb, #0f1014 70%, #d1d5db 30%);
-  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #d1d5db 15%), color-mix(in srgb, #0a0b0e 85%, #d1d5db 15%));
-  --card: color-mix(in srgb, #13141a 85%, #d1d5db 15%);
-  --surface: color-mix(in srgb, #111217 85%, #d1d5db 15%);
-  --border: color-mix(in srgb, #23242c 70%, #d1d5db 30%);
+  --accent: #4da3ff;
+  --bg: #0f1014;
+  --bg-soft: linear-gradient(180deg, #0f1014, #0a0b0e);
+  --text: #e8e9ec;
+  --muted: #a9acb5;
+  --card: #13141a;
+  --surface: #111217;
+  --border: #23242c;
 }
 html[data-theme="heart"] {
   --accent: #ff4da6;
   --bg: color-mix(in srgb, #0f1014 70%, #ff4da6 30%);
   --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #ff4da6 15%), color-mix(in srgb, #0a0b0e 85%, #ff4da6 15%));
-  --card: color-mix(in srgb, #13141a 85%, #ff4da6 15%);
+  --card: color-mix(in srgb, #13141a 80%, #ff4da6 20%);
   --surface: color-mix(in srgb, #111217 85%, #ff4da6 15%);
   --border: color-mix(in srgb, #23242c 70%, #ff4da6 30%);
 }
@@ -81,55 +88,67 @@ html[data-theme="mind"] {
   --accent: #00c2a0;
   --bg: color-mix(in srgb, #0f1014 70%, #00c2a0 30%);
   --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #00c2a0 15%), color-mix(in srgb, #0a0b0e 85%, #00c2a0 15%));
-  --card: color-mix(in srgb, #13141a 85%, #00c2a0 15%);
+  --card: color-mix(in srgb, #13141a 80%, #00c2a0 20%);
   --surface: color-mix(in srgb, #111217 85%, #00c2a0 15%);
   --border: color-mix(in srgb, #23242c 70%, #00c2a0 30%);
 }
 html[data-theme="hope"] {
-  --accent: #ffd700;
-  --bg: color-mix(in srgb, #0f1014 70%, #ffd700 30%);
+  --accent: #df9f03;
+  --bg: color-mix(in srgb, #dddddd 95%, #ffd700 5%);
   --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #ffd700 15%), color-mix(in srgb, #0a0b0e 85%, #ffd700 15%));
-  --card: color-mix(in srgb, #13141a 85%, #ffd700 15%);
-  --surface: color-mix(in srgb, #111217 85%, #ffd700 15%);
-  --border: color-mix(in srgb, #23242c 70%, #ffd700 30%);
+  --text: #000000;
+  --muted: #df9f03;
+  --card: #eeeeee;
+  --surface: #ffffff;
+  --border: color-mix(in srgb, #ffffff 70%, #ffd700 30%);
 }
 html[data-theme="rage"] {
-  --accent: #a855f7;
+  --accent: #00ffff;
   --bg: color-mix(in srgb, #0f1014 70%, #a855f7 30%);
   --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #a855f7 15%), color-mix(in srgb, #0a0b0e 85%, #a855f7 15%));
+  --text: #ff00ff;
+  --muted: #00ffff;
   --card: color-mix(in srgb, #13141a 85%, #a855f7 15%);
   --surface: color-mix(in srgb, #111217 85%, #a855f7 15%);
-  --border: color-mix(in srgb, #23242c 70%, #a855f7 30%);
+  --border: #00ffff;
 }
 html[data-theme="life"] {
-  --accent: #22c55e;
-  --bg: color-mix(in srgb, #0f1014 70%, #22c55e 30%);
+  --accent: #043400;
+  --bg: #535353;
   --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #22c55e 15%), color-mix(in srgb, #0a0b0e 85%, #22c55e 15%));
-  --card: color-mix(in srgb, #13141a 85%, #22c55e 15%);
-  --surface: color-mix(in srgb, #111217 85%, #22c55e 15%);
-  --border: color-mix(in srgb, #23242c 70%, #22c55e 30%);
+  --text: #000000;
+  --muted: #33a038;
+  --card: #c6c6c6;
+  --surface: #efefef;
+  --border: #00000000;
 }
 html[data-theme="doom"] {
-  --accent: #14b8a6;
-  --bg: color-mix(in srgb, #0f1014 70%, #14b8a6 30%);
-  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #14b8a6 15%), color-mix(in srgb, #0a0b0e 85%, #14b8a6 15%));
-  --card: color-mix(in srgb, #13141a 85%, #14b8a6 15%);
-  --surface: color-mix(in srgb, #111217 85%, #14b8a6 15%);
-  --border: color-mix(in srgb, #23242c 70%, #14b8a6 30%);
+  --accent: #204020;
+  --bg: #000000;
+  --bg-soft: #444444; 
+  --text: #000000;
+  --muted: #204020;
+  --card: #555555;
+  --surface: #888888;
+  --border: #555555;
 }
 html[data-theme="blood"] {
-  --accent: #b91c1c;
-  --bg: color-mix(in srgb, #0f1014 70%, #b91c1c 30%);
-  --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #b91c1c 15%), color-mix(in srgb, #0a0b0e 85%, #b91c1c 15%));
-  --card: color-mix(in srgb, #13141a 85%, #b91c1c 15%);
-  --surface: color-mix(in srgb, #111217 85%, #b91c1c 15%);
-  --border: color-mix(in srgb, #23242c 70%, #b91c1c 30%);
+  --accent: #100068;
+  --bg: #ffffee;
+  --bg-soft: linear-gradient(180deg, #FFE4E1, #FFCCCB);
+  --text: #800000;
+  --muted: #527d54;
+  --card: #f0dfd6;
+  --surface: #f0dfd6;
+  --border: #f0dfd6;
 }
 html[data-theme="void"] {
   --accent: #4f46e5;
   --bg: color-mix(in srgb, #0f1014 70%, #4f46e5 30%);
   --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #4f46e5 15%), color-mix(in srgb, #0a0b0e 85%, #4f46e5 15%));
-  --card: color-mix(in srgb, #13141a 85%, #4f46e5 15%);
+  --text: #ffffff;
+  --muted: #ffffff;
+  --card: color-mix(in srgb, #13141a 80%, #4f46e5 20%);
   --surface: color-mix(in srgb, #111217 85%, #4f46e5 15%);
   --border: color-mix(in srgb, #23242c 70%, #4f46e5 30%);
 }

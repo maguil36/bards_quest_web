@@ -37,8 +37,8 @@ const links = [
         try {
           var d = document.documentElement;
           // Theme
-          var theme = (function(){ try { return localStorage.getItem('mspa:theme') || 'default'; } catch { return 'default'; } })();
-          if (theme && theme !== 'default') d.setAttribute('data-theme', theme); else d.removeAttribute('data-theme');
+          var theme = (function(){ try { return localStorage.getItem('mspa:theme') || 'space'; } catch { return 'space'; } })();
+          if (theme && theme !== 'space') d.setAttribute('data-theme', theme); else d.removeAttribute('data-theme');
           // Desktop layout toggle
           var desktop = (function(){ try { return localStorage.getItem('mspa:ui:desktop') === '1'; } catch { return false; } })();
           d.setAttribute('data-desktop', desktop ? '1' : '0');

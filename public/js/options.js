@@ -37,10 +37,10 @@
 
   // Page theme (dropdown)
   const selTheme = $('#opt-theme');
-  function applyTheme(){ const t = selTheme?.value || get(K.theme,'default') || 'default'; if (selTheme) selTheme.value = t; if (t==='default') { document.documentElement.removeAttribute('data-theme'); } else { document.documentElement.setAttribute('data-theme', t); } set(K.theme, t); }
+  function applyTheme(){ const t = selTheme?.value || get(K.theme,'space') || 'space'; if (selTheme) selTheme.value = t; if (t==='space') { document.documentElement.removeAttribute('data-theme'); } else { document.documentElement.setAttribute('data-theme', t); } set(K.theme, t); }
   selTheme && selTheme.addEventListener('change', applyTheme);
-  // Initialize theme select from storage
-  (function(){ const stored = get(K.theme, 'default'); if (selTheme) selTheme.value = stored; })();
+  // Load stored theme on page load
+  (function(){ const stored = get(K.theme, 'space'); if (selTheme) selTheme.value = stored; })();
   applyTheme();
 
   // Page font (dropdown: affects site UI titles and text)
