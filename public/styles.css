@@ -32,6 +32,32 @@
   /* Quest log persona defaults */
   --p1: #00AEEF; /* cyan */
   --p2: #FF0066; /* magenta */
+  /* beta kids*/
+  --alexis: #6600ff; /* tr */
+  --austine: #5db473; /* mm */
+  --chloe: #9cff86; /* rl */
+  --isabell: #d85221; /* sb */
+  --nicholas: #fa8e00; /* pl */
+  --opal: #d5ffe6; /* ks */
+  --tyson: #434c00; /* pd */
+  --victor: #ff8eb4; /* bt */
+  /* alpha kids*/
+  --alice: #8f009c; /* mr */
+  --audrey: #ddff00; /* wd */
+  --clayton: #939393; /* hm */
+  --irene: #bf6731; /* mb */
+  --nix: #ffcc00; /* ?? */
+  --nix2: #000080;
+  --octavian: #3700fc; /* ?? */
+  --trenton: #63aeff; /* sb */
+  --vettia: #ffec8b; /* sh */
+  /*crypids*/
+  --okwos: #050027; /* kv */
+  --gwenhas: #888888; /* rs */
+  --dhesas: #ff0000; /* tt */
+  --redacted: #ffbb00; /* sd */
+  /*other*/
+  --all: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080);
 }
 
 /* =============================
@@ -148,9 +174,9 @@ html[data-theme="void"] {
   --bg-soft: linear-gradient(180deg, color-mix(in srgb, #0f1014 85%, #4f46e5 15%), color-mix(in srgb, #0a0b0e 85%, #4f46e5 15%));
   --text: #ffffff;
   --muted: #ffffff;
-  --card: color-mix(in srgb, #13141a 80%, #4f46e5 20%);
-  --surface: color-mix(in srgb, #111217 85%, #4f46e5 15%);
-  --border: color-mix(in srgb, #23242c 70%, #4f46e5 30%);
+  --card: color-mix(in srgb, #0f1014 70%, #4f46e5 30%);
+  --surface: color-mix(in srgb, #0f1014 70%, #4f46e5 30%);
+  --border: #00000000;
 }
 
 /* Desktop mode tweaks */
@@ -163,7 +189,7 @@ html[data-contrast="high"] .pesterlog .person2 .handle,
 html[data-contrast="high"] .pesterlog .person2 .msg { color: #ff6aa3; text-shadow: 0 0 2px rgba(0,0,0,.6); }
 
 /* =============================
-   Global reset and utilities
+  Global reset and utilities
    ============================= */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -247,16 +273,117 @@ body.mspa { background: var(--bg); color: var(--text); }
 .mspa-command a { color: var(--accent); text-decoration: underline; display: inline-block; }
 
 /* Quest Log */
-.pesterlog { margin-top: .6rem; border: 1px solid var(--border); background: var(--surface); padding: .6rem; }
+.pesterlog { margin-top: .6rem; border: 1px solid var(--border); background: #ffffff; padding: .6rem; }
 .pesterlog-content { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: var(--reader-text, 18px); line-height: 1.6; color: var(--text); }
 .pesterlog .line { margin: .25rem 0; }
 .pesterlog .handle { font-weight: 700; }
 /* Persona coloring for both handle and msg */
-.pesterlog .person1 .handle, .pesterlog .person1 .msg { color: var(--p1); }
-.pesterlog .person2 .handle, .pesterlog .person2 .msg { color: var(--p2); }
+html[data-contrast="high"] .pesterlog .alexis .handle,
+html[data-contrast="high"] .pesterlog .alexis .msg { color: var(--alexis); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .austine .handle, .pesterlog .austine .msg { color: var(--austine); }
+html[data-contrast="high"] .pesterlog .austine .handle,
+html[data-contrast="high"] .pesterlog .austine .msg { color: var(--austine); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .chloe .handle, .pesterlog .chloe .msg { color: var(--chloe); }
+html[data-contrast="high"] .pesterlog .chloe .handle,
+html[data-contrast="high"] .pesterlog .chloe .msg { color: var(--chloe); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .isabell .handle, .pesterlog .isabell .msg { color: var(--isabell); }
+html[data-contrast="high"] .pesterlog .isabell .handle,
+html[data-contrast="high"] .pesterlog .isabell .msg { color: var(--isabell); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .nicholas .handle, .pesterlog .nicholas .msg { color: var(--nicholas); }
+html[data-contrast="high"] .pesterlog .nicholas .handle,
+html[data-contrast="high"] .pesterlog .nicholas .msg { color: var(--nicholas); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .opal .handle, .pesterlog .opal .msg { color: var(--opal); }
+html[data-contrast="high"] .pesterlog .opal .handle,
+html[data-contrast="high"] .pesterlog .opal .msg { color: var(--opal); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .tyson .handle, .pesterlog .tyson .msg { color: var(--tyson); }
+html[data-contrast="high"] .pesterlog .tyson .handle,
+html[data-contrast="high"] .pesterlog .tyson .msg { color: var(--tyson); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .victor .handle, .pesterlog .victor .msg { color: var(--victor); }
+html[data-contrast="high"] .pesterlog .victor .handle,
+html[data-contrast="high"] .pesterlog .victor .msg { color: var(--victor); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .alice .handle, .pesterlog .alice .msg { color: var(--alice); }
+html[data-contrast="high"] .pesterlog .alice .handle,
+html[data-contrast="high"] .pesterlog .alice .msg { color: var(--alice); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .audrey .handle, .pesterlog .audrey .msg { color: var(--audrey); }
+html[data-contrast="high"] .pesterlog .audrey .handle,
+html[data-contrast="high"] .pesterlog .audrey .msg { color: var(--audrey); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .clayton .handle, .pesterlog .clayton .msg { color: var(--clayton); }
+html[data-contrast="high"] .pesterlog .clayton .handle,
+html[data-contrast="high"] .pesterlog .clayton .msg { color: var(--clayton); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .irene .handle, .pesterlog .irene .msg { color: var(--irene); }
+html[data-contrast="high"] .pesterlog .irene .handle,
+html[data-contrast="high"] .pesterlog .irene .msg { color: var(--irene); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .nix .handle, .pesterlog .nix .msg { color: var(--nix); }
+html[data-contrast="high"] .pesterlog .nix .handle,
+html[data-contrast="high"] .pesterlog .nix .msg { color: var(--nix); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .nix2 .handle, .pesterlog .nix2 .msg { color: var(--nix2); text-shadow: 0 0 1px currentColor; }
+html[data-contrast="high"] .pesterlog .nix2 .handle,
+html[data-contrast="high"] .pesterlog .nix2 .msg { color: var(--nix2); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .octavian .handle, .pesterlog .octavian .msg { color: var(--octavian); }
+html[data-contrast="high"] .pesterlog .octavian .handle,
+html[data-contrast="high"] .pesterlog .octavian .msg { color: var(--octavian); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .trenton .handle, .pesterlog .trenton .msg { color: var(--trenton); }
+html[data-contrast="high"] .pesterlog .trenton .handle,
+html[data-contrast="high"] .pesterlog .trenton .msg { color: var(--trenton); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .vettia .handle, .pesterlog .vettia .msg { color: var(--vettia); }
+html[data-contrast="high"] .pesterlog .vettia .handle,
+html[data-contrast="high"] .pesterlog .vettia .msg { color: var(--vettia); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .okwos .handle, .pesterlog .okwos .msg { color: var(--okwos); }
+html[data-contrast="high"] .pesterlog .okwos .handle,
+html[data-contrast="high"] .pesterlog .okwos .msg { color: var(--okwos); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .gwenhas .handle, .pesterlog .gwenhas .msg { color: var(--gwenhas); }
+html[data-contrast="high"] .pesterlog .gwenhas .handle,
+html[data-contrast="high"] .pesterlog .gwenhas .msg { color: var(--gwenhas); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .dhesas .handle, .pesterlog .dhesas .msg { color: var(--dhesas); }
+html[data-contrast="high"] .pesterlog .dhesas .handle,
+html[data-contrast="high"] .pesterlog .dhesas .msg { color: var(--dhesas); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+
+.pesterlog .redacted .handle, .pesterlog .redacted .msg { color: var(--redacted); }
+html[data-contrast="high"] .pesterlog .redacted .handle,
+html[data-contrast="high"] .pesterlog .redacted .msg { color: var(--redacted); text-shadow: 0 0 2px rgba(0,0,0,.6); }
+@keyframes rainbow-neon {
+  0% { color: hsl(0, 100%, 60%); text-shadow: 0 0 3px currentColor; }
+  14.28% { color: hsl(51, 100%, 60%); text-shadow: 0 0 3px currentColor; }
+  28.57% { color: hsl(102, 100%, 60%); text-shadow: 0 0 3px currentColor; }
+  42.86% { color: hsl(153, 100%, 60%); text-shadow: 0 0 3px currentColor; }
+  57.14% { color: hsl(204, 100%, 60%); text-shadow: 0 0 3px currentColor; }
+  71.43% { color: hsl(255, 100%, 60%); text-shadow: 0 0 3px currentColor; }
+  85.71% { color: hsl(306, 100%, 60%); text-shadow: 0 0 3px currentColor; }
+  100% { color: hsl(360, 100%, 60%); text-shadow: 0 0 3px currentColor; }
+}
+.pesterlog .all .handle, .pesterlog .all .msg { 
+  animation: rainbow-neon .5s linear infinite;
+}
+@keyframes black-white {
+  0% { color: hsl(0, 0%, 100%); text-shadow: 0 0 5px currentColor; }
+  50% { color: hsl(0, 0%, 0%); text-shadow: 0 0 5px currentColor; }
+  100% { color: hsl(0, 0%, 100%); text-shadow: 0 0 5px currentColor; }
+}
+.pesterlog .none .handle, .pesterlog .none .msg { 
+  animation: black-white 10s linear infinite;
+}
 
 /* =============================
-   Options page (single-column list)
+  Options page (single-column list)
    ============================= */
 .opt-list { text-align: left; background: var(--card); border: 1px solid var(--border); }
 .opt-row { display: block; padding: .7rem .8rem; border-top: 1px solid var(--border); }
@@ -282,7 +409,7 @@ body.mspa { background: var(--bg); color: var(--text); }
 .opt-control input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; }
 
 /* =============================
-   Map page (book → chapters → waypoints)
+  Map page (book → chapters → waypoints)
    ============================= */
 .mspa-chapter { margin-top: 1rem; }
 .mspa-chapter-header { margin: .4rem 0 .6rem; color: var(--muted); font-size: 14px; }
