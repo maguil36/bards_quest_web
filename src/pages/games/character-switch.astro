@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const { seed } = Astro.url.searchParams;
+const gameSeed = seed || Math.floor(Math.random() * 1000000);
+---
+
+<BaseLayout 
+    title="Character Switch Game - Bards Quest"
+    description="Interactive character switching adventure game"
+    showHeader={false}
+    showFooter={false}
+    bodyClass="game-page"
+>
+    <div class="game-wrapper">
+        <iframe 
+            src={`/games/character-switch.html?seed=${gameSeed}`}
+            width="800" 
+            height="600"
+            frameborder="0"
+            id="gameFrame"
+        ></iframe>
+    </div>
+    
+    <script>
+        // Listen for game completion message
+        window.addEventListener('message', (event) => {
+            if (event.data === 'gameComplete') {
+                // Navigate to next comic page
+                // Adjust this path based on your comic structure
+                window.location.href = '/read/1/2';
+            }
+        });
+    </script>
+    
+    <style>
+        .game-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #000;
+        }
+        
+        #gameFrame {
+            border: 2px solid #333;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        body.game-page {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</BaseLayout>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Switch - Character Adventure Game</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #gameCanvas {
+            border: 2px solid var(--border);
+            background: var(--surface);
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+         #dialogueBox {
+             position: absolute;
+             bottom: 20px;
+             left: 50%;
+             transform: translateX(-50%);
+             width: 80%;
+             max-width: 700px;
+             background: var(--card);
+             border: 2px solid var(--border);
+             border-radius: 8px;
+             padding: 16px 16px 8px 16px;
+             display: none;
+             z-index: 100;
+         }
+
+         #dialogueText {
+             font-size: 18px;
+             line-height: 1.6;
+             margin-bottom: 8px;
+             padding: 8px 10px;
+             border-radius: 6px;
+             background: var(--surface);
+         }
+
+         .speaker-player #dialogueText {
+             box-shadow: 0 0 0 2px var(--accent);
+         }
+         .speaker-npc #dialogueText {
+             box-shadow: 0 0 0 2px var(--border);
+         }
+
+         #dialoguePrompt {
+             font-size: 14px;
+             color: var(--muted);
+             text-align: right;
+         }
+
+         #characterPortraits {
+             position: absolute;
+             top: 50%;
+             left: 50%;
+             transform: translate(-50%, -50%);
+             width: 80%;
+             max-width: 800px;
+             height: 360px;
+             display: none;
+             z-index: 99;
+         }
+
+         .portrait {
+             position: absolute;
+             width: 280px;
+             height: 360px;
+             background: var(--surface);
+             border: 2px solid var(--border);
+             border-radius: 8px;
+             transition: outline-color 0.15s ease;
+         }
+
+         .portrait.left {
+             left: 0;
+         }
+
+         .portrait.right {
+             right: 0;
+         }
+        
+        #switchPrompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            display: none;
+            z-index: 101;
+        }
+        
+        #switchPrompt button {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        #switchPrompt button:hover {
+            opacity: 0.8;
+        }
+        
+        #glitchOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: none;
+            z-index: 200;
+            animation: glitch 0.1s infinite;
+        }
+        
+        @keyframes glitch {
+            0% { 
+                background: black;
+                filter: hue-rotate(0deg) saturate(1);
+            }
+            10% { 
+                background: #ff0000;
+                filter: hue-rotate(90deg) saturate(3);
+            }
+            20% { 
+                background: #00ff00;
+                filter: hue-rotate(180deg) saturate(3);
+            }
+            30% { 
+                background: #0000ff;
+                filter: hue-rotate(270deg) saturate(3);
+            }
+            40% { 
+                background: #ffffff;
+                filter: invert(1);
+            }
+            50% { 
+                background: #ff00ff;
+                filter: hue-rotate(45deg) saturate(5);
+            }
+            60% { 
+                background: #ffff00;
+                filter: hue-rotate(135deg) saturate(5);
+            }
+            70% { 
+                background: #00ffff;
+                filter: hue-rotate(225deg) saturate(5);
+            }
+            80% { 
+                background: black;
+                filter: contrast(10);
+            }
+            90% { 
+                background: white;
+                filter: contrast(0.1);
+            }
+            100% { 
+                background: black;
+                filter: hue-rotate(360deg) saturate(1);
+            }
+        }
+        
+        #errorMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            text-align: center;
+            display: none;
+            z-index: 201;
+            text-shadow: 0 0 10px #ff0000;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+        }
+        
+        #currentCharacter {
+            background: var(--card);
+            border: 2px solid var(--border);
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        #instructions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--card);
+            border: 2px solid var(--border);
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            max-width: 200px;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="ui">
+            <div id="currentCharacter">Playing as: <span id="characterName">Breath</span></div>
+        </div>
+        
+        <div id="instructions">
+            <strong>Controls:</strong><br>
+            WASD or Arrow Keys - Move<br>
+            SPACE - Interact<br>
+            ESC - Character Menu
+        </div>
+        
+        <div id="dialogueBox">
+            <div id="dialogueText"></div>
+            <div id="dialoguePrompt">Press SPACE to continue...</div>
+        </div>
+        
+        <div id="characterPortraits">
+            <div class="portrait left" id="leftPortrait"></div>
+            <div class="portrait right" id="rightPortrait"></div>
+        </div>
+        
+        <div id="switchPrompt">
+            <h3>Switch Character?</h3>
+            <p>You've talked to everyone as <span id="switchFromCharacter"></span>.</p>
+            <p>Would you like to switch to <span id="switchToCharacter"></span>?</p>
+            <button id="switchYes">Yes, Switch!</button>
+            <button id="switchNo">Not Yet</button>
+        </div>
+        
+        <div id="glitchOverlay"></div>
+        <div id="errorMessage">
+            ERROR: REALITY.EXE HAS STOPPED WORKING<br>
+            ATTEMPTING TO RECOVER...<br>
+            SWITCHING TO BACKUP REALITY...
+        </div>
+    </div>
+    
+    <audio id="backgroundMusic" loop></audio>
+    
+    <script src="characters.js"></script>
+    <script src="dialogue.js"></script>
+    <script src="audio.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

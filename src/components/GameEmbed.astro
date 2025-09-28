@@ -1,0 +1,111 @@
+---
+export interface Props {
+    gameType: string;
+    seed?: number;
+    width?: number;
+    height?: number;
+    chapter?: any;
+    page?: number;
+}
+
+const { 
+    gameType, 
+    seed = Math.floor(Math.random() * 1000000), 
+    width = 650, 
+    height = 450,
+    chapter,
+    page 
+} = Astro.props;
+
+ // Map game types to their HTML files
+const gameFiles: Record<string, string> = {
+    'switch': '/games/switch/index.html',
+    // Add more games here as you create them
+    // 'puzzle-game': '/games/puzzle-game.html',
+    // 'adventure-game': '/games/adventure-game.html',
+};
+
+const gameUrl = gameFiles[gameType];
+if (!gameUrl) {
+    throw new Error(`Unknown game type: ${gameType}`);
+}
+
+// Build the full game URL with parameters
+const gameParams = new URLSearchParams();
+gameParams.set('seed', seed.toString());
+if (chapter) gameParams.set('chapter', chapter.id?.toString() || '1');
+if (page) gameParams.set('page', page.toString());
+
+const fullGameUrl = `${gameUrl}?${gameParams.toString()}`;
+---
+
+<div class="game-embed-container" data-game-type={gameType}>
+    <iframe
+        src={fullGameUrl}
+        width={width}
+        height={height}
+        class="game-iframe"
+        title={`${gameType} game`}
+        loading="lazy"
+        style="border: none;"
+    ></iframe>
+
+    <!-- Game completion handler -->
+    <script is:inline define:vars={{ chapter, page }}>
+        // Listen for game completion messages
+        window.addEventListener('message', (event) => {
+            if (event.data === 'gameComplete') {
+                // Navigate to next comic page
+                const currentChapter = chapter?.id || 1;
+                const currentPage = page || 1;
+                const nextPage = currentPage + 1;
+
+                // Try to go to next page in same chapter first
+                window.location.href = `/read/${currentChapter}/${nextPage}`;
+            }
+        });
+    </script>
+</div>
+
+<style>
+    .game-embed-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        background: #000;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .game-iframe {
+        display: block;
+        border: none;
+        background: #000;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .game-embed-container {
+            margin: 10px -20px;
+        }
+        
+        .game-iframe {
+            width: 100% !important;
+            height: 400px !important;
+        }
+    }
+    
+    /* Loading state */
+    .game-embed-container::before {
+        content: 'Loading game...';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        z-index: -1;
+    }
+</style>

@@ -1,13 +1,14 @@
 ---
 import MSPALayout from '../../../layouts/MSPALayout.astro';
 import { chapters, getChapter } from '../../../content.js';
-import { getPageTitle, getImageSrc, getNextPage } from '../../../utils/pageUtils';
+import { getPageTitle, getImageSrc, getNextPage, shouldShowGame, getGameConfig } from '../../../utils/pageUtils';
 import PageTitle from '../../../components/PageTitle.astro';
 import PageImage from '../../../components/PageImage.astro';
 import PageNarration from '../../../components/PageNarration.astro';
 import DialogueBox from '../../../components/DialogueBox.astro';
 import NavigationCommand from '../../../components/NavigationCommand.astro';
 import UtilityLinks from '../../../components/UtilityLinks.astro';
+import GameEmbed from '../../../components/GameEmbed.astro';
 
 export function getStaticPaths() {
   const paths = [];
@@ -31,8 +32,12 @@ try {
 const currentPage = Number(page);
 const nextPage = getNextPage(chapter, currentPage);
 
-// Preload next image for better performance
-const nextImgSrc = nextPage ? getImageSrc(nextPage) : null;
+// Check if this page should show a game instead of an image
+const showGame = shouldShowGame(chapter, currentPage);
+const gameConfig = showGame ? getGameConfig(chapter, currentPage) : null;
+
+// Preload next image for better performance (only if not showing a game)
+const nextImgSrc = !showGame && nextPage ? getImageSrc(nextPage) : null;
 
 // Get page title for the layout using centralized utility
 const pageTitle = getPageTitle(chapter, currentPage);
@@ -42,15 +47,26 @@ const pageTitle = getPageTitle(chapter, currentPage);
 
   <article id="reader-root" class="reader" data-chapter={chapter.id} data-total={chapter.totalPages} data-page={currentPage}>
     <PageTitle chapter={chapter} page={currentPage} />
-    
-    <PageImage page={currentPage} title={pageTitle} />
-    
+
+    {showGame && gameConfig ? (
+      <GameEmbed
+        gameType={gameConfig.gameType}
+        seed={gameConfig.seed}
+        width={gameConfig.width}
+        height={gameConfig.height}
+        chapter={chapter}
+        page={currentPage}
+      />
+    ) : (
+      <PageImage page={currentPage} title={pageTitle} />
+    )}
+
     <PageNarration chapter={chapter} page={currentPage} />
-    
+
     <DialogueBox chapter={chapter} page={currentPage} />
-    
+
     <NavigationCommand chapter={chapter} currentPage={currentPage} />
-    
+
     <UtilityLinks />
   </article>
 
