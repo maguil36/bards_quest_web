@@ -1,4 +1,4 @@
-// Audio management system for the Switch game
+ // Audio management system for the Switch game
 class AudioManager {
     constructor() {
         this.backgroundMusic = document.getElementById('backgroundMusic');
@@ -9,40 +9,40 @@ class AudioManager {
 
         // Initialize audio settings
         this.backgroundMusic.volume = this.volume;
+        this.backgroundMusic.loop = true; // ensure looping
+        this.backgroundMusic.preload = 'auto';
+        try { this.backgroundMusic.crossOrigin = 'anonymous'; } catch (_) {}
 
         // Load settings from localStorage
         this.loadSettings();
 
-        // Handle audio loading errors gracefully
-        this.backgroundMusic.addEventListener('error', (e) => {
-            console.warn('Audio loading error:', e);
-            this.isEnabled = false;
-        });
-
+        // Note: Do not disable audio on play() errors; browsers often block
+        // autoplay until user interaction. We'll retry on user input.
         this.backgroundMusic.addEventListener('canplaythrough', () => {
             this.isEnabled = true;
         });
     }
 
-    // Play background music for a character
+    // Require a file named after the character id only (no legacy fallbacks)
     playCharacterMusic(characterId) {
-        if (!this.isEnabled || this.isMuted) return;
+        if (this.isMuted) return;
 
-        const character = (typeof CHARACTERS !== 'undefined') ? CHARACTERS[characterId] : null;
-        if (!character || !character.music) return;
+        const audio = this.backgroundMusic;
 
-        // Don't restart the same track
-        if (this.currentTrack === character.music) return;
+        // Require a file named after the character id only (no legacy fallbacks)
+        const nextTrack = `audio/${characterId}.mp3`;
 
-        this.currentTrack = character.music;
-        this.backgroundMusic.src = character.music;
+        if (this.currentTrack !== nextTrack) {
+            this.currentTrack = nextTrack;
+            audio.src = nextTrack;
+        }
 
-        // Play with error handling
-        const playPromise = this.backgroundMusic.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.warn('Audio play failed:', error);
-                this.isEnabled = false;
+        // Attempt to play (may be blocked until user interaction)
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {
+                // Likely autoplay policy; do not disable audio.
+                // Music will start on the next user interaction.
             });
         }
     }
@@ -121,54 +121,14 @@ class AudioManager {
     }
 }
 
-// Character-specific music themes mapped to new character IDs
+// Keep an exported mapping for documentation or UI, but runtime uses the derived filenames
 const MUSIC_THEMES = {
-    alexis: {
-        url: 'audio/breath.mp3',
-        description: 'Flowing, airy melody with wind instruments',
-        tempo: 'Moderate',
-        mood: 'Peaceful, liberating'
-    },
-    austine: {
-        url: 'audio/light.mp3',
-        description: 'Bright, uplifting orchestral piece',
-        tempo: 'Upbeat',
-        mood: 'Optimistic, energetic'
-    },
-    chloe: {
-        url: 'audio/time.mp3',
-        description: 'Mysterious, clock-like rhythmic patterns',
-        tempo: 'Variable',
-        mood: 'Mysterious, contemplative'
-    },
-    isabell: {
-        url: 'audio/space.mp3',
-        description: 'Ambient cosmic tones and echoes',
-        tempo: 'Slow',
-        mood: 'Vast, curious'
-    },
-    nicholas: {
-        url: 'audio/heart.mp3',
-        description: 'Warm, emotive chords',
-        tempo: 'Moderate',
-        mood: 'Tender, passionate'
-    },
-    opal: {
-        url: 'audio/mind.mp3',
-        description: 'Clean, logical arpeggios',
-        tempo: 'Steady',
-        mood: 'Focused, analytical'
-    },
-    tyson: {
-        url: 'audio/hope.mp3',
-        description: 'Rising melodic motifs',
-        tempo: 'Upbeat',
-        mood: 'Optimistic'
-    },
-    victor: {
-        url: 'audio/rage.mp3',
-        description: 'Intense, driving rhythms',
-        tempo: 'Fast',
-        mood: 'Righteous, fierce'
-    }
+    alexis: { url: 'audio/alexis.mp3'}, // purple bard
+    austine: { url: 'audio/austine.mp3'}, // 
+    chloe: { url: 'audio/chloe.mp3'}, // 
+    isabell: { url: 'audio/isabell.mp3'}, // 
+    nicholas: { url: 'audio/nicholas.mp3'}, // checkmate
+    opal: { url: 'audio/opal.mp3'}, // pilot light
+    tyson: { url: 'audio/tyson.mp3'}, // 
+    victor: { url: 'audio/victor.mp3'} // a;slidhoerg;oajksd;guei;vrghian;ifuvgh;i
 };

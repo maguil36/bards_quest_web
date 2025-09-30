@@ -18,16 +18,16 @@ const CHAR_COLORS = {
   victor: getCSSVar('--victor'),
 };
 
-// Character to music theme mapping (re-uses existing audio assets)
+ // Character to music theme mapping (re-uses existing audio assets)
 const MUSIC_MAP = {
-  alexis: 'audio/breath.mp3',
-  austine: 'audio/light.mp3',
-  chloe: 'audio/time.mp3',
-  isabell: 'audio/space.mp3',
-  nicholas: 'audio/heart.mp3',
-  opal: 'audio/mind.mp3',
-  tyson: 'audio/hope.mp3',
-  victor: 'audio/rage.mp3',
+  alexis: 'audio/alexis.mp3',
+  austine: 'audio/austine.mp3',
+  chloe: 'audio/chloe.mp3',
+  isabell: 'audio/isabell.mp3',
+  nicholas: 'audio/nicholas.mp3',
+  opal: 'audio/opal.mp3',
+  tyson: 'audio/tyson.mp3',
+  victor: 'audio/victor.mp3',
 };
 
 // Character definitions based on the 8 persona names from styles.css

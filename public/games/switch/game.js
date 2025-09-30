@@ -446,10 +446,9 @@ class SwitchGame {
 
         // Check for nearby NPCs
         for (const npc of this.npcs) {
-            const distance = Math.sqrt(
-                Math.pow(playerCenterX - (npc.position.x + 16), 2) +
-                Math.pow(playerCenterY - (npc.position.y + 16), 2)
-            );
+            const dx = playerCenterX - (npc.position.x + 16);
+            const dy = playerCenterY - (npc.position.y + 16);
+            const distance = Math.hypot(dx, dy);
 
             if (distance < interactionDistance) {
                 // Show interaction hint (could add UI element here)
@@ -467,18 +466,13 @@ class SwitchGame {
         let closestNPC = null;
         let closestDistance = interactionDistance;
 
-        // Determine current player's id to prevent interacting with self
-        const currentChar = this.gameState.getCurrentCharacter();
-        const currentCharId = currentChar ? currentChar.id : null;
-
         for (const npc of this.npcs) {
             // Do not allow interacting with your own avatar
-            if (npc.id === currentCharId) continue;
+            if (npc.id === this.gameState.currentCharacter) continue;
 
-            const distance = Math.sqrt(
-                Math.pow(playerCenterX - (npc.position.x + 16), 2) +
-                Math.pow(playerCenterY - (npc.position.y + 16), 2)
-            );
+            const dx = playerCenterX - (npc.position.x + 16);
+            const dy = playerCenterY - (npc.position.y + 16);
+            const distance = Math.hypot(dx, dy);
 
             if (distance < closestDistance) {
                 closestNPC = npc;
