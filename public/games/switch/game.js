@@ -463,11 +463,18 @@ class SwitchGame {
         const playerCenterY = this.player.y + this.player.height / 2;
         const interactionDistance = 50;
 
-        // Find closest NPC
+        // Find closest NPC (playable character avatars in the world)
         let closestNPC = null;
         let closestDistance = interactionDistance;
 
+        // Determine current player's id to prevent interacting with self
+        const currentChar = this.gameState.getCurrentCharacter();
+        const currentCharId = currentChar ? currentChar.id : null;
+
         for (const npc of this.npcs) {
+            // Do not allow interacting with your own avatar
+            if (npc.id === currentCharId) continue;
+
             const distance = Math.sqrt(
                 Math.pow(playerCenterX - (npc.position.x + 16), 2) +
                 Math.pow(playerCenterY - (npc.position.y + 16), 2)
@@ -486,6 +493,14 @@ class SwitchGame {
 
     startDialogue(npcId) {
         if (this.dialogueManager.startDialogue(npcId)) {
+            // Track last talked-to NPC for switching logic
+            if (this.gameState && typeof this.gameState.setLastTalkedNPC === 'function') {
+                this.gameState.setLastTalkedNPC(npcId);
+                if (typeof this.gameState.save === 'function') {
+                    this.gameState.save();
+                }
+            }
+
             this.showingDialogue = true;
             this.showDialogueUI();
         }
@@ -552,14 +567,29 @@ class SwitchGame {
         this.showingDialogue = false;
         this.dialogueBox.style.display = 'none';
         this.characterPortraits.style.display = 'none';
+
+        // If there is a last-talked NPC recorded, unlock them as a playable character
+        // (but do not unlock if they are marked as the final character).
+        const lastId = this.gameState.lastNPCTalkedId;
+        if (lastId && CHARACTERS[lastId] && !CHARACTERS[lastId].isFinalCharacter) {
+            if (typeof this.gameState.unlockCharacter === 'function') {
+                this.gameState.unlockCharacter(lastId);
+            }
+            if (typeof this.gameState.save === 'function') {
+                this.gameState.save();
+            }
+        }
     }
 
     showSwitchPrompt() {
-        const availableCharacters = this.gameState.getAvailableCharacters();
-        if (availableCharacters.length === 0) return;
-
         const currentChar = this.gameState.getCurrentCharacter();
-        const nextChar = availableCharacters[0]; // For simplicity, pick the first available
+
+        // Preferred next character: the last non-final NPC we talked to (not self)
+        const targetId = this.gameState.getLastSwitchTarget(currentChar.id);
+        if (!targetId) return; // If none, don’t show prompt
+
+        const nextChar = CHARACTERS[targetId];
+        if (!nextChar) return;
 
         document.getElementById('switchFromCharacter').textContent = currentChar.name;
         document.getElementById('switchToCharacter').textContent = nextChar.name;
@@ -574,13 +604,11 @@ class SwitchGame {
             this.characterPortraits.style.display = 'block';
 
             if (this.leftPortrait) {
-                // leftPortrait is a div; use textContent and outline instead of img properties
                 this.leftPortrait.textContent = currentChar.name;
                 this.leftPortrait.style.outline = `4px solid ${currentChar.color || '#888'}`;
             }
 
             if (this.rightPortrait) {
-                // rightPortrait is a div; use textContent and outline instead of img properties
                 this.rightPortrait.textContent = nextChar.name;
                 this.rightPortrait.style.outline = `4px solid ${nextChar.color || '#888'}`;
             }

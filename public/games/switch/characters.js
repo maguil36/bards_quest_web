@@ -125,63 +125,55 @@ function refreshCharacterColors() {
   }
 }
 
-// NPCs that need to be talked to
+ // NPCs that need to be talked to (now the same as the playable characters)
 const NPCS = [
   {
-    id: 'npc1',
-    name: 'The Wanderer',
-    position: { x: 150, y: 150 },
-    sprite: 'sprites/npcs/wanderer.png',
-    portraitSprite: 'sprites/npcs/wanderer_portrait.png',
-    color: '#888888',
+    id: 'alexis',
+    name: 'Alexis',
+    position: { x: 400, y: 300 },
+    color: CHAR_COLORS.alexis,
   },
   {
-    id: 'npc2',
-    name: 'The Guardian',
-    position: { x: 650, y: 150 },
-    sprite: 'sprites/npcs/guardian.png',
-    portraitSprite: 'sprites/npcs/guardian_portrait.png',
-    color: '#4a90e2',
+    id: 'austine',
+    name: 'Austine',
+    position: { x: 200, y: 200 },
+    color: CHAR_COLORS.austine,
   },
   {
-    id: 'npc3',
-    name: 'The Sage',
-    position: { x: 150, y: 450 },
-    sprite: 'sprites/npcs/sage.png',
-    portraitSprite: 'sprites/npcs/sage_portrait.png',
-    color: '#7b68ee',
+    id: 'chloe',
+    name: 'Chloe',
+    position: { x: 600, y: 200 },
+    color: CHAR_COLORS.chloe,
   },
   {
-    id: 'npc4',
-    name: 'The Merchant',
-    position: { x: 650, y: 450 },
-    sprite: 'sprites/npcs/merchant.png',
-    portraitSprite: 'sprites/npcs/merchant_portrait.png',
-    color: '#ffa500',
+    id: 'isabell',
+    name: 'Isabell',
+    position: { x: 100, y: 400 },
+    color: CHAR_COLORS.isabell,
   },
   {
-    id: 'npc5',
-    name: 'The Oracle',
-    position: { x: 400, y: 200 },
-    sprite: 'sprites/npcs/oracle.png',
-    portraitSprite: 'sprites/npcs/oracle_portrait.png',
-    color: '#9370db',
+    id: 'nicholas',
+    name: 'Nicholas',
+    position: { x: 700, y: 400 },
+    color: CHAR_COLORS.nicholas,
   },
   {
-    id: 'npc6',
-    name: 'The Keeper',
-    position: { x: 300, y: 400 },
-    sprite: 'sprites/npcs/keeper.png',
-    portraitSprite: 'sprites/npcs/keeper_portrait.png',
-    color: '#20b2aa',
+    id: 'opal',
+    name: 'Opal',
+    position: { x: 300, y: 500 },
+    color: CHAR_COLORS.opal,
   },
   {
-    id: 'npc7',
-    name: 'The Seeker',
-    position: { x: 500, y: 400 },
-    sprite: 'sprites/npcs/seeker.png',
-    portraitSprite: 'sprites/npcs/seeker_portrait.png',
-    color: '#ff6347',
+    id: 'tyson',
+    name: 'Tyson',
+    position: { x: 500, y: 500 },
+    color: CHAR_COLORS.tyson,
+  },
+  {
+    id: 'victor',
+    name: 'Victor',
+    position: { x: 400, y: 100 },
+    color: CHAR_COLORS.victor,
   },
 ];
 
@@ -192,6 +184,8 @@ class GameState {
     this.completedDialogues = new Set(); // Format: "characterId:npcId"
     this.unlockedCharacters = new Set(['alexis']);
     this.characterPositions = {};
+    this.lastNPCTalkedId = null;
+    this.lastNonFinalNPCTalkedId = null;
 
     // Initialize character positions
     Object.keys(CHARACTERS).forEach((charId) => {
@@ -209,9 +203,26 @@ class GameState {
     this.completedDialogues.add(`${characterId}:${npcId}`);
   }
 
+  // Track last talked NPC (and last non-final NPC for switching)
+  setLastTalkedNPC(npcId) {
+    this.lastNPCTalkedId = npcId;
+    if (!CHARACTERS[npcId]?.isFinalCharacter) {
+      this.lastNonFinalNPCTalkedId = npcId;
+    }
+  }
+
+  getLastSwitchTarget(currentCharacterId) {
+    // Prefer the last non-final NPC, and never the current character
+    const candidate = this.lastNonFinalNPCTalkedId;
+    if (candidate && candidate !== currentCharacterId) return candidate;
+    return null;
+  }
+
   // Check if all required NPCs have been talked to as a specific character
   hasCompletedAllDialogues(characterId) {
-    return NPCS.every((npc) => this.hasCompletedDialogue(characterId, npc.id));
+    // Must talk to every other NPC except yourself
+    return NPCS.filter((npc) => npc.id !== characterId)
+      .every((npc) => this.hasCompletedDialogue(characterId, npc.id));
   }
 
   // Check if a character can be switched to
@@ -221,12 +232,11 @@ class GameState {
     const character = CHARACTERS[characterId];
     if (!character) return false;
 
-    // Final character can only be unlocked after talking to all NPCs as all other characters
+    // Final character can only be unlocked after you've played as all other characters
     if (character.isFinalCharacter) {
-      const otherCharacters = Object.keys(CHARACTERS).filter(
-        (id) => id !== characterId && !CHARACTERS[id].isFinalCharacter,
-      );
-      return otherCharacters.every((charId) => this.hasCompletedAllDialogues(charId));
+      const nonFinal = Object.keys(CHARACTERS).filter((id) => !CHARACTERS[id].isFinalCharacter);
+      // You must have switched to each non-final character at least once
+      return nonFinal.every((id) => this.unlockedCharacters.has(id));
     }
 
     return this.unlockedCharacters.has(characterId);
@@ -270,6 +280,8 @@ class GameState {
       completedDialogues: Array.from(this.completedDialogues),
       unlockedCharacters: Array.from(this.unlockedCharacters),
       characterPositions: this.characterPositions,
+      lastNPCTalkedId: this.lastNPCTalkedId,
+      lastNonFinalNPCTalkedId: this.lastNonFinalNPCTalkedId,
     };
     try {
       localStorage.setItem('switchGameState', JSON.stringify(data));
@@ -294,6 +306,8 @@ class GameState {
       if (data.characterPositions) {
         this.characterPositions = data.characterPositions;
       }
+      this.lastNPCTalkedId = data.lastNPCTalkedId || null;
+      this.lastNonFinalNPCTalkedId = data.lastNonFinalNPCTalkedId || null;
     } catch (e) {
       console.warn('Failed to load game state:', e);
     }
@@ -304,6 +318,8 @@ class GameState {
     this.currentCharacter = 'alexis';
     this.completedDialogues.clear();
     this.unlockedCharacters = new Set(['alexis']);
+    this.lastNPCTalkedId = null;
+    this.lastNonFinalNPCTalkedId = null;
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };
     });
