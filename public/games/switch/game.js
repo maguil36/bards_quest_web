@@ -4,7 +4,7 @@ class SwitchGame {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.gameState = new GameState();
-        this.npcs = NPCS;
+        this.npcs = []; // will be built dynamically in init()
         this.characters = CHARACTERS;
         this.dialogueManager = new DialogueManager(this.gameState, this.npcs);
         this.audioManager = new AudioManager();
@@ -77,6 +77,19 @@ class SwitchGame {
         if (savedPos) {
             this.player.x = savedPos.x;
             this.player.y = savedPos.y;
+        }
+
+        // Build dynamic NPC list: 7 NPCs (everyone except the current playable character)
+        // Use a new array instance and point DialogueManager at it
+        this.npcs = NPCS.filter(npc => npc.id !== currentChar.id).map(npc => ({ ...npc }));
+        if (this.dialogueManager) this.dialogueManager.npcs = this.npcs;
+
+        // If loading from a save where NPCs were modified, keep their positions when possible
+        for (const npc of this.npcs) {
+            const saved = this.gameState.characterPositions[npc.id];
+            if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') {
+                npc.position = { x: saved.x, y: saved.y };
+            }
         }
 
         // Update UI
@@ -363,6 +376,25 @@ class SwitchGame {
         }
 
         // Update movement state
+
+        // Save position (player -> current character)
+        if (this.gameState && typeof this.gameState.getCurrentCharacter === 'function') {
+            const currentChar = this.gameState.getCurrentCharacter();
+            if (currentChar && currentChar.id) {
+                this.gameState.characterPositions = this.gameState.characterPositions || {};
+                this.gameState.characterPositions[currentChar.id] = { x: this.player.x, y: this.player.y };
+            }
+        }
+
+        // Persist current NPC positions too (so ghost NPCs remain where you left them)
+        if (Array.isArray(this.npcs) && this.gameState) {
+            this.gameState.characterPositions = this.gameState.characterPositions || {};
+            for (const npc of this.npcs) {
+                if (npc && npc.id && npc.position && typeof npc.position.x === 'number' && typeof npc.position.y === 'number') {
+                    this.gameState.characterPositions[npc.id] = { x: npc.position.x, y: npc.position.y };
+                }
+            }
+        }
         this.player.isMoving = dx !== 0 || dy !== 0;
 
         // Apply movement with bounds checking
@@ -626,8 +658,37 @@ class SwitchGame {
                 return;
             }
 
-            // Perform normal character switch
+            // Perform normal character switch with NPC swap logic
+            const prevChar = this.gameState.getCurrentCharacter();
+            const prevPos = { x: this.player.x, y: this.player.y };
+
+            // Switch state
             this.switchToCharacter(this.nextCharacterToSwitch);
+
+            // Remove any NPC that matches the new current character (since the player is now that character)
+            this.npcs = this.npcs.filter(n => n.id !== this.gameState.getCurrentCharacter().id);
+
+            // Add an NPC where the player used to be (the old character appears at your previous position)
+            const ghostNPC = {
+                id: prevChar.id,
+                name: prevChar.name,
+                position: prevPos,
+                color: prevChar.color,
+            };
+
+            // Remove any old duplicate of this ghost NPC first, then add
+            this.npcs = this.npcs.filter(n => n.id !== ghostNPC.id);
+            this.npcs.push(ghostNPC);
+
+            // Ensure we have a drawable sprite for the ghost NPC
+            if (this.sprites) {
+                if (!this.sprites.npcs) this.sprites.npcs = {};
+                const existing = this.sprites.characters && this.sprites.characters[ghostNPC.id];
+                this.sprites.npcs[ghostNPC.id] = existing || this.createHumanSpriteSheet(ghostNPC.color || '#888');
+            }
+
+            // Keep DialogueManager in sync
+            if (this.dialogueManager) this.dialogueManager.npcs = this.npcs;
         }
 
         this.nextCharacterToSwitch = null;
