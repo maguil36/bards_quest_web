@@ -63,6 +63,11 @@ class SwitchGame {
     }
 
     async init() {
+        // Ensure CSS variable-driven colors are up-to-date
+        if (typeof refreshCharacterColors === 'function') {
+            try { refreshCharacterColors(); } catch (_) {}
+        }
+
         // Load game state
         this.gameState.load();
 
@@ -99,8 +104,16 @@ class SwitchGame {
             // Attempt to unlock audio on first interaction (for autoplay policies)
             if (!this._audioUnlocked) {
                 const currentChar = this.gameState.getCurrentCharacter();
+
+                // Refresh CSS variable-driven character colors in case styles are applied after load
+                if (typeof refreshCharacterColors === 'function') {
+                    try { refreshCharacterColors(); } catch (_) {}
+                }
+
                 this.audioManager.playCharacterMusic(currentChar.id);
                 this._audioUnlocked = true;
+                // Apply theme in case styles loaded later
+                this.applyCharacterTheme(currentChar);
             }
             this.keys[e.code] = true;
             this.handleKeyPress(e);
@@ -645,7 +658,23 @@ class SwitchGame {
     }
 
     applyCharacterTheme(character) {
-        document.documentElement.setAttribute('data-theme', character.theme);
+        // Map new character IDs to site aspect themes for background/surface tinting
+        const THEME_BY_CHAR = {
+            alexis: 'breath',
+            austine: 'light',
+            chloe: 'time',
+            isabell: 'space',
+            nicholas: 'heart',
+            opal: 'mind',
+            tyson: 'hope',
+            victor: 'rage',
+        };
+        const theme = THEME_BY_CHAR[character?.id] || 'space';
+        document.documentElement.setAttribute('data-theme', theme);
+        // Drive UI accent directly from the current character color
+        if (character && character.color) {
+            document.documentElement.style.setProperty('--accent', character.color);
+        }
     }
 
     showCharacterMenu() {

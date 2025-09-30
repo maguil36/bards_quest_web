@@ -121,51 +121,51 @@ class AudioManager {
     }
 }
 
-// Character-specific music themes (placeholder URLs - replace with actual files)
+// Character-specific music themes mapped to new character IDs
 const MUSIC_THEMES = {
-    breath: {
+    alexis: {
         url: 'audio/breath.mp3',
         description: 'Flowing, airy melody with wind instruments',
         tempo: 'Moderate',
         mood: 'Peaceful, liberating'
     },
-    light: {
+    austine: {
         url: 'audio/light.mp3',
         description: 'Bright, uplifting orchestral piece',
         tempo: 'Upbeat',
         mood: 'Optimistic, energetic'
     },
-    time: {
+    chloe: {
         url: 'audio/time.mp3',
         description: 'Mysterious, clock-like rhythmic patterns',
         tempo: 'Variable',
         mood: 'Mysterious, contemplative'
     },
-    space: {
+    isabell: {
         url: 'audio/space.mp3',
         description: 'Ambient cosmic tones and echoes',
         tempo: 'Slow',
         mood: 'Vast, curious'
     },
-    heart: {
+    nicholas: {
         url: 'audio/heart.mp3',
         description: 'Warm, emotive chords',
         tempo: 'Moderate',
         mood: 'Tender, passionate'
     },
-    mind: {
+    opal: {
         url: 'audio/mind.mp3',
         description: 'Clean, logical arpeggios',
         tempo: 'Steady',
         mood: 'Focused, analytical'
     },
-    hope: {
+    tyson: {
         url: 'audio/hope.mp3',
         description: 'Rising melodic motifs',
         tempo: 'Upbeat',
         mood: 'Optimistic'
     },
-    rage: {
+    victor: {
         url: 'audio/rage.mp3',
         description: 'Intense, driving rhythms',
         tempo: 'Fast',

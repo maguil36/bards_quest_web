@@ -10,52 +10,43 @@ A top-down 2D character-switching game where players control different character
 - **ESC** - Close dialogue / Open character menu
 
 ### Gameplay
-1. Start as the **Breath** character (blue)
+1. Start as **Alexis**
 2. Move around the map and find NPCs to talk to
 3. Each character has unique dialogue with every NPC
 4. Talk to all 7 NPCs as your current character
 5. Once you've talked to everyone, you'll be prompted to switch characters
 6. Repeat this process with each new character
-7. The final character (**Rage**) can only be unlocked after completing all dialogues with all other characters
-8. Switching to **Rage** triggers the glitch ending
+7. The final character (**Victor**) can only be unlocked after completing all dialogues with all other characters
+8. Switching to **Victor** triggers the glitch ending
 
-### Characters (Based on CSS Themes)
-1. **Breath** (Blue) - Starting character, master of wind and freedom
-2. **Light** (Orange) - Bright and optimistic, bringer of illumination  
-3. **Time** (Red) - Mysterious controller of time's flow
-4. **Space** (Light Blue) - Cosmic character who understands existence
-5. **Heart** (Pink) - Passionate character driven by emotion
-6. **Mind** (Teal) - Logical character who values knowledge
-7. **Hope** (Gold) - Optimistic character who believes in better futures
-8. **Rage** (Cyan) - Final character, triggers glitch ending
-
-### NPCs
-- **The Wanderer** - Ancient traveler with wisdom from the winds
-- **The Guardian** - Protector of thresholds and boundaries
-- **The Sage** - Keeper of knowledge and wisdom
-- **The Merchant** - Trader in goods and possibilities
-- **The Oracle** - Seer of futures and prophecies
-- **The Keeper** - Maintainer of records and memories
-- **The Seeker** - Searcher for truth and understanding
+### Characters (Colors pulled from public/styles.css)
+- Alexis (var(--alexis))
+- Austine (var(--austine))
+- Chloe (var(--chloe))
+- Isabell (var(--isabell))
+- Nicholas (var(--nicholas))
+- Opal (var(--opal))
+- Tyson (var(--tyson))
+- Victor (var(--victor))
 
 ## Customization
 
 ### Editing Dialogue
-All dialogue is stored in `dialogue.js`. Each NPC has character-specific dialogue:
+All dialogue is stored in `dialogue.js`. Each NPC has character-specific dialogue keyed by the new character IDs (`alexis`, `austine`, `chloe`, `isabell`, `nicholas`, `opal`, `tyson`, `victor`).
 
 ```javascript
 const DIALOGUES = {
-    npc1: { // The Wanderer
+    npc1: {
         name: 'The Wanderer',
         dialogues: {
-            breath: [
+            alexis: [
                 "First line of dialogue...",
                 "Second line...",
                 "Third line...",
                 "Final line..."
             ],
-            light: [
-                "Different dialogue for Light character...",
+            austine: [
+                "Different dialogue for Austine...",
                 // ... more lines
             ]
             // ... other characters
@@ -66,42 +57,23 @@ const DIALOGUES = {
 ```
 
 ### Adding Music
-Place audio files in the `audio/` directory:
-- `breath.mp3` - Music for Breath character
-- `light.mp3` - Music for Light character
-- etc.
+Place audio files in the `audio/` directory. The game maps new character IDs to existing audio asset names:
+- Alexis -> `breath.mp3`
+- Austine -> `light.mp3`
+- Chloe -> `time.mp3`
+- Isabell -> `space.mp3`
+- Nicholas -> `heart.mp3`
+- Opal -> `mind.mp3`
+- Tyson -> `hope.mp3`
+- Victor -> `rage.mp3`
 
 The game will automatically load and play character-specific music when switching.
 
 ### Customizing Characters
-Edit `characters.js` to modify character properties:
+Edit `characters.js` to modify character properties. Colors are read from site CSS variables at runtime:
 
 ```javascript
-const CHARACTERS = {
-    breath: {
-        id: 'breath',
-        name: 'Breath',
-        theme: 'breath',
-        color: '#007eb4',
-        // ... other properties
-    }
-    // ... other characters
-};
-```
-
-### Modifying NPCs
-Edit the `NPCS` array in `characters.js` to change NPC positions, names, or colors:
-
-```javascript
-const NPCS = [
-    {
-        id: 'npc1',
-        name: 'The Wanderer',
-        position: { x: 150, y: 150 },
-        color: '#888888'
-    }
-    // ... other NPCs
-];
+const color = getComputedStyle(document.documentElement).getPropertyValue('--alexis');
 ```
 
 ## Technical Details
@@ -111,18 +83,18 @@ const NPCS = [
 public/games/switch/
 ├── index.html          # Main game file
 ├── game.js            # Core game logic
-├── characters.js      # Character data and management
-├── dialogue.js        # Dialogue system and data
-├── audio.js           # Audio management
+├── characters.js      # Character data; reads CSS vars --alexis, --austine, ...
+├── dialogue.js        # Dialogue system and data (keys match new IDs)
+├── audio.js           # Audio management and theme map
 ├── sprites/           # Character and NPC sprites (placeholder)
-├── audio/            # Music files (add your own)
+├── audio/             # Music files (add your own)
 └── README.md         # This file
 ```
 
 ### Features Implemented
 - ✅ Character movement with WASD/Arrow keys
 - ✅ Camera following with map edge behavior (Pokemon-style)
-- ✅ 8 theme-based characters with unique colors
+- ✅ 8 characters with site-synced colors (CSS variables)
 - ✅ Character-specific dialogue system
 - ✅ NPC interaction system
 - ✅ Character switching mechanics
@@ -131,7 +103,7 @@ public/games/switch/
 - ✅ Large portrait display during dialogue
 - ✅ Glitch ending animation
 - ✅ Auto-redirect after glitch ending
-- ✅ Theme switching based on current character
+- ✅ Theme tint + dynamic accent color set from current character
 
 ### Browser Compatibility
 - Modern browsers with HTML5 Canvas support
@@ -147,25 +119,10 @@ public/games/switch/
 ## Adding Real Assets
 
 ### Sprites
-Replace the placeholder sprite system in `game.js` with real image loading:
-
-```javascript
-// Replace createPlaceholderSprite with actual image loading
-async loadSprites() {
-    for (const charId of Object.keys(CHARACTERS)) {
-        const img = new Image();
-        img.src = `sprites/characters/${charId}.png`;
-        await new Promise(resolve => img.onload = resolve);
-        this.sprites.characters[charId] = img;
-    }
-}
-```
+Replace the placeholder sprite system in `game.js` with real image loading.
 
 ### Audio
-Add MP3 or OGG files to the `audio/` directory with names matching the character IDs.
+Add MP3 or OGG files to the `audio/` directory as noted above.
 
 ### Backgrounds
 Replace the procedural background with actual artwork by modifying `createBackgroundSprite()` in `game.js`.
-
-## License
-This game is part of the Bards Quest project. Customize and use as needed for your multimedia comic.
