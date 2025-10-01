@@ -262,16 +262,36 @@ class GameState {
     return 42;
   }
 
+  // Progress helpers for UI
+  // Count how many non-final NPCs this character has already talked to (excluding self)
+  getCompletedCountForCharacter(characterId) {
+    return NPCS.filter((npc) => npc.id !== characterId && !CHARACTERS[npc.id]?.isFinalCharacter)
+      .reduce((acc, npc) => acc + (this.hasCompletedDialogue(characterId, npc.id) ? 1 : 0), 0);
+  }
+
+  // Total targets this character needs to talk to (non-final minus self)
+  getTotalTargetsPerCharacter() {
+    const nonFinal = Object.keys(CHARACTERS).filter((id) => !CHARACTERS[id].isFinalCharacter);
+    return Math.max(0, nonFinal.length - 1);
+  }
+
+  // Remaining interactions for this character to be considered "ready to switch"
+  getRemainingForCharacterProgress(characterId) {
+    const total = this.getTotalTargetsPerCharacter();
+    const done = this.getCompletedCountForCharacter(characterId);
+    return Math.max(0, total - done);
+  }
+
+  // Remaining interactions across all characters to reach the game's completion condition (Victor unlock)
+  getRemainingInteractionsToFinishGame() {
+    const total = this.getTotalInteractionsTowardVictor();
+    const done = this.getCompletedInteractionsTowardVictor();
+    return Math.max(0, total - done);
+  }
+
   // Get current character data
   getCurrentCharacter() {
     return CHARACTERS[this.currentCharacter];
-  }
-
-  // Get available characters for switching
-  getAvailableCharacters() {
-    return Object.keys(CHARACTERS)
-      .filter((charId) => this.canSwitchToCharacter(charId))
-      .map((charId) => CHARACTERS[charId]);
   }
 
   // Check if ready to switch (completed all dialogues as current character)

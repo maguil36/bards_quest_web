@@ -142,20 +142,98 @@ class SwitchGame {
         });
 
         // Switch prompt buttons
-        document.getElementById('switchYes').addEventListener('click', () => {
-            this.handleCharacterSwitch(true);
+        const switchYes = document.getElementById('switchYes');
+        const switchNo = document.getElementById('switchNo');
+        if (switchYes) {
+            switchYes.addEventListener('click', () => {
+                this.handleCharacterSwitch(true);
+            });
+        }
+        if (switchNo) {
+            switchNo.addEventListener('click', () => {
+                this.handleCharacterSwitch(false);
+            });
+        }
+
+        // Settings UI
+        const settingsBtn = document.getElementById('settingsButton');
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsClose = document.getElementById('settingsClose');
+        const volSlider = document.getElementById('volumeSlider');
+        const volValue = document.getElementById('volumeValue');
+
+        const openSettings = () => {
+            if (typeof this.updateSettingsPanel === 'function') {
+                try { this.updateSettingsPanel(); } catch (_) {}
+            }
+            if (settingsModal) settingsModal.style.display = 'block';
+        };
+        const closeSettings = () => {
+            if (settingsModal) settingsModal.style.display = 'none';
+        };
+
+        if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+        if (settingsClose) settingsClose.addEventListener('click', closeSettings);
+
+        // Close settings with Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && settingsModal && settingsModal.style.display === 'block') {
+                e.stopPropagation();
+                closeSettings();
+            }
         });
 
-        document.getElementById('switchNo').addEventListener('click', () => {
-            this.handleCharacterSwitch(false);
-        });
+        // Initialize slider from audio manager
+        if (volSlider && volValue && this.audioManager && typeof this.audioManager.getVolume === 'function') {
+            try {
+                const v = Math.round(this.audioManager.getVolume() * 100);
+                volSlider.value = String(v);
+                volValue.textContent = `${v}%`;
+            } catch (_) {}
+            volSlider.addEventListener('input', () => {
+                const pct = parseInt(volSlider.value, 10) || 0;
+                if (this.audioManager && typeof this.audioManager.setVolume === 'function') {
+                    try { this.audioManager.setVolume(pct / 100); } catch (_) {}
+                }
+                if (volValue) volValue.textContent = `${pct}%`;
+            });
+        }
 
         // Prevent context menu on canvas
-        this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+        if (this.canvas) {
+            this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+        }
+    }
+
+    updateSettingsPanel() {
+        const current = this.gameState.getCurrentCharacter();
+        const nameEl = document.getElementById('settingsCurrentCharacter');
+        const charProg = document.getElementById('settingsCharProgress');
+        const charTotal = document.getElementById('settingsCharTotal');
+        const charRem = document.getElementById('settingsCharRemaining');
+        const gameRemain = document.getElementById('settingsGameRemaining');
+        if (nameEl) nameEl.textContent = current.name;
+
+        if (this.gameState) {
+            const done = this.gameState.getCompletedCountForCharacter(current.id);
+            const total = this.gameState.getTotalTargetsPerCharacter();
+            const rem = this.gameState.getRemainingForCharacterProgress(current.id);
+            const remainingGame = this.gameState.getRemainingInteractionsToFinishGame();
+            if (charProg) charProg.textContent = String(done);
+            if (charTotal) charTotal.textContent = String(total);
+            if (charRem) charRem.textContent = String(rem);
+            if (gameRemain) gameRemain.textContent = String(remainingGame);
+        }
     }
 
     handleKeyPress(e) {
         const now = Date.now();
+
+        // If settings modal is open, ignore gameplay keys (ESC is handled by a separate listener)
+        const settingsModal = document.getElementById('settingsModal');
+        if (settingsModal && settingsModal.style.display === 'block') {
+            return;
+        }
 
         switch(e.code) {
             case 'Space':
@@ -619,6 +697,12 @@ class SwitchGame {
                 this.gameState.save();
             }
         }
+
+        // Refresh settings panel progress if open
+        const settingsModal = document.getElementById('settingsModal');
+        if (settingsModal && settingsModal.style.display === 'block' && typeof this.updateSettingsPanel === 'function') {
+            try { this.updateSettingsPanel(); } catch (_) {}
+        }
     }
 
     showSwitchPrompt() {
@@ -766,22 +850,13 @@ class SwitchGame {
 
     updateCharacterUI() {
         const currentChar = this.gameState.getCurrentCharacter();
-        this.characterName.textContent = currentChar.name;
+        if (this.characterName) this.characterName.textContent = currentChar.name;
 
-        // Update Victor unlock progress HUD
-        const el = document.getElementById('victorProgressCount');
-        if (el && typeof this.gameState.getCompletedInteractionsTowardVictor === 'function') {
-            const done = this.gameState.getCompletedInteractionsTowardVictor();
-            const total = (typeof this.gameState.getTotalInteractionsTowardVictor === 'function')
-                ? this.gameState.getTotalInteractionsTowardVictor()
-                : 42;
-            el.textContent = `${done}/${total}`;
+        // Also refresh settings panel values if open
+        const settingsModal = document.getElementById('settingsModal');
+        if (settingsModal && settingsModal.style.display === 'block') {
+            this.updateSettingsPanel();
         }
-    }
-
-    updateCharacterUI() {
-        const currentChar = this.gameState.getCurrentCharacter();
-        this.characterName.textContent = currentChar.name;
     }
 
     applyCharacterTheme(character) {

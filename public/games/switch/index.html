@@ -14,7 +14,7 @@
             font-family: system-ui, -apple-system, sans-serif;
             overflow: hidden;
         }
-        
+
         #gameContainer {
             position: relative;
             width: 100vw;
@@ -23,7 +23,7 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         #gameCanvas {
             border: 2px solid var(--border);
             background: var(--surface);
@@ -31,7 +31,7 @@
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
         }
-        
+
          #dialogueBox {
              position: absolute;
              bottom: 20px;
@@ -98,7 +98,7 @@
          .portrait.right {
              right: 0;
          }
-        
+
         #switchPrompt {
             position: absolute;
             top: 50%;
@@ -112,7 +112,7 @@
             display: none;
             z-index: 101;
         }
-        
+
         #switchPrompt button {
             background: var(--accent);
             color: var(--bg);
@@ -123,11 +123,11 @@
             cursor: pointer;
             font-size: 16px;
         }
-        
+
         #switchPrompt button:hover {
             opacity: 0.8;
         }
-        
+
         #glitchOverlay {
             position: absolute;
             top: 0;
@@ -139,54 +139,54 @@
             z-index: 200;
             animation: glitch 0.1s infinite;
         }
-        
+
         @keyframes glitch {
-            0% { 
+            0% {
                 background: black;
                 filter: hue-rotate(0deg) saturate(1);
             }
-            10% { 
+            10% {
                 background: #ff0000;
                 filter: hue-rotate(90deg) saturate(3);
             }
-            20% { 
+            20% {
                 background: #00ff00;
                 filter: hue-rotate(180deg) saturate(3);
             }
-            30% { 
+            30% {
                 background: #0000ff;
                 filter: hue-rotate(270deg) saturate(3);
             }
-            40% { 
+            40% {
                 background: #ffffff;
                 filter: invert(1);
             }
-            50% { 
+            50% {
                 background: #ff00ff;
                 filter: hue-rotate(45deg) saturate(5);
             }
-            60% { 
+            60% {
                 background: #ffff00;
                 filter: hue-rotate(135deg) saturate(5);
             }
-            70% { 
+            70% {
                 background: #00ffff;
                 filter: hue-rotate(225deg) saturate(5);
             }
-            80% { 
+            80% {
                 background: black;
                 filter: contrast(10);
             }
-            90% { 
+            90% {
                 background: white;
                 filter: contrast(0.1);
             }
-            100% { 
+            100% {
                 background: black;
                 filter: hue-rotate(360deg) saturate(1);
             }
         }
-        
+
         #errorMessage {
             position: absolute;
             top: 50%;
@@ -200,22 +200,23 @@
             z-index: 201;
             text-shadow: 0 0 10px #ff0000;
         }
-        
+
         #ui {
             position: absolute;
             top: 20px;
             left: 20px;
             z-index: 50;
         }
-        
+
         #currentCharacter {
             background: var(--card);
             border: 2px solid var(--border);
             padding: 10px;
             border-radius: 4px;
             font-weight: bold;
+            display: none; /* hidden in favor of settings gear */
         }
-        
+
         #instructions {
             position: absolute;
             top: 20px;
@@ -227,7 +228,56 @@
             font-size: 14px;
             max-width: 200px;
             z-index: 50;
+            display: none; /* replaced by gear/settings */
         }
+
+        /* Settings gear button */
+        #settingsButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 60;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #settingsButton:hover { filter: brightness(1.05); }
+        #settingsButton .gear {
+            width: 22px; height: 22px; fill: var(--text);
+        }
+
+        /* Settings modal */
+        #settingsModal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 120;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+        #settingsHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        #settingsTitle { font-size: 18px; font-weight: 700; }
+        #settingsClose {
+            background: transparent; border: none; color: var(--text); cursor: pointer; font-size: 20px; line-height: 1;
+        }
+        .settingsRow { margin: 12px 0; }
+        .settingsLabel { font-weight: 600; margin-bottom: 6px; }
+        .settingsValue { color: var(--muted); }
+        .volumeRow { display: flex; align-items: center; gap: 10px; }
+        #volumeSlider { flex: 1; }
     </style>
 </head>
 <body>
@@ -238,23 +288,70 @@
             <div id="currentCharacter">Playing as: <span id="characterName">Alexis</span></div>
         </div>
 
+        <!-- Old instructions hidden; replaced by settings gear -->
         <div id="instructions">
             <strong>Controls:</strong><br>
             WASD or Arrow Keys - Move<br>
             SPACE - Interact<br>
             ESC - Character Menu
         </div>
-        
+
+        <!-- Settings gear button -->
+        <button id="settingsButton" aria-label="Open settings">
+            <svg class="gear" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19.14,12.94a7.43,7.43,0,0,0,.05-.94,7.43,7.43,0,0,0-.05-.94l2.11-1.65a.5.5,0,0,0,.12-.63l-2-3.46a.5.5,0,0,0-.6-.22L16.7,5a7.22,7.22,0,0,0-1.63-.94l-.25-2.6A.5.5,0,0,0,14.33.5H9.67a.5.5,0,0,0-.49.42L8.93,3.52A7.22,7.22,0,0,0,7.3,4.46L4.23,3.1a.5.5,0,0,0-.6.22l-2,3.46a.5.5,0,0,0,.12.63L3.86,9.06a7.43,7.43,0,0,0-.05.94,7.43,7.43,0,0,0,.05.94L1.77,12.59a.5.5,0,0,0-.12.63l2,3.46a.5.5,0,0,0,.6.22L7.3,15.54a7.22,7.22,0,0,0,1.63.94l.25,2.6a.5.5,0,0,0,.49.42h4.66a.5.5,0,0,0,.49-.42l.25-2.6a7.22,7.22,0,0,0,1.63-.94l3.07,1.36a.5.5,0,0,0,.6-.22l2-3.46a.5.5,0,0,0-.12-.63ZM12,15.5A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/>
+            </svg>
+        </button>
+
+        <!-- Settings modal -->
+        <div id="settingsModal">
+            <div id="settingsHeader">
+                <div id="settingsTitle">Settings</div>
+                <button id="settingsClose" aria-label="Close settings">×</button>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Playing as</div>
+                <div class="settingsValue"><span id="settingsCurrentCharacter">Alexis</span></div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Controls</div>
+                <div class="settingsValue">
+                    WASD or Arrow Keys — Move<br>
+                    Space — Interact<br>
+                    Esc — Character Menu
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Progress</div>
+                <div class="settingsValue">
+                    Talked to (this character): <span id="settingsCharProgress">0</span>/<span id="settingsCharTotal">0</span><br>
+                    Remaining to progress: <span id="settingsCharRemaining">0</span><br>
+                    Until game complete: <span id="settingsGameRemaining">42</span> remaining
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Volume</div>
+                <div class="volumeRow">
+                    <input type="range" id="volumeSlider" min="0" max="100" step="1" value="50" />
+                    <span id="volumeValue">50%</span>
+                </div>
+            </div>
+        </div>
+
         <div id="dialogueBox">
             <div id="dialogueText"></div>
             <div id="dialoguePrompt">Press SPACE to continue...</div>
         </div>
-        
+
         <div id="characterPortraits">
             <div class="portrait left" id="leftPortrait"></div>
             <div class="portrait right" id="rightPortrait"></div>
         </div>
-        
+
         <div id="switchPrompt">
             <h3>Switch Character?</h3>
             <p>You've talked to everyone as <span id="switchFromCharacter"></span>.</p>
@@ -262,7 +359,7 @@
             <button id="switchYes">Yes, Switch!</button>
             <button id="switchNo">Not Yet</button>
         </div>
-        
+
         <div id="glitchOverlay"></div>
         <div id="errorMessage">
             ERROR: REALITY.EXE HAS STOPPED WORKING<br>
