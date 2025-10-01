@@ -52,10 +52,21 @@ class DialogueManager {
 
     // Start a dialogue with an NPC
     startDialogue(npcId) {
-        const npc = this.npcs.find(n => n.id === npcId);
+        let npc = this.npcs.find(n => n.id === npcId);
         if (!npc) {
-            console.error(`No NPC found with id: ${npcId}`);
-            return false;
+            // Allow self or off-list NPCs by falling back to CHARACTERS table
+            if (typeof CHARACTERS !== 'undefined' && CHARACTERS[npcId]) {
+                const c = CHARACTERS[npcId];
+                npc = {
+                    id: c.id,
+                    name: c.name,
+                    color: c.color,
+                    position: c.position || { x: 0, y: 0 }
+                };
+            } else {
+                console.error(`No NPC or character found with id: ${npcId}`);
+                return false;
+            }
         }
 
         const dialogueEntry = DIALOGUES[npcId];
@@ -70,11 +81,20 @@ class DialogueManager {
         if (!characterDialogue) {
             const npcName = npc.name || (typeof CHARACTERS !== 'undefined' && CHARACTERS[npcId]?.name) || 'Stranger';
             const charName = currentCharacter.name || 'Traveler';
-            characterDialogue = [
-                { speaker: 'npc', text: `Hello, ${charName}.` },
-                { speaker: 'player', text: `Hi, ${npcName}.` },
-                { speaker: 'npc', text: `Safe travels.` },
-            ];
+            if (npcId === currentCharacter.id) {
+                // Self-reflection fallback
+                characterDialogue = [
+                    { speaker: 'player', text: `${charName} gathers their thoughts...` },
+                    { speaker: 'npc', text: 'The world hums quietly around you.' },
+                    { speaker: 'player', text: 'I should speak to everyone before moving on.' },
+                ];
+            } else {
+                characterDialogue = [
+                    { speaker: 'npc', text: `Hello, ${charName}.` },
+                    { speaker: 'player', text: `Hi, ${npcName}.` },
+                    { speaker: 'npc', text: `Safe travels.` },
+                ];
+            }
         }
 
         // Normalize all dialogue into back-and-forth objects

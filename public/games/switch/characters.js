@@ -177,7 +177,7 @@ const NPCS = [
   },
 ];
 
-// Game state management
+ // Game state management
 class GameState {
   constructor() {
     this.currentCharacter = 'alexis';
@@ -220,8 +220,8 @@ class GameState {
 
   // Check if all required NPCs have been talked to as a specific character
   hasCompletedAllDialogues(characterId) {
-    // Must talk to every other NPC except yourself
-    return NPCS.filter((npc) => npc.id !== characterId)
+    // Must talk to every other NON-FINAL NPC except yourself (exclude Victor)
+    return NPCS.filter((npc) => npc.id !== characterId && !CHARACTERS[npc.id]?.isFinalCharacter)
       .every((npc) => this.hasCompletedDialogue(characterId, npc.id));
   }
 
@@ -232,28 +232,34 @@ class GameState {
     const character = CHARACTERS[characterId];
     if (!character) return false;
 
-    // Final character can only be unlocked after you've played as all other characters
+    // Final character (Victor) unlock rule per design:
+    // Complete all required interactions across non-final characters (42 total)
     if (character.isFinalCharacter) {
-      const nonFinal = Object.keys(CHARACTERS).filter((id) => !CHARACTERS[id].isFinalCharacter);
-      // You must have switched to each non-final character at least once
-      return nonFinal.every((id) => this.unlockedCharacters.has(id));
+      const done = this.getCompletedInteractionsTowardVictor();
+      const total = this.getTotalInteractionsTowardVictor();
+      return done >= total;
     }
 
     return this.unlockedCharacters.has(characterId);
   }
 
-  // Unlock a character for switching
-  unlockCharacter(characterId) {
-    this.unlockedCharacters.add(characterId);
+  // Count total completed interactions across all non-final characters (toward Victor)
+  getCompletedInteractionsTowardVictor() {
+    // Count only non-final -> non-final (exclude self and exclude Victor in either role)
+    const nonFinal = Object.keys(CHARACTERS).filter((id) => !CHARACTERS[id].isFinalCharacter);
+    let count = 0;
+    for (const charId of nonFinal) {
+      for (const npcId of nonFinal) {
+        if (npcId === charId) continue; // exclude self
+        if (this.hasCompletedDialogue(charId, npcId)) count++;
+      }
+    }
+    return count;
   }
 
-  // Switch to a different character
-  switchCharacter(characterId) {
-    if (this.canSwitchToCharacter(characterId)) {
-      this.currentCharacter = characterId;
-      return true;
-    }
-    return false;
+  // Total required to unlock Victor (exclude any interactions involving Victor): 7 speakers * 6 targets = 42
+  getTotalInteractionsTowardVictor() {
+    return 42;
   }
 
   // Get current character data
@@ -271,6 +277,21 @@ class GameState {
   // Check if ready to switch (completed all dialogues as current character)
   isReadyToSwitch() {
     return this.hasCompletedAllDialogues(this.currentCharacter);
+  }
+
+  // Unlock a character for switching
+  unlockCharacter(characterId) {
+    if (!CHARACTERS[characterId]) return;
+    if (CHARACTERS[characterId].isFinalCharacter) return; // never pre-unlock Victor
+    this.unlockedCharacters.add(characterId);
+  }
+
+  // Switch current playable character
+  switchCharacter(characterId) {
+    if (!this.canSwitchToCharacter(characterId)) return false;
+    if (!CHARACTERS[characterId]) return false;
+    this.currentCharacter = characterId;
+    return true;
   }
 
   // Save game state
@@ -325,9 +346,4 @@ class GameState {
     });
     this.save();
   }
-}
-
-// Export for testing or Node
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { CHARACTERS, NPCS, GameState, refreshCharacterColors };
 }

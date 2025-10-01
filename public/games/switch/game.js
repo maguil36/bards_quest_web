@@ -28,7 +28,7 @@ class SwitchGame {
             y: 300,
             width: 32,
             height: 32,
-            speed: 4,
+            speed: 2,
             direction: 'down',
             isMoving: false,
             animationFrame: 0,
@@ -53,6 +53,11 @@ class SwitchGame {
         this.glitchOverlay = document.getElementById('glitchOverlay');
         this.errorMessage = document.getElementById('errorMessage');
         this.characterName = document.getElementById('characterName');
+
+        // Ensure overlays/prompts are hidden initially
+        if (this.glitchOverlay) this.glitchOverlay.style.display = 'none';
+        if (this.switchPrompt) this.switchPrompt.style.display = 'none';
+        if (this.dialogueBox) this.dialogueBox.style.display = 'none';
 
         // Game state
         this.isGameRunning = true;
@@ -164,11 +169,14 @@ class SwitchGame {
                 break;
 
             case 'Escape':
-                e.preventDefault();
-                if (this.showingDialogue) {
-                    this.closeDialogue();
-                } else if (!this.showingSwitchPrompt) {
-                    this.showCharacterMenu();
+                if (!this.showingDialogue && !this.showingSwitchPrompt) {
+                    // If Victor is eligible, offer the ending immediately; else show normal prompt
+                    if (this.gameState && typeof this.gameState.canSwitchToCharacter === 'function' && this.gameState.canSwitchToCharacter('victor')) {
+                        this.nextCharacterToSwitch = 'victor';
+                        this.handleCharacterSwitch(true);
+                    } else {
+                        this.showCharacterMenu();
+                    }
                 }
                 break;
         }
@@ -338,9 +346,15 @@ class SwitchGame {
         let dx = 0;
         let dy = 0;
 
+        const base = this.player.speed;
+        // Slight diagonal normalization so diagonals aren't too fast
+        const vertical = (this.keys['KeyW'] || this.keys['ArrowUp']) || (this.keys['KeyS'] || this.keys['ArrowDown']);
+        const horizontal = (this.keys['KeyA'] || this.keys['ArrowLeft']) || (this.keys['KeyD'] || this.keys['ArrowRight']);
+        const step = (vertical && horizontal) ? base * 0.82 : base;
+
         // Handle input
         if (this.keys['KeyW'] || this.keys['ArrowUp']) {
-            dy = -this.player.speed;
+            dy = -step;
             this.player.direction = 'up';
 
             // Reset portraits highlight on movement
@@ -351,7 +365,7 @@ class SwitchGame {
             }
         }
         if (this.keys['KeyS'] || this.keys['ArrowDown']) {
-            dy = this.player.speed;
+            dy = step;
             this.player.direction = 'down';
 
             if (this.characterPortraits) {
@@ -361,7 +375,7 @@ class SwitchGame {
             }
         }
         if (this.keys['KeyA'] || this.keys['ArrowLeft']) {
-            dx = -this.player.speed;
+            dx = -step;
             this.player.direction = 'left';
 
             if (this.characterPortraits) {
@@ -371,7 +385,7 @@ class SwitchGame {
             }
         }
         if (this.keys['KeyD'] || this.keys['ArrowRight']) {
-            dx = this.player.speed;
+            dx = step;
             this.player.direction = 'right';
         }
 
@@ -610,8 +624,23 @@ class SwitchGame {
     showSwitchPrompt() {
         const currentChar = this.gameState.getCurrentCharacter();
 
-        // Preferred next character: the last non-final NPC we talked to (not self)
-        const targetId = this.gameState.getLastSwitchTarget(currentChar.id);
+        // Prefer Victor if he's eligible
+        let targetId = null;
+        if (this.gameState && typeof this.gameState.canSwitchToCharacter === 'function') {
+            try {
+                if (this.gameState.canSwitchToCharacter('victor')) {
+                    targetId = 'victor';
+                }
+            } catch (e) {
+                // If the check throws for any reason, ignore and fall back
+                targetId = null;
+            }
+        }
+
+        // Otherwise fall back to the last non-final NPC we talked to (not self)
+        if (!targetId) {
+            targetId = this.gameState.getLastSwitchTarget(currentChar.id);
+        }
         if (!targetId) return; // If none, don’t show prompt
 
         const nextChar = CHARACTERS[targetId];
@@ -738,6 +767,21 @@ class SwitchGame {
     updateCharacterUI() {
         const currentChar = this.gameState.getCurrentCharacter();
         this.characterName.textContent = currentChar.name;
+
+        // Update Victor unlock progress HUD
+        const el = document.getElementById('victorProgressCount');
+        if (el && typeof this.gameState.getCompletedInteractionsTowardVictor === 'function') {
+            const done = this.gameState.getCompletedInteractionsTowardVictor();
+            const total = (typeof this.gameState.getTotalInteractionsTowardVictor === 'function')
+                ? this.gameState.getTotalInteractionsTowardVictor()
+                : 42;
+            el.textContent = `${done}/${total}`;
+        }
+    }
+
+    updateCharacterUI() {
+        const currentChar = this.gameState.getCurrentCharacter();
+        this.characterName.textContent = currentChar.name;
     }
 
     applyCharacterTheme(character) {
@@ -770,43 +814,56 @@ class SwitchGame {
 
     // Render the world, slicing sprite sheets per direction/frame for NPCs and player
     render() {
-        if (!this.ctx || !this.spritesLoaded) return;
+        if (!this.ctx) return;
 
         // Clear canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Draw background
-        this.ctx.drawImage(
-            this.sprites.backgrounds.main,
-            -this.camera.x, -this.camera.y
-        );
+        // Draw background (fallback fill if sprite not ready yet)
+        const bg = this.sprites && this.sprites.backgrounds && this.sprites.backgrounds.main;
+        if (bg) {
+            this.ctx.drawImage(
+                bg,
+                -this.camera.x, -this.camera.y
+            );
+        } else {
+            this.ctx.fillStyle = '#0f0f0f';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
 
         const tile = 32;
 
         // Draw NPCs
-        for (const npc of this.npcs) {
-            const screenX = npc.position.x - this.camera.x;
-            const screenY = npc.position.y - this.camera.y;
+        if (Array.isArray(this.npcs)) {
+            for (const npc of this.npcs) {
+                if (!npc || !npc.position) continue;
+                const screenX = npc.position.x - this.camera.x;
+                const screenY = npc.position.y - this.camera.y;
 
-            if (screenX > -tile && screenX < this.canvas.width &&
-                screenY > -tile && screenY < this.canvas.height) {
-                // Slice sheet: idle down frame
-                const frame = 0;
-                const dirRow = 0;
-                const sprite = this.sprites.npcs[npc.id];
-                if (sprite) {
-                    this.ctx.drawImage(
-                        sprite,
-                        frame * tile, dirRow * tile, tile, tile,
-                        screenX, screenY, tile, tile
-                    );
+                if (screenX > -tile && screenX < this.canvas.width &&
+                    screenY > -tile && screenY < this.canvas.height) {
+                    // Slice sheet: idle down frame
+                    const frame = 0;
+                    const dirRow = 0;
+                    const sprite = this.sprites && this.sprites.npcs && this.sprites.npcs[npc.id];
+                    if (sprite) {
+                        this.ctx.drawImage(
+                            sprite,
+                            frame * tile, dirRow * tile, tile, tile,
+                            screenX, screenY, tile, tile
+                        );
+                    } else {
+                        // Fallback: simple colored square
+                        this.ctx.fillStyle = npc.color || '#888';
+                        this.ctx.fillRect(screenX, screenY, tile, tile);
+                    }
+
+                    // NPC name
+                    this.ctx.fillStyle = npc.color || '#fff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(npc.name || npc.id, screenX + (tile / 2), screenY - 5);
                 }
-
-                // NPC name
-                this.ctx.fillStyle = npc.color || '#fff';
-                this.ctx.font = '12px Arial';
-                this.ctx.textAlign = 'center';
-                this.ctx.fillText(npc.name, screenX + (tile / 2), screenY - 5);
             }
         }
 
@@ -819,15 +876,18 @@ class SwitchGame {
         const playerDirRow = this.player.direction === 'down' ? 0 :
                              this.player.direction === 'left' ? 1 :
                              this.player.direction === 'right' ? 2 : 3; // up
-        const charSprite = this.sprites.characters[currentChar.id];
+        const charSprite = this.sprites && this.sprites.characters && this.sprites.characters[currentChar.id];
         if (charSprite) {
             this.ctx.drawImage(
                 charSprite,
                 playerFrame * tile, playerDirRow * tile, tile, tile,
                 playerScreenX, playerScreenY, tile, tile
             );
+        } else {
+            // Fallback player marker
+            this.ctx.fillStyle = currentChar.color || '#fff';
+            this.ctx.fillRect(playerScreenX, playerScreenY, tile, tile);
         }
-
         // Player name
         this.ctx.fillStyle = currentChar.color || '#fff';
         this.ctx.font = 'bold 14px Arial';
