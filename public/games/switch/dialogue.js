@@ -79,7 +79,7 @@ class DialogueManager {
 
         // Fallback: generate a simple generic dialogue so interaction always works
         if (!characterDialogue) {
-            const npcName = npc.name || (typeof CHARACTERS !== 'undefined' && CHARACTERS[npcId]?.name) || 'Stranger';
+            const npcName = npc.name || (typeof CHARACTERS !== 'undefined' && CHARACTERS[npcId] && CHARACTERS[npcId].name) || 'Stranger';
             const charName = currentCharacter.name || 'Traveler';
             if (npcId === currentCharacter.id) {
                 // Self-reflection fallback

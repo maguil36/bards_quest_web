@@ -332,8 +332,8 @@
                 <div class="settingsLabel">Controls</div>
                 <div class="settingsValue">
                     WASD or Arrow Keys — Move<br>
-                    Space — Interact<br>
-                    Esc — Character Menu
+                    Space — Interact / talk<br>
+                    Esc — (disabled)
                 </div>
             </div>
 
@@ -342,7 +342,7 @@
                 <div class="settingsValue">
                     Talked to (this character): <span id="settingsCharProgress">0</span>/<span id="settingsCharTotal">0</span><br>
                     Remaining to progress: <span id="settingsCharRemaining">0</span><br>
-                    Until game complete: <span id="settingsGameRemaining">42</span> remaining
+                    Until game complete: <span id="settingsGameRemaining">49</span> remaining
                 </div>
             </div>
 
@@ -391,6 +391,20 @@
 
     <audio id="backgroundMusic" loop preload="auto" crossorigin="anonymous"></audio>
 
+    <script>
+      // Minimal on-page error display to help diagnose black screens in production-like builds
+      window.addEventListener('error', function (e) {
+        const box = document.getElementById('errorMessage');
+        if (box) {
+          box.style.display = 'block';
+          box.style.whiteSpace = 'pre-wrap';
+          box.style.zIndex = '1000';
+          box.textContent = 'Runtime error:\n' + (e && e.message ? e.message : 'Unknown error');
+        } else {
+          alert('Runtime error: ' + (e && e.message ? e.message : 'Unknown error'));
+        }
+      });
+    </script>
     <script src="characters.js"></script>
     <script src="dialogue.js"></script>
     <script src="audio.js"></script>

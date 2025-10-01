@@ -273,13 +273,11 @@ class SwitchGame {
 
             case 'Escape':
                 if (!this.showingDialogue && !this.showingSwitchPrompt) {
-                    // If Victor is eligible, offer the ending immediately; else show normal prompt
-                    if (this.gameState && typeof this.gameState.canSwitchToCharacter === 'function' && this.gameState.canSwitchToCharacter('victor')) {
-                        this.nextCharacterToSwitch = 'victor';
-                        this.handleCharacterSwitch(true);
-                    } else {
-                        this.showCharacterMenu();
-                    }
+                    // Do not auto-open a switch prompt on Escape anymore
+                    // Previously: if Victor is eligible, offer ending; else show prompt
+                    // New behavior: Escape no longer triggers character switching
+                    // Optionally, we could open settings or ignore. We'll ignore for now.
+                    // If you want Escape to open settings instead, let me know.
                 }
                 break;
         }
@@ -540,21 +538,23 @@ class SwitchGame {
             const npcColor = npc.color || '#888';
             // Style dialogue text color based on the current speaker
             // Player speaks: use player color; NPC speaks: use NPC color
-            this.dialogueText.style.color = current.speaker === 'player' ? playerColor : npcColor;
+            if (this.dialogueText) this.dialogueText.style.color = current.speaker === 'player' ? playerColor : npcColor;
 
             // Toggle speaker highlight classes on dialogue box
-            this.dialogueBox.classList.toggle('speaker-player', current.speaker === 'player');
-            this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
+            if (this.dialogueBox) {
+                this.dialogueBox.classList.toggle('speaker-player', current.speaker === 'player');
+                this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
+            }
 
             // Highlight speaker portrait card
-            this.characterPortraits.style.display = 'block';
-            this.leftPortrait.style.outline = current.speaker === 'npc' ? `4px solid ${npcColor}` : '2px solid var(--border)';
-            this.rightPortrait.style.outline = current.speaker === 'player' ? `4px solid ${playerColor}` : '2px solid var(--border)';
-            this.leftPortrait.style.background = 'var(--surface)';
-            this.rightPortrait.style.background = 'var(--surface)';
+            if (this.characterPortraits) this.characterPortraits.style.display = 'block';
+            if (this.leftPortrait) this.leftPortrait.style.outline = current.speaker === 'npc' ? `4px solid ${npcColor}` : '2px solid var(--border)';
+            if (this.rightPortrait) this.rightPortrait.style.outline = current.speaker === 'player' ? `4px solid ${playerColor}` : '2px solid var(--border)';
+            if (this.leftPortrait) this.leftPortrait.style.background = 'var(--surface)';
+            if (this.rightPortrait) this.rightPortrait.style.background = 'var(--surface)';
 
             // Show dialogue box
-            this.dialogueBox.style.display = 'block';
+            if (this.dialogueBox) this.dialogueBox.style.display = 'block';
         }
     }
 
@@ -656,23 +656,13 @@ class SwitchGame {
         const currentChar = this.gameState.getCurrentCharacter();
 
         if (current && npc) {
-            // Back-and-forth visual treatment
-            this.dialogueText.textContent = current.text;
+            if (this.dialogueText) this.dialogueText.textContent = current.text;
+            if (this.dialogueText) this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
 
-            // Determine colors
-            const playerColor = currentChar.color;
-            const npcColor = npc.color || '#888';
-
-            // Style
-            this.dialogueText.style.color = current.speaker === 'player' ? playerColor : npcColor;
-            this.dialogueBox.classList.toggle('speaker-player', current.speaker === 'player');
-            this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
-            this.characterPortraits.style.display = 'block';
-            this.leftPortrait.style.outline = current.speaker === 'npc' ? `4px solid ${npcColor}` : '2px solid var(--border)';
-            this.rightPortrait.style.outline = current.speaker === 'player' ? `4px solid ${playerColor}` : '2px solid var(--border)';
-            this.leftPortrait.style.background = 'var(--surface)';
-            this.rightPortrait.style.background = 'var(--surface)';
-            this.dialogueBox.style.display = 'block';
+            // Ensure dialogue box and portraits are visible
+            if (this.dialogueBox) this.dialogueBox.style.display = 'block';
+            if (this.characterPortraits) this.characterPortraits.style.display = 'block';
+            this.showingDialogue = true;
         }
     }
 
@@ -681,8 +671,10 @@ class SwitchGame {
             // Dialogue completed
             this.closeDialogue();
 
-            // Check if ready to switch
-            if (this.gameState.isReadyToSwitch()) {
+            // Check if ready to switch (per-character completion), but do NOT interfere when we just talked to Victor and can switch to him
+            const lastId = this.gameState && this.gameState.lastNPCTalkedId;
+            const canSwitchVictor = this.gameState && typeof this.gameState.canSwitchToCharacter === 'function' && this.gameState.canSwitchToCharacter('victor');
+            if (this.gameState.isReadyToSwitch() && !(lastId === 'victor' && canSwitchVictor)) {
                 setTimeout(() => this.showSwitchPrompt(), 500);
             }
         } else {
@@ -692,24 +684,21 @@ class SwitchGame {
             const currentChar = this.gameState.getCurrentCharacter();
 
             if (current && npc) {
-                this.dialogueText.textContent = current.text;
-                this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
+                if (this.dialogueText) this.dialogueText.textContent = current.text;
+                if (this.dialogueText) this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
 
                 // Ensure dialogue box and portraits are visible
-                this.dialogueBox.style.display = 'block';
-                this.characterPortraits.style.display = 'block';
+                if (this.dialogueBox) this.dialogueBox.style.display = 'block';
+                if (this.characterPortraits) this.characterPortraits.style.display = 'block';
                 this.showingDialogue = true;
-            } else {
-                // Fallback to legacy UI rendering if structured data unavailable
-                this.showDialogueUI();
             }
         }
     }
 
     closeDialogue() {
         this.showingDialogue = false;
-        this.dialogueBox.style.display = 'none';
-        this.characterPortraits.style.display = 'none';
+        if (this.dialogueBox) this.dialogueBox.style.display = 'none';
+        if (this.characterPortraits) this.characterPortraits.style.display = 'none';
 
         // If there is a last-talked NPC recorded, unlock them as a playable character
         // (but do not unlock if they are marked as the final character).
@@ -733,17 +722,13 @@ class SwitchGame {
     showSwitchPrompt() {
         const currentChar = this.gameState.getCurrentCharacter();
 
-        // Prefer Victor if he's eligible
         let targetId = null;
-        if (this.gameState && typeof this.gameState.canSwitchToCharacter === 'function') {
-            try {
-                if (this.gameState.canSwitchToCharacter('victor')) {
-                    targetId = 'victor';
-                }
-            } catch (e) {
-                // If the check throws for any reason, ignore and fall back
-                targetId = null;
-            }
+
+        // If we just talked to Victor and are eligible to switch to him, propose Victor explicitly now
+        const lastId = this.gameState && this.gameState.lastNPCTalkedId;
+        const canSwitchVictor = this.gameState && typeof this.gameState.canSwitchToCharacter === 'function' && this.gameState.canSwitchToCharacter('victor');
+        if (lastId === 'victor' && canSwitchVictor) {
+            targetId = 'victor';
         }
 
         // Otherwise fall back to the last non-final NPC we talked to (not self)
@@ -755,8 +740,10 @@ class SwitchGame {
         const nextChar = CHARACTERS[targetId];
         if (!nextChar) return;
 
-        document.getElementById('switchFromCharacter').textContent = currentChar.name;
-        document.getElementById('switchToCharacter').textContent = nextChar.name;
+        const fromEl = document.getElementById('switchFromCharacter');
+        const toEl = document.getElementById('switchToCharacter');
+        if (fromEl) fromEl.textContent = currentChar.name;
+        if (toEl) toEl.textContent = nextChar.name;
 
         // If a dialogue box is visible, hide it while showing the switch prompt
         if (this.dialogueBox) {
@@ -779,13 +766,13 @@ class SwitchGame {
         }
 
         this.showingSwitchPrompt = true;
-        this.switchPrompt.style.display = 'block';
+        if (this.switchPrompt) this.switchPrompt.style.display = 'block';
         this.nextCharacterToSwitch = nextChar.id;
     }
 
     handleCharacterSwitch(confirmed) {
         this.showingSwitchPrompt = false;
-        this.switchPrompt.style.display = 'none';
+        if (this.switchPrompt) this.switchPrompt.style.display = 'none';
 
         if (confirmed && this.nextCharacterToSwitch) {
             const targetChar = CHARACTERS[this.nextCharacterToSwitch];
@@ -804,7 +791,8 @@ class SwitchGame {
             this.switchToCharacter(this.nextCharacterToSwitch);
 
             // Remove any NPC that matches the new current character (since the player is now that character)
-            this.npcs = this.npcs.filter(n => n.id !== this.gameState.getCurrentCharacter().id);
+            const currentChar = this.gameState.getCurrentCharacter();
+            this.npcs = this.npcs.filter(n => n.id !== (currentChar && currentChar.id));
 
             // Add an NPC where the player used to be (the old character appears at your previous position)
             const ghostNPC = {
@@ -814,19 +802,41 @@ class SwitchGame {
                 color: prevChar.color,
             };
 
-            // Remove any old duplicate of this ghost NPC first, then add
+            // Replace old ghost if already present
             this.npcs = this.npcs.filter(n => n.id !== ghostNPC.id);
             this.npcs.push(ghostNPC);
 
-            // Ensure we have a drawable sprite for the ghost NPC
+            // Ensure sprite exists for ghost
             if (this.sprites) {
                 if (!this.sprites.npcs) this.sprites.npcs = {};
-                const existing = this.sprites.characters && this.sprites.characters[ghostNPC.id];
+                const existing = this.sprites.npcs && this.sprites.npcs[ghostNPC.id];
                 this.sprites.npcs[ghostNPC.id] = existing || this.createHumanSpriteSheet(ghostNPC.color || '#888');
             }
 
-            // Keep DialogueManager in sync
+            // Update DialogueManager NPC list
             if (this.dialogueManager) this.dialogueManager.npcs = this.npcs;
+
+            // Apply new theme and music (keep UI consistent immediately after switching)
+            if (this.gameState) {
+                const active = this.gameState.getCurrentCharacter();
+                if (active) {
+                    this.applyCharacterTheme(active);
+                    if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+                        this.audioManager.playCharacterMusic(active.id);
+                    }
+                }
+            }
+
+            // Persist current NPC positions too (so ghost NPCs remain where you left them)
+            if (Array.isArray(this.npcs) && this.gameState) {
+                if (!this.gameState.characterPositions) this.gameState.characterPositions = {};
+                for (const npc of this.npcs) {
+                    if (npc && npc.id && npc.position) {
+                        this.gameState.characterPositions[npc.id] = { x: npc.position.x, y: npc.position.y };
+                    }
+                }
+                if (typeof this.gameState.save === 'function') this.gameState.save();
+            }
         }
 
         this.nextCharacterToSwitch = null;
@@ -860,10 +870,12 @@ class SwitchGame {
         this.isGameRunning = false;
 
         // Show glitch overlay
-        this.glitchOverlay.style.display = 'block';
+        if (this.glitchOverlay) this.glitchOverlay.style.display = 'block';
 
         // Stop music
-        this.audioManager.stopMusic();
+        if (this.audioManager && typeof this.audioManager.stopMusic === 'function') {
+            try { this.audioManager.stopMusic(); } catch (_) {}
+        }
     }
 
     // Duplicate render method removed — consolidated render() is defined later in this file.
@@ -896,7 +908,7 @@ class SwitchGame {
             tyson: 'hope',
             victor: 'rage',
         };
-        const theme = THEME_BY_CHAR[character?.id] || 'space';
+        const theme = (character && character.id && THEME_BY_CHAR[character.id]) ? THEME_BY_CHAR[character.id] : 'space';
         document.documentElement.setAttribute('data-theme', theme);
         // Drive UI accent directly from the current character color
         if (character && character.color) {
@@ -905,11 +917,8 @@ class SwitchGame {
     }
 
     showCharacterMenu() {
-        // Simple character selection (could be expanded into a full menu)
-        const availableChars = this.gameState.getAvailableCharacters();
-        if (availableChars.length > 0) {
-            this.showSwitchPrompt();
-        }
+        // Removed dependency on getAvailableCharacters; simply show a switch prompt if there is a valid target
+        this.showSwitchPrompt();
     }
 
     // Render the world, slicing sprite sheets per direction/frame for NPCs and player
