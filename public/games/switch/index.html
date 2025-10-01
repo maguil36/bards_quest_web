@@ -231,6 +231,19 @@
             display: none; /* replaced by gear/settings */
         }
 
+        /* Restart button */
+        #restartGameBtn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+        }
+        #restartGameBtn:hover { opacity: 0.9; }
+
         /* Settings gear button */
         #settingsButton {
             position: absolute;
@@ -338,6 +351,14 @@
                 <div class="volumeRow">
                     <input type="range" id="volumeSlider" min="0" max="100" step="1" value="50" />
                     <span id="volumeValue">50%</span>
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Danger zone</div>
+                <div class="settingsValue" style="display:flex; flex-direction: column; gap: 10px;">
+                    <button id="restartGameBtn" title="This will erase your progress and restart the game from the beginning">Re-start game</button>
+                    <small>Warning: This permanently clears your saved progress (characters, positions, and conversations) and restarts the game.</small>
                 </div>
             </div>
         </div>

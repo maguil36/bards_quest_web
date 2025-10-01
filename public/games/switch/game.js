@@ -161,6 +161,7 @@ class SwitchGame {
         const settingsClose = document.getElementById('settingsClose');
         const volSlider = document.getElementById('volumeSlider');
         const volValue = document.getElementById('volumeValue');
+        const restartBtn = document.getElementById('restartGameBtn');
 
         const openSettings = () => {
             if (typeof this.updateSettingsPanel === 'function') {
@@ -174,6 +175,30 @@ class SwitchGame {
 
         if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
         if (settingsClose) settingsClose.addEventListener('click', closeSettings);
+
+        // Restart game (hard reset)
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => {
+                const confirmed = confirm('This will permanently erase your progress and restart the game. Continue?');
+                if (!confirmed) return;
+
+                try {
+                    // Reset game state if available
+                    if (this.gameState && typeof this.gameState.reset === 'function') {
+                        try { this.gameState.reset(); } catch (_) {}
+                    }
+
+                    // Clear saved audio settings and general save data
+                    try { localStorage.removeItem('switchAudioSettings'); } catch (_) {}
+                    try { localStorage.removeItem('switchSave'); } catch (_) {}
+
+                    // Reload page to reinitialize everything cleanly
+                    window.location.reload();
+                } catch (e) {
+                    console.error('Failed to restart game:', e);
+                }
+            });
+        }
 
         // Close settings with Escape
         document.addEventListener('keydown', (e) => {

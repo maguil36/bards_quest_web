@@ -364,6 +364,9 @@ class GameState {
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };
     });
+    try {
+      localStorage.removeItem('switchGameState');
+    } catch (_) {}
     this.save();
   }
 }
