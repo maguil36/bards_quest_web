@@ -205,8 +205,11 @@ class SwitchGame {
             if (e.key === 'Escape' && settingsModal && settingsModal.style.display === 'block') {
                 // Prevent other Escape handlers from re-opening settings in the same keypress
                 e.preventDefault();
-                if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
-                else e.stopPropagation();
+                if (typeof e.stopImmediatePropagation === 'function') {
+                    e.stopImmediatePropagation();
+                } else {
+                    e.stopPropagation();
+                }
                 closeSettings();
             }
         });
@@ -286,6 +289,19 @@ class SwitchGame {
             if (gameRemain) gameRemain.textContent = String(remainingGame);
         }
 
+        // Also reflect these values in the switch prompt portraits when visible
+        // so that players get immediate feedback while deciding to switch
+        const left = this.leftPortrait;
+        const right = this.rightPortrait;
+        if (left && right && this.showingSwitchPrompt) {
+            try {
+                left.dataset.progress = `${this.gameState.getCompletedCountForCharacter(current.id)}/${this.gameState.getTotalTargetsPerCharacter()}`;
+                const targetId = this.nextCharacterToSwitch;
+                if (targetId) {
+                    right.dataset.progress = `${this.gameState.getCompletedCountForCharacter(targetId)}/${this.gameState.getTotalTargetsPerCharacter()}`;
+                }
+            } catch (_) {}
+        }
     }
 
     handleKeyPress(e) {
@@ -293,7 +309,7 @@ class SwitchGame {
 
         // If settings modal is open, ignore gameplay keys (ESC is handled by a separate listener)
         const settingsModal = document.getElementById('settingsModal');
-        if (settingsModal && settingsModal.classList.contains('open')) return;
+        if (settingsModal && settingsModal.style.display === 'block') return;
 
         switch(e.code) {
             case 'Space':
@@ -313,37 +329,6 @@ class SwitchGame {
         }
     }
 
-    handleKeyPress(e) {
-        const now = Date.now();
-
-        // If settings modal is open, ignore gameplay keys (ESC is handled by a separate listener)
-        const settingsModal = document.getElementById('settingsModal');
-        if (settingsModal && settingsModal.style.display === 'block') {
-            return;
-        }
-
-        switch(e.code) {
-            case 'Space':
-                e.preventDefault();
-                if (this.showingDialogue) {
-                    this.advanceDialogue();
-                } else if (now - this.lastInteractionTime > 500) {
-                    this.tryInteract();
-                    this.lastInteractionTime = now;
-                }
-                break;
-
-            case 'Escape':
-                if (!this.showingDialogue && !this.showingSwitchPrompt) {
-                    // Do not auto-open a switch prompt on Escape anymore
-                    // Previously: if Victor is eligible, offer ending; else show prompt
-                    // New behavior: Escape no longer triggers character switching
-                    // Optionally, we could open settings or ignore. We'll ignore for now.
-                    // If you want Escape to open settings instead, let me know.
-                }
-                break;
-        }
-    }
 
     async loadSprites() {
         // Create sprite containers
@@ -903,7 +888,6 @@ class SwitchGame {
 
         this.nextCharacterToSwitch = null;
     }
-
     switchToCharacter(characterId) {
         if (this.gameState.switchCharacter(characterId)) {
             const newChar = this.gameState.getCurrentCharacter();
@@ -938,13 +922,6 @@ class SwitchGame {
         if (this.audioManager && typeof this.audioManager.stopMusic === 'function') {
             try { this.audioManager.stopMusic(); } catch (_) {}
         }
-    }
-
-    // Duplicate render method removed — consolidated render() is defined later in this file.
-    render() {
-        // Intentionally left blank to avoid duplicate method definitions.
-        // The consolidated render implementation (with proper spritesLoaded checks)
-        // appears later in the file and will be used.
     }
 
     updateCharacterUI() {

@@ -266,13 +266,16 @@ class GameState {
   // Progress helpers for UI
   // Count how many non-final NPCs this character has already talked to (excluding self)
   getCompletedCountForCharacter(characterId) {
-    return NPCS.filter((npc) => npc.id !== characterId && !(CHARACTERS[npc.id]))
+    // Count only non-final NPCs and exclude self and Victor
+    return NPCS
+      .filter((npc) => npc.id !== characterId && !(CHARACTERS[npc.id] && CHARACTERS[npc.id].isFinalCharacter))
       .reduce((acc, npc) => acc + (this.hasCompletedDialogue(characterId, npc.id) ? 1 : 0), 0);
   }
 
   // Total targets this character needs to talk to (non-final minus self)
   getTotalTargetsPerCharacter() {
-    const nonFinal = Object.keys(CHARACTERS);
+    // Total non-final NPCs except the current character
+    const nonFinal = Object.keys(CHARACTERS).filter((id) => !(CHARACTERS[id] && CHARACTERS[id].isFinalCharacter));
     return Math.max(0, nonFinal.length - 1);
   }
 
