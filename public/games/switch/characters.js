@@ -186,6 +186,7 @@ class GameState {
     this.characterPositions = {};
     this.lastNPCTalkedId = null;
     this.lastNonFinalNPCTalkedId = null;
+    this.formerSwapPartnerByCharacter = {}; // Maps characterId -> the characterId they swapped from most recently
 
     // Initialize character positions
     Object.keys(CHARACTERS).forEach((charId) => {
@@ -219,8 +220,10 @@ class GameState {
   }
   // Check if all required NPCs have been talked to as a specific character
   hasCompletedAllDialogues(characterId) {
-    // Must talk to every other NON-FINAL NPC except yourself (exclude Victor)
-    return NPCS.filter((npc) => npc.id !== characterId && !(CHARACTERS[npc.id] && CHARACTERS[npc.id].isFinalCharacter))
+    // Must talk to every NPC except yourself and your former swap partner (Victor included)
+    const former = this.formerSwapPartnerByCharacter && this.formerSwapPartnerByCharacter[characterId];
+    return NPCS
+      .filter((npc) => npc.id !== characterId && npc.id !== former)
       .every((npc) => this.hasCompletedDialogue(characterId, npc.id));
   }
 
@@ -262,26 +265,29 @@ class GameState {
   getTotalInteractionsTowardVictor() {
     return 42;
   }
-
   // Progress helpers for UI
-  // Count how many non-final NPCs this character has already talked to (excluding self)
+  // Count how many NPCs this character has already talked to (excluding self, and excluding the former swap partner)
   getCompletedCountForCharacter(characterId) {
-    // Count only non-final NPCs and exclude self and Victor
+    // Include Victor, exclude self, and exclude the former swap partner for this character
+    const former = this.formerSwapPartnerByCharacter && this.formerSwapPartnerByCharacter[characterId];
     return NPCS
-      .filter((npc) => npc.id !== characterId && !(CHARACTERS[npc.id] && CHARACTERS[npc.id].isFinalCharacter))
+      .filter((npc) => npc.id !== characterId)
+      .filter((npc) => npc.id !== former)
       .reduce((acc, npc) => acc + (this.hasCompletedDialogue(characterId, npc.id) ? 1 : 0), 0);
   }
 
-  // Total targets this character needs to talk to (non-final minus self)
-  getTotalTargetsPerCharacter() {
-    // Total non-final NPCs except the current character
-    const nonFinal = Object.keys(CHARACTERS).filter((id) => !(CHARACTERS[id] && CHARACTERS[id].isFinalCharacter));
-    return Math.max(0, nonFinal.length - 1);
+  // Total targets this character needs to talk to (include Victor, exclude self and former partner)
+  getTotalTargetsPerCharacter(forCharacterId) {
+    const characterId = forCharacterId || this.currentCharacter;
+    const former = this.formerSwapPartnerByCharacter && this.formerSwapPartnerByCharacter[characterId];
+    // All NPCs except self and former partner
+    const eligible = NPCS.filter((npc) => npc.id !== characterId && npc.id !== former);
+    return Math.max(0, eligible.length);
   }
 
   // Remaining interactions for this character to be considered "ready to switch"
   getRemainingForCharacterProgress(characterId) {
-    const total = this.getTotalTargetsPerCharacter();
+    const total = this.getTotalTargetsPerCharacter(characterId);
     const done = this.getCompletedCountForCharacter(characterId);
     return Math.max(0, total - done);
   }
@@ -327,6 +333,7 @@ class GameState {
       characterPositions: this.characterPositions,
       lastNPCTalkedId: this.lastNPCTalkedId,
       lastNonFinalNPCTalkedId: this.lastNonFinalNPCTalkedId,
+      formerSwapPartnerByCharacter: this.formerSwapPartnerByCharacter,
     };
     try {
       localStorage.setItem('switchGameState', JSON.stringify(data));

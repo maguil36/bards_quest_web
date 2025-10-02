@@ -280,7 +280,7 @@ class SwitchGame {
 
         if (this.gameState) {
             const done = this.gameState.getCompletedCountForCharacter(current.id);
-            const total = this.gameState.getTotalTargetsPerCharacter();
+            const total = this.gameState.getTotalTargetsPerCharacter(current.id);
             const rem = this.gameState.getRemainingForCharacterProgress(current.id);
             const remainingGame = this.gameState.getRemainingInteractionsToFinishGame();
             if (charProg) charProg.textContent = String(done);
@@ -295,10 +295,10 @@ class SwitchGame {
         const right = this.rightPortrait;
         if (left && right && this.showingSwitchPrompt) {
             try {
-                left.dataset.progress = `${this.gameState.getCompletedCountForCharacter(current.id)}/${this.gameState.getTotalTargetsPerCharacter()}`;
+                left.dataset.progress = `${this.gameState.getCompletedCountForCharacter(current.id)}/${this.gameState.getTotalTargetsPerCharacter(current.id)}`;
                 const targetId = this.nextCharacterToSwitch;
                 if (targetId) {
-                    right.dataset.progress = `${this.gameState.getCompletedCountForCharacter(targetId)}/${this.gameState.getTotalTargetsPerCharacter()}`;
+                    right.dataset.progress = `${this.gameState.getCompletedCountForCharacter(targetId)}/${this.gameState.getTotalTargetsPerCharacter(targetId)}`;
                 }
             } catch (_) {}
         }
@@ -836,6 +836,13 @@ class SwitchGame {
 
             // Switch state
             this.switchToCharacter(this.nextCharacterToSwitch);
+
+            // Track former swap partner mapping so that you don't need to talk to the person you just swapped from
+            if (this.gameState && prevChar && targetChar) {
+                if (!this.gameState.formerSwapPartnerByCharacter) this.gameState.formerSwapPartnerByCharacter = {};
+                this.gameState.formerSwapPartnerByCharacter[targetChar.id] = prevChar.id;
+                if (typeof this.gameState.save === 'function') this.gameState.save();
+            }
 
             // Remove any NPC that matches the new current character (since the player is now that character)
             const currentChar = this.gameState.getCurrentCharacter();
