@@ -203,7 +203,10 @@ class SwitchGame {
         // Close settings with Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && settingsModal && settingsModal.style.display === 'block') {
-                e.stopPropagation();
+                // Prevent other Escape handlers from re-opening settings in the same keypress
+                e.preventDefault();
+                if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                else e.stopPropagation();
                 closeSettings();
             }
         });
@@ -221,7 +224,7 @@ class SwitchGame {
             if (this.showingDialogue && this.dialogueManager && typeof this.dialogueManager.cancelDialogue === 'function') {
                 e.preventDefault();
                 try { this.dialogueManager.cancelDialogue(); } catch (_) {}
-                try { this.closeDialogue(); } catch (_) {}
+                this.closeDialogue();
                 return;
             }
 
