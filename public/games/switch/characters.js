@@ -247,7 +247,7 @@ class GameState {
   // Count total completed interactions across all non-final characters (toward Victor)
   getCompletedInteractionsTowardVictor() {
     // Count only non-final -> non-final (exclude self and exclude Victor in either role)
-    const nonFinal = Object.keys(CHARACTERS);
+    const nonFinal = Object.keys(CHARACTERS).filter((id) => !(CHARACTERS[id] && CHARACTERS[id].isFinalCharacter));
     let count = 0;
     for (const charId of nonFinal) {
       for (const npcId of nonFinal) {
@@ -258,15 +258,15 @@ class GameState {
     return count;
   }
 
-  // Total required to unlock Victor: 7 speakers * 7 targets = 49
+  // Total required to unlock Victor (exclude any interactions involving Victor): 7 speakers * 6 targets = 42
   getTotalInteractionsTowardVictor() {
-    return 49;
+    return 42;
   }
 
   // Progress helpers for UI
   // Count how many non-final NPCs this character has already talked to (excluding self)
   getCompletedCountForCharacter(characterId) {
-    return NPCS.filter((npc) => npc.id !== characterId)
+    return NPCS.filter((npc) => npc.id !== characterId && !(CHARACTERS[npc.id]))
       .reduce((acc, npc) => acc + (this.hasCompletedDialogue(characterId, npc.id) ? 1 : 0), 0);
   }
 

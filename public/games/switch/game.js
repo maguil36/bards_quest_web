@@ -208,6 +208,39 @@ class SwitchGame {
             }
         });
 
+        // Global Escape behavior:
+        // - If any in-game window is open (dialogue or switch prompt), close it
+        // - Otherwise, open the options/settings window
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+
+            // If settings already open, the previous listener will close it; don't double-handle
+            if (settingsModal && settingsModal.style.display === 'block') return;
+
+            // If dialogue is currently open, close it without marking completion
+            if (this.showingDialogue && this.dialogueManager && typeof this.dialogueManager.cancelDialogue === 'function') {
+                e.preventDefault();
+                try { this.dialogueManager.cancelDialogue(); } catch (_) {}
+                try { this.closeDialogue(); } catch (_) {}
+                return;
+            }
+
+            // If switch prompt is open, close it
+            if (this.showingSwitchPrompt) {
+                e.preventDefault();
+                this.showingSwitchPrompt = false;
+                if (this.switchPrompt) this.switchPrompt.style.display = 'none';
+                return;
+            }
+
+            // Otherwise, open settings/options
+            e.preventDefault();
+            if (typeof this.updateSettingsPanel === 'function') {
+                try { this.updateSettingsPanel(); } catch (_) {}
+            }
+            if (settingsModal) settingsModal.style.display = 'block';
+        });
+
         // Initialize slider from audio manager
         if (volSlider && volValue && this.audioManager && typeof this.audioManager.getVolume === 'function') {
             try {
@@ -248,6 +281,32 @@ class SwitchGame {
             if (charTotal) charTotal.textContent = String(total);
             if (charRem) charRem.textContent = String(rem);
             if (gameRemain) gameRemain.textContent = String(remainingGame);
+        }
+
+    }
+
+    handleKeyPress(e) {
+        const now = Date.now();
+
+        // If settings modal is open, ignore gameplay keys (ESC is handled by a separate listener)
+        const settingsModal = document.getElementById('settingsModal');
+        if (settingsModal && settingsModal.classList.contains('open')) return;
+
+        switch(e.code) {
+            case 'Space':
+                e.preventDefault();
+                if (this.showingDialogue) {
+                    this.advanceDialogue();
+                } else if (now - this.lastInteractionTime > 500) {
+                    this.tryInteract();
+                    this.lastInteractionTime = now;
+                }
+                break;
+
+            case 'Escape':
+                // Escape handling is centralized in setupEventListeners global listener
+                // to manage closing/opening UI overlays. No action here to avoid duplication.
+                break;
         }
     }
 

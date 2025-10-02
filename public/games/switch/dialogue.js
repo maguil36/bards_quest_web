@@ -142,6 +142,16 @@ class DialogueManager {
         this.currentNPC = null;
     }
 
+    // Cancel dialogue without recording completion (used when user closes the window)
+    cancelDialogue() {
+        // Do not mark the dialogue as complete in the game state.
+        // Just reset local dialogue state so it can be resumed or retried later.
+        this.currentDialogue = null;
+        this.currentLineIndex = 0;
+        this.isActive = false;
+        this.currentNPC = null;
+    }
+
     // Check if dialogue is active
     isDialogueActive() {
         return this.isActive;
