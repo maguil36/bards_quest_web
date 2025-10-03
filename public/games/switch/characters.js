@@ -360,6 +360,7 @@ class GameState {
       }
       this.lastNPCTalkedId = data.lastNPCTalkedId || null;
       this.lastNonFinalNPCTalkedId = data.lastNonFinalNPCTalkedId || null;
+      this.formerSwapPartnerByCharacter = data.formerSwapPartnerByCharacter || {};
     } catch (e) {
       console.warn('Failed to load game state:', e);
     }
@@ -372,6 +373,7 @@ class GameState {
     this.unlockedCharacters = new Set(['alexis']);
     this.lastNPCTalkedId = null;
     this.lastNonFinalNPCTalkedId = null;
+    this.formerSwapPartnerByCharacter = {};
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };
     });

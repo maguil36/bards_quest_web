@@ -333,7 +333,7 @@
                 <div class="settingsValue">
                     WASD or Arrow Keys — Move<br>
                     Space — Interact / talk<br>
-                    Esc — (disabled)
+                    Esc — Close windows; open Options if none are open
                 </div>
             </div>
 
@@ -395,13 +395,36 @@
       // Minimal on-page error display to help diagnose black screens in production-like builds
       window.addEventListener('error', function (e) {
         const box = document.getElementById('errorMessage');
+        const details = [
+          'Runtime error:',
+          e && e.message ? e.message : 'Unknown error',
+          e && e.filename ? ('\nFile: ' + e.filename) : '',
+          (typeof e.lineno === 'number') ? ('\nLine: ' + e.lineno) : '',
+          (typeof e.colno === 'number') ? ('\nColumn: ' + e.colno) : '',
+          e && e.error && e.error.stack ? ('\n\nStack:\n' + e.error.stack) : ''
+        ].join('');
         if (box) {
           box.style.display = 'block';
           box.style.whiteSpace = 'pre-wrap';
           box.style.zIndex = '1000';
-          box.textContent = 'Runtime error:\n' + (e && e.message ? e.message : 'Unknown error');
+          box.textContent = details;
         } else {
-          alert('Runtime error: ' + (e && e.message ? e.message : 'Unknown error'));
+          alert(details);
+        }
+      });
+
+      // Surface unhandled promise rejections as well
+      window.addEventListener('unhandledrejection', function (e) {
+        const box = document.getElementById('errorMessage');
+        const reason = e && (e.reason && (e.reason.stack || e.reason.message)) ? (e.reason.stack || e.reason.message) : String(e.reason || 'Unknown reason');
+        const details = 'Unhandled promise rejection:\n' + reason;
+        if (box) {
+          box.style.display = 'block';
+          box.style.whiteSpace = 'pre-wrap';
+          box.style.zIndex = '1000';
+          box.textContent = details;
+        } else {
+          alert(details);
         }
       });
     </script>
@@ -409,5 +432,5 @@
     <script src="dialogue.js"></script>
     <script src="audio.js"></script>
     <script src="game.js"></script>
-</body>
+  </body>
 </html>

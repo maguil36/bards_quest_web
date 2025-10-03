@@ -190,7 +190,7 @@ class SwitchGame {
 
                     // Clear saved audio settings and general save data
                     try { localStorage.removeItem('switchAudioSettings'); } catch (_) {}
-                    try { localStorage.removeItem('switchSave'); } catch (_) {}
+                    try { localStorage.removeItem('switchGameState'); } catch (_) {}
 
                     // Reload page to reinitialize everything cleanly
                     window.location.reload();
@@ -718,12 +718,8 @@ class SwitchGame {
             // Dialogue completed
             this.closeDialogue();
 
-            // Check if ready to switch (per-character completion), but do NOT interfere when we just talked to Victor and can switch to him
-            const lastId = this.gameState && this.gameState.lastNPCTalkedId;
-            const canSwitchVictor = this.gameState && typeof this.gameState.canSwitchToCharacter === 'function' && this.gameState.canSwitchToCharacter('victor');
-            if (this.gameState.isReadyToSwitch() && !(lastId === 'victor' && canSwitchVictor)) {
-                setTimeout(() => this.showSwitchPrompt(), 500);
-            }
+            // Always evaluate whether a switch prompt should be shown based on strict rules
+            setTimeout(() => this.showSwitchPrompt(), 400);
         } else {
             // Update dialogue UI using structured current line object (text/speaker)
             const current = this.dialogueManager.getCurrentLine();
@@ -741,6 +737,7 @@ class SwitchGame {
             }
         }
     }
+
 
     closeDialogue() {
         this.showingDialogue = false;
@@ -769,20 +766,42 @@ class SwitchGame {
     showSwitchPrompt() {
         const currentChar = this.gameState.getCurrentCharacter();
 
+        // Determine who we are allowed to propose as a switch target under strict rules
+        // Rule 1: If Until game complete > 0, Victor must NEVER be proposed.
+        // Rule 2: If Until game complete == 0 AND we have spoken to Victor as this character,
+        //         and the current interaction was with Victor, then propose Victor.
+        // Rule 3: Otherwise, propose ONLY the last non-final NPC we actually interacted with (not self).
+
+        const remaining = (this.gameState && typeof this.gameState.getRemainingInteractionsToFinishGame === 'function')
+            ? this.gameState.getRemainingInteractionsToFinishGame()
+            : 1;
+        const spokeVictor = (this.gameState && typeof this.gameState.hasCompletedDialogue === 'function')
+            ? this.gameState.hasCompletedDialogue(this.gameState.currentCharacter, 'victor')
+            : false;
+        const lastTalked = this.gameState && this.gameState.lastNPCTalkedId;
+
         let targetId = null;
-
-        // If we just talked to Victor and are eligible to switch to him, propose Victor explicitly now
-        const lastId = this.gameState && this.gameState.lastNPCTalkedId;
-        const canSwitchVictor = this.gameState && typeof this.gameState.canSwitchToCharacter === 'function' && this.gameState.canSwitchToCharacter('victor');
-        if (lastId === 'victor' && canSwitchVictor) {
+        if (remaining === 0 && spokeVictor && lastTalked === 'victor' && this.gameState.canSwitchToCharacter && this.gameState.canSwitchToCharacter('victor')) {
             targetId = 'victor';
+        } else if (remaining > 0) {
+            // Strict: only propose the last non-final NPC when they are eligible, never Victor
+            if (this.gameState && typeof this.gameState.getLastSwitchTarget === 'function') {
+                targetId = this.gameState.getLastSwitchTarget(currentChar.id);
+            } else {
+                targetId = null;
+            }
+        } else {
+            // remaining == 0 but we either haven't spoken to Victor or last talk wasn't Victor.
+            // In either case, fall back to strict non-final last target; do NOT propose Victor.
+            if (this.gameState && typeof this.gameState.getLastSwitchTarget === 'function') {
+                targetId = this.gameState.getLastSwitchTarget(currentChar.id);
+            } else {
+                targetId = null;
+            }
         }
 
-        // Otherwise fall back to the last non-final NPC we talked to (not self)
-        if (!targetId) {
-            targetId = this.gameState.getLastSwitchTarget(currentChar.id);
-        }
-        if (!targetId) return; // If none, don’t show prompt
+        // If there is no valid target under strict rules, do not show the prompt
+        if (!targetId) return;
 
         const nextChar = CHARACTERS[targetId];
         if (!nextChar) return;
@@ -812,6 +831,18 @@ class SwitchGame {
             }
         }
 
+        // Update progress badges for from/to characters when the prompt appears
+        if (this.leftPortrait) {
+            try {
+                this.leftPortrait.dataset.progress = `${this.gameState.getCompletedCountForCharacter(currentChar.id)}/${this.gameState.getTotalTargetsPerCharacter(currentChar.id)}`;
+            } catch (_) {}
+        }
+        if (this.rightPortrait) {
+            try {
+                this.rightPortrait.dataset.progress = `${this.gameState.getCompletedCountForCharacter(nextChar.id)}/${this.gameState.getTotalTargetsPerCharacter(nextChar.id)}`;
+            } catch (_) {}
+        }
+
         this.showingSwitchPrompt = true;
         if (this.switchPrompt) this.switchPrompt.style.display = 'block';
         this.nextCharacterToSwitch = nextChar.id;
@@ -824,8 +855,21 @@ class SwitchGame {
         if (confirmed && this.nextCharacterToSwitch) {
             const targetChar = CHARACTERS[this.nextCharacterToSwitch];
 
-            // Check if this is the final character (triggers glitch ending)
+            // If target is the final character (Victor), only allow when remaining == 0 and we just interacted with Victor
+            const remaining = (this.gameState && typeof this.gameState.getRemainingInteractionsToFinishGame === 'function')
+                ? this.gameState.getRemainingInteractionsToFinishGame()
+                : 1;
+            const lastTalked = this.gameState && this.gameState.lastNPCTalkedId;
             if (targetChar && targetChar.isFinalCharacter) {
+                if (!(remaining === 0 && lastTalked === 'victor' && this.gameState.canSwitchToCharacter && this.gameState.canSwitchToCharacter('victor'))) {
+                    // Guard: do not allow switching to Victor unless strict conditions met
+                    return;
+                }
+
+                // Begin glitch ending while playing Victor's music
+                if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+                    try { this.audioManager.playCharacterMusic('victor'); } catch(_) {}
+                }
                 this.triggerGlitchEnding();
                 return;
             }
@@ -841,7 +885,6 @@ class SwitchGame {
             if (this.gameState && prevChar && targetChar) {
                 if (!this.gameState.formerSwapPartnerByCharacter) this.gameState.formerSwapPartnerByCharacter = {};
                 this.gameState.formerSwapPartnerByCharacter[targetChar.id] = prevChar.id;
-                if (typeof this.gameState.save === 'function') this.gameState.save();
             }
 
             // Remove any NPC that matches the new current character (since the player is now that character)
@@ -945,14 +988,14 @@ class SwitchGame {
     applyCharacterTheme(character) {
         // Map new character IDs to site aspect themes for background/surface tinting
         const THEME_BY_CHAR = {
-            alexis: 'breath',
-            austine: 'light',
-            chloe: 'time',
-            isabell: 'space',
-            nicholas: 'heart',
-            opal: 'mind',
-            tyson: 'hope',
-            victor: 'rage',
+            alexis: 'rage',
+            austine: 'mind',
+            chloe: 'life',
+            isabell: 'blood',
+            nicholas: 'light',
+            opal: 'space',
+            tyson: 'doom',
+            victor: 'time',
         };
         const theme = (character && character.id && THEME_BY_CHAR[character.id]) ? THEME_BY_CHAR[character.id] : 'space';
         document.documentElement.setAttribute('data-theme', theme);

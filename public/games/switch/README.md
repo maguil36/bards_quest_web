@@ -1,128 +1,76 @@
-# Switch - Character Adventure Game
+# Switch
 
-A top-down 2D character-switching game where players control different characters, interact with NPCs, and ultimately trigger a glitch ending.
+A small top‑down character adventure that lives under public/games/switch. You wander a simple world, talk to the other personas, and "switch" into them over time. Each persona has a color theme and a musical motif. Finishing all cross‑persona conversations unlocks a final glitch ending.
 
-## How to Play
+Play it at /games/switch/ (served from public/games/switch/index.html).
 
-### Controls
-- **WASD** or **Arrow Keys** - Move your character
-- **SPACE** - Interact with NPCs / Advance dialogue
-- **ESC** - Close dialogue / Open character menu
+## Controls
+- Move: WASD or Arrow Keys
+- Interact / advance dialogue: Space
+- Options: Gear button (top‑right). Escape closes open windows and can open Options when nothing else is open.
 
-### Gameplay
-1. Start as **Alexis**
-2. Move around the map and find NPCs to talk to
-3. Each character has unique dialogue with every NPC
-4. Talk to all 7 NPCs as your current character
-5. Once you've talked to everyone, you'll be prompted to switch characters
-6. Repeat this process with each new character
-7. The final character (**Victor**) can only be unlocked after completing all dialogues with all other characters
-8. Switching to **Victor** triggers the glitch ending
+## Objective & Progression
+- You start as Alexis. The remaining seven personas exist in the world as NPCs.
+- Talk to someone once to unlock them as a playable character (Victor never pre‑unlocks this way; see Final character below).
+- After conversations, a prompt may offer to switch into the last person you talked to. If you accept, you become them, and your previous self remains in the world at your old position as an NPC (a "ghost"), so the world gradually fills with characters you’ve inhabited.
+- Conversations are tracked per "speaker -> target" pair. For non‑final characters there are 7 speakers × 7 targets = 49 total interactions to finish the game’s core objective.
 
-### Characters (Colors pulled from public/styles.css)
-- Alexis (var(--alexis))
-- Austine (var(--austine))
-- Chloe (var(--chloe))
-- Isabell (var(--isabell))
-- Nicholas (var(--nicholas))
-- Opal (var(--opal))
-- Tyson (var(--tyson))
-- Victor (var(--victor))
+Final character (Victor)
+- Victor is the final persona and never unlocks early.
+- To be allowed to switch to Victor you must:
+  1) Complete all 49 non‑final cross interactions (7 speakers × 7 targets).
+  2) Have just spoken to Victor as your current character (the last conversation you finished must be with Victor).
+- Switching to Victor triggers the glitch ending sequence.
 
-## Customization
+## Saving & Resetting
+- Progress autosaves to localStorage under the key switchGameState.
+  - Saved data includes: current character, finished conversations (speaker:target), unlocked characters, and saved positions for each character/NPC.
+  - Position changes are persisted whenever you complete a conversation or perform a character switch.
+- Audio settings save under switchAudioSettings (volume, mute, enabled).
+- Use Options → Danger zone → "Re‑start game" to clear saves (removes switchGameState and switchAudioSettings) and reload fresh.
 
-### Editing Dialogue
-All dialogue is stored in `dialogue.js`. Each NPC has character-specific dialogue keyed by the new character IDs (`alexis`, `austine`, `chloe`, `isabell`, `nicholas`, `opal`, `tyson`, `victor`).
+## Audio
+- Each persona has a looping theme track in audio/<characterId>.mp3.
+  - Expected files: alexis.mp3, austine.mp3, chloe.mp3, isabell.mp3, nicholas.mp3, opal.mp3, tyson.mp3, victor.mp3
+- Volume is adjustable in Options. Due to browser autoplay rules, music starts after your first interaction (key press is enough).
 
-```javascript
-const DIALOGUES = {
-    npc1: {
-        name: 'The Wanderer',
-        dialogues: {
-            alexis: [
-                "First line of dialogue...",
-                "Second line...",
-                "Third line...",
-                "Final line..."
-            ],
-            austine: [
-                "Different dialogue for Austine...",
-                // ... more lines
-            ]
-            // ... other characters
-        }
-    }
-    // ... other NPCs
-};
-```
+## UI & Feedback
+- Canvas view with a simple procedural map (world ~1600×1200; 32px tiles). The camera follows the player.
+- Dialogue box appears at the bottom; portraits panel highlights the current speaker.
+- Settings gear (top‑right) shows:
+  - Playing as: current persona
+  - Controls summary
+  - Progress: per‑character completion and total remaining until game complete
+  - Volume slider
+  - Danger zone: reset button
 
-### Adding Music
-Place audio files in the `audio/` directory. The game maps new character IDs to existing audio asset names:
-- Alexis -> `breath.mp3`
-- Austine -> `light.mp3`
-- Chloe -> `time.mp3`
-- Isabell -> `space.mp3`
-- Nicholas -> `heart.mp3`
-- Opal -> `mind.mp3`
-- Tyson -> `hope.mp3`
-- Victor -> `rage.mp3`
+## Interaction Rules (short version)
+- Interact range is ~50px to an NPC.
+- Talking to someone marks that conversation as completed for your current persona.
+- After a conversation:
+  - The NPC you just spoke to (if non‑final) becomes switch‑eligible and is proposed by the switch prompt.
+  - If all 49 non‑final interactions are done and you just spoke to Victor, the prompt proposes Victor; accepting triggers the ending.
+- When you switch, you don’t need to talk to the person you just swapped from when you’re playing as the new persona (they’re excluded from that persona’s required targets).
 
-The game will automatically load and play character-specific music when switching.
+## Authoring content
+- Dialogue lives in dialogue.js under the DIALOGUES map.
+  - Structure: DIALOGUES[npcId].dialogues[characterId] = array of lines.
+  - Lines can be plain strings (auto‑alternating npc/player) or objects like { speaker: 'npc'|'player', text: '...' }.
+  - If a specific pairing is missing, a generic fallback dialogue is shown so interactions always work.
+- Characters and colors live in characters.js and are driven by CSS variables defined in public/styles.css (e.g., --alexis, --austine, …). Theme accent updates automatically when you switch.
+- Music files go in public/games/switch/audio and must be named exactly after the character ids listed above.
 
-### Customizing Characters
-Edit `characters.js` to modify character properties. Colors are read from site CSS variables at runtime:
+## File layout
+- index.html – page wrapper, UI, error overlays, script loading
+- game.js – movement, camera, rendering, switching, saving, ending
+- characters.js – character/NPC data, colors, unlock rules, save schema
+- dialogue.js – authored dialogue and dialogue runtime
+- audio.js – audio playback, volume/mute persistence
+- audio/ – mp3 assets for each character
 
-```javascript
-const color = getComputedStyle(document.documentElement).getPropertyValue('--alexis');
-```
+## Troubleshooting
+- If you see a black screen or the game halts, an on‑page error box should appear with details. Browser devtools console may have more info.
+- If music doesn’t play, press any key or move once to satisfy autoplay policies, then open Options and check the volume.
 
-## Technical Details
-
-### File Structure
-```
-public/games/switch/
-├── index.html          # Main game file
-├── game.js            # Core game logic
-├── characters.js      # Character data; reads CSS vars --alexis, --austine, ...
-├── dialogue.js        # Dialogue system and data (keys match new IDs)
-├── audio.js           # Audio management and theme map
-├── sprites/           # Character and NPC sprites (placeholder)
-├── audio/             # Music files (add your own)
-└── README.md         # This file
-```
-
-### Features Implemented
-- ✅ Character movement with WASD/Arrow keys
-- ✅ Camera following with map edge behavior (Pokemon-style)
-- ✅ 8 characters with site-synced colors (CSS variables)
-- ✅ Character-specific dialogue system
-- ✅ NPC interaction system
-- ✅ Character switching mechanics
-- ✅ Progress tracking and save system
-- ✅ Character-specific background music
-- ✅ Large portrait display during dialogue
-- ✅ Glitch ending animation
-- ✅ Auto-redirect after glitch ending
-- ✅ Theme tint + dynamic accent color set from current character
-
-### Browser Compatibility
-- Modern browsers with HTML5 Canvas support
-- Chrome, Firefox, Safari, Edge
-- Mobile browsers (touch controls not implemented)
-
-### Development Notes
-- Sprites are currently placeholder colored rectangles
-- Audio files are not included (add your own music)
-- The glitch ending shows an alert instead of redirecting (customize as needed)
-- Game state is saved to localStorage
-
-## Adding Real Assets
-
-### Sprites
-Replace the placeholder sprite system in `game.js` with real image loading.
-
-### Audio
-Add MP3 or OGG files to the `audio/` directory as noted above.
-
-### Backgrounds
-Replace the procedural background with actual artwork by modifying `createBackgroundSprite()` in `game.js`.
+## Plot
+- 
