@@ -46,9 +46,6 @@ class SwitchGame {
         // UI elements
         this.dialogueBox = document.getElementById('dialogueBox');
         this.dialogueText = document.getElementById('dialogueText');
-        this.characterPortraits = document.getElementById('characterPortraits');
-        this.leftPortrait = document.getElementById('leftPortrait');
-        this.rightPortrait = document.getElementById('rightPortrait');
         this.switchPrompt = document.getElementById('switchPrompt');
         this.glitchOverlay = document.getElementById('glitchOverlay');
         this.errorMessage = document.getElementById('errorMessage');
@@ -80,7 +77,7 @@ class SwitchGame {
     async init() {
         // Ensure CSS variable-driven colors are up-to-date
         if (typeof refreshCharacterColors === 'function') {
-            try { refreshCharacterColors(); } catch (_) {}
+            refreshCharacterColors();
         }
 
         // Load game state
@@ -117,7 +114,9 @@ class SwitchGame {
         await this.loadSprites();
 
         // Start background music
-        this.audioManager.playCharacterMusic(currentChar.id);
+        if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+            this.audioManager.playCharacterMusic(currentChar.id);
+        }
 
         // Apply character theme
         this.applyCharacterTheme(currentChar);
@@ -135,10 +134,12 @@ class SwitchGame {
 
                 // Refresh CSS variable-driven character colors in case styles are applied after load
                 if (typeof refreshCharacterColors === 'function') {
-                    try { refreshCharacterColors(); } catch (_) {}
+                    refreshCharacterColors();
                 }
 
-                this.audioManager.playCharacterMusic(currentChar.id);
+                if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+                    this.audioManager.playCharacterMusic(currentChar.id);
+                }
                 this._audioUnlocked = true;
                 // Apply theme in case styles loaded later
                 this.applyCharacterTheme(currentChar);
@@ -175,7 +176,7 @@ class SwitchGame {
 
         const openSettings = () => {
             if (typeof this.updateSettingsPanel === 'function') {
-                try { this.updateSettingsPanel(); } catch (_) {}
+                this.updateSettingsPanel();
             }
             if (settingsModal) settingsModal.style.display = 'block';
         };
@@ -192,21 +193,17 @@ class SwitchGame {
                 const confirmed = confirm('This will permanently erase your progress and restart the game. Continue?');
                 if (!confirmed) return;
 
-                try {
-                    // Reset game state if available
-                    if (this.gameState && typeof this.gameState.reset === 'function') {
-                        try { this.gameState.reset(); } catch (_) {}
-                    }
-
-                    // Clear saved audio settings and general save data
-                    try { localStorage.removeItem('switchAudioSettings'); } catch (_) {}
-                    try { localStorage.removeItem('switchGameState'); } catch (_) {}
-
-                    // Reload page to reinitialize everything cleanly
-                    window.location.reload();
-                } catch (e) {
-                    console.error('Failed to restart game:', e);
+                // Reset game state if available
+                if (this.gameState && typeof this.gameState.reset === 'function') {
+                    this.gameState.reset();
                 }
+
+                // Clear saved audio settings
+                localStorage.removeItem('switchAudioSettings');
+                localStorage.removeItem('switchGameState');
+
+                // Reload page to reinitialize everything cleanly
+                window.location.reload();
             });
         }
 
@@ -215,11 +212,7 @@ class SwitchGame {
             if (e.key === 'Escape' && settingsModal && settingsModal.style.display === 'block') {
                 // Prevent other Escape handlers from re-opening settings in the same keypress
                 e.preventDefault();
-                if (typeof e.stopImmediatePropagation === 'function') {
-                    e.stopImmediatePropagation();
-                } else {
-                    e.stopPropagation();
-                }
+                e.stopImmediatePropagation();
                 closeSettings();
             }
         });
@@ -236,7 +229,7 @@ class SwitchGame {
             // If dialogue is currently open, close it without marking completion
             if (this.showingDialogue && this.dialogueManager && typeof this.dialogueManager.cancelDialogue === 'function') {
                 e.preventDefault();
-                try { this.dialogueManager.cancelDialogue(); } catch (_) {}
+                this.dialogueManager.cancelDialogue();
                 this.closeDialogue();
                 return;
             }
@@ -252,22 +245,21 @@ class SwitchGame {
             // Otherwise, open settings/options
             e.preventDefault();
             if (typeof this.updateSettingsPanel === 'function') {
-                try { this.updateSettingsPanel(); } catch (_) {}
+                this.updateSettingsPanel();
             }
             if (settingsModal) settingsModal.style.display = 'block';
         });
 
         // Initialize slider from audio manager
         if (volSlider && volValue && this.audioManager && typeof this.audioManager.getVolume === 'function') {
-            try {
-                const v = Math.round(this.audioManager.getVolume() * 100);
-                volSlider.value = String(v);
-                volValue.textContent = `${v}%`;
-            } catch (_) {}
+            const v = Math.round(this.audioManager.getVolume() * 100);
+            volSlider.value = String(v);
+            volValue.textContent = `${v}%`;
+
             volSlider.addEventListener('input', () => {
                 const pct = parseInt(volSlider.value, 10) || 0;
                 if (this.audioManager && typeof this.audioManager.setVolume === 'function') {
-                    try { this.audioManager.setVolume(pct / 100); } catch (_) {}
+                    this.audioManager.setVolume(pct / 100);
                 }
                 if (volValue) volValue.textContent = `${pct}%`;
             });
@@ -297,20 +289,6 @@ class SwitchGame {
             if (charTotal) charTotal.textContent = String(total);
             if (charRem) charRem.textContent = String(rem);
             if (gameRemain) gameRemain.textContent = String(remainingGame);
-        }
-
-        // Also reflect these values in the switch prompt portraits when visible
-        // so that players get immediate feedback while deciding to switch
-        const left = this.leftPortrait;
-        const right = this.rightPortrait;
-        if (left && right && this.showingSwitchPrompt) {
-            try {
-                left.dataset.progress = `${this.gameState.getCompletedCountForCharacter(current.id)}/${this.gameState.getTotalTargetsPerCharacter(current.id)}`;
-                const targetId = this.nextCharacterToSwitch;
-                if (targetId) {
-                    right.dataset.progress = `${this.gameState.getCompletedCountForCharacter(targetId)}/${this.gameState.getTotalTargetsPerCharacter(targetId)}`;
-                }
-            } catch (_) {}
         }
     }
 
@@ -514,59 +492,20 @@ class SwitchGame {
         if (this.keys['KeyW'] || this.keys['ArrowUp']) {
             dy = -step;
             this.player.direction = 'up';
-
-            // Reset portraits highlight on movement
-            if (this.characterPortraits) {
-                this.leftPortrait.style.outline = '2px solid var(--border)';
-                this.rightPortrait.style.outline = '2px solid var(--border)';
-                this.characterPortraits.style.display = 'none';
-            }
         }
         if (this.keys['KeyS'] || this.keys['ArrowDown']) {
             dy = step;
             this.player.direction = 'down';
-
-            if (this.characterPortraits) {
-                this.leftPortrait.style.outline = '2px solid var(--border)';
-                this.rightPortrait.style.outline = '2px solid var(--border)';
-                this.characterPortraits.style.display = 'none';
-            }
         }
         if (this.keys['KeyA'] || this.keys['ArrowLeft']) {
             dx = -step;
             this.player.direction = 'left';
-
-            if (this.characterPortraits) {
-                this.leftPortrait.style.outline = '2px solid var(--border)';
-                this.rightPortrait.style.outline = '2px solid var(--border)';
-                this.characterPortraits.style.display = 'none';
-            }
         }
         if (this.keys['KeyD'] || this.keys['ArrowRight']) {
             dx = step;
             this.player.direction = 'right';
         }
 
-        // Update movement state
-
-        // Save position (player -> current character)
-        if (this.gameState && typeof this.gameState.getCurrentCharacter === 'function') {
-            const currentChar = this.gameState.getCurrentCharacter();
-            if (currentChar && currentChar.id) {
-                this.gameState.characterPositions = this.gameState.characterPositions || {};
-                this.gameState.characterPositions[currentChar.id] = { x: this.player.x, y: this.player.y };
-            }
-        }
-
-        // Persist current NPC positions too (so ghost NPCs remain where you left them)
-        if (Array.isArray(this.npcs) && this.gameState) {
-            this.gameState.characterPositions = this.gameState.characterPositions || {};
-            for (const npc of this.npcs) {
-                if (npc && npc.id && npc.position && typeof npc.position.x === 'number' && typeof npc.position.y === 'number') {
-                    this.gameState.characterPositions[npc.id] = { x: npc.position.x, y: npc.position.y };
-                }
-            }
-        }
         this.player.isMoving = dx !== 0 || dy !== 0;
 
         // Apply movement with bounds checking
@@ -576,9 +515,11 @@ class SwitchGame {
         this.player.x = newX;
         this.player.y = newY;
 
-        // Save position
+        // Save current player position to game state
         const currentChar = this.gameState.getCurrentCharacter();
-        this.gameState.characterPositions[currentChar.id] = { x: this.player.x, y: this.player.y };
+        if (currentChar && currentChar.id) {
+            this.gameState.characterPositions[currentChar.id] = { x: this.player.x, y: this.player.y };
+        }
     }
 
     showDialogueUI() {
@@ -594,20 +535,16 @@ class SwitchGame {
             const playerColor = currentChar.color;
             const npcColor = npc.color || '#888';
             // Style dialogue text color based on the current speaker
-            // Player speaks: use player color; NPC speaks: use NPC color
-            if (this.dialogueText) this.dialogueText.style.color = current.speaker === 'player' ? playerColor : npcColor;
+            if (this.dialogueText) {
+                this.dialogueText.style.color = current.speaker === 'player' ? playerColor : npcColor;
+            }
 
             // Toggle speaker highlight classes on dialogue box
             if (this.dialogueBox) {
                 this.dialogueBox.classList.toggle('speaker-player', current.speaker === 'player');
                 this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
+                this.dialogueBox.style.display = 'block';
             }
-
-            // Portraits panel disabled per request
-            if (this.characterPortraits) this.characterPortraits.style.display = 'none';
-
-            // Show dialogue box
-            if (this.dialogueBox) this.dialogueBox.style.display = 'block';
         }
     }
 
@@ -702,23 +639,6 @@ class SwitchGame {
         }
     }
 
-    // Legacy wrapper - disable portraits panel and reuse primary UI
-    showDialogueUI() {
-        const current = this.dialogueManager.getCurrentLine();
-        const npc = this.dialogueManager.getCurrentNPC();
-        const currentChar = this.gameState.getCurrentCharacter();
-
-        if (current && npc) {
-            if (this.dialogueText) this.dialogueText.textContent = current.text;
-            if (this.dialogueText) this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
-
-            // Ensure dialogue box visible; keep portraits hidden
-            if (this.dialogueBox) this.dialogueBox.style.display = 'block';
-            if (this.characterPortraits) this.characterPortraits.style.display = 'none';
-            this.showingDialogue = true;
-        }
-    }
-
     advanceDialogue() {
         if (!this.dialogueManager.nextLine()) {
             // Dialogue completed
@@ -733,12 +653,16 @@ class SwitchGame {
             const currentChar = this.gameState.getCurrentCharacter();
 
             if (current && npc) {
-                if (this.dialogueText) this.dialogueText.textContent = current.text;
-                if (this.dialogueText) this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
+                if (this.dialogueText) {
+                    this.dialogueText.textContent = current.text;
+                    this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
+                }
 
-                // Ensure dialogue box visible; keep portraits hidden
-                if (this.dialogueBox) this.dialogueBox.style.display = 'block';
-                if (this.characterPortraits) this.characterPortraits.style.display = 'none';
+                if (this.dialogueBox) {
+                    this.dialogueBox.classList.toggle('speaker-player', current.speaker === 'player');
+                    this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
+                    this.dialogueBox.style.display = 'block';
+                }
                 this.showingDialogue = true;
             }
         }
@@ -748,7 +672,6 @@ class SwitchGame {
     closeDialogue() {
         this.showingDialogue = false;
         if (this.dialogueBox) this.dialogueBox.style.display = 'none';
-        if (this.characterPortraits) this.characterPortraits.style.display = 'none';
 
         // If there is a last-talked NPC recorded, unlock them as a playable character
         // (but do not unlock if they are marked as the final character).
@@ -772,16 +695,14 @@ class SwitchGame {
         if (remaining === 0 && currentChar && currentChar.id !== 'victor') {
             // All 49 interactions complete and not playing as Victor - fade out music
             if (this.audioManager && typeof this.audioManager.fadeOutAndStop === 'function') {
-                try {
-                    this.audioManager.fadeOutAndStop(2500); // 2.5 second fade
-                } catch (_) {}
+                this.audioManager.fadeOutAndStop(2500); // 2.5 second fade
             }
         }
 
         // Refresh settings panel progress if open
         const settingsModal = document.getElementById('settingsModal');
         if (settingsModal && settingsModal.style.display === 'block' && typeof this.updateSettingsPanel === 'function') {
-            try { this.updateSettingsPanel(); } catch (_) {}
+            this.updateSettingsPanel();
         }
     }
 
@@ -838,27 +759,6 @@ class SwitchGame {
             this.dialogueBox.style.display = 'none';
         }
 
-        // Ensure portraits are visible and styled consistently with dialogue UI
-        if (this.characterPortraits) {
-            this.characterPortraits.style.display = 'none';
-
-            if (this.rightPortrait) {
-                // Portraits hidden while switch prompt is visible
-            }
-        }
-
-        // Update progress badges for from/to characters when the prompt appears
-        if (this.leftPortrait) {
-            try {
-                this.leftPortrait.dataset.progress = `${this.gameState.getCompletedCountForCharacter(currentChar.id)}/${this.gameState.getTotalTargetsPerCharacter(currentChar.id)}`;
-            } catch (_) {}
-        }
-        if (this.rightPortrait) {
-            try {
-                this.rightPortrait.dataset.progress = `${this.gameState.getCompletedCountForCharacter(nextChar.id)}/${this.gameState.getTotalTargetsPerCharacter(nextChar.id)}`;
-            } catch (_) {}
-        }
-
         this.showingSwitchPrompt = true;
         if (this.switchPrompt) this.switchPrompt.style.display = 'block';
         this.nextCharacterToSwitch = nextChar.id;
@@ -885,6 +785,11 @@ class SwitchGame {
                 // Begin glitch ending while playing Victor's music
                 if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
                     try { this.audioManager.playCharacterMusic('victor'); } catch(_) {}
+                }
+                this.triggerGlitchEnding();
+                // Begin glitch ending while playing Victor's music
+                if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+                    this.audioManager.playCharacterMusic('victor');
                 }
                 this.triggerGlitchEnding();
                 return;
@@ -985,7 +890,7 @@ class SwitchGame {
 
         // Ensure Victor's music plays during the glitch
         if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
-            try { this.audioManager.playCharacterMusic('victor'); } catch (_) {}
+            this.audioManager.playCharacterMusic('victor');
         }
 
         // Show the overlay for flashing visuals
@@ -1026,7 +931,7 @@ class SwitchGame {
 
         // Cycle overlay background to simulate flashing images at a regular interval
         if (this.glitchOverlayIntervalId) {
-            try { clearInterval(this.glitchOverlayIntervalId); } catch (_) {}
+            clearInterval(this.glitchOverlayIntervalId);
         }
         const patterns = [
             'repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0 2px, rgba(0,0,0,0.0) 2px 4px)',
@@ -1200,8 +1105,8 @@ class SwitchGame {
         clearTimeout(this._scrambleTimeout);
         this._scrambleTimeout = setTimeout(() => {
             this.scrambleActive = false;
-            try { if (this._sceneTimer) clearTimeout(this._sceneTimer); } catch (_) {}
-            try { if (microAnimId) cancelAnimationFrame(microAnimId); } catch(_) {}
+            if (this._sceneTimer) clearTimeout(this._sceneTimer);
+            if (microAnimId) cancelAnimationFrame(microAnimId);
             // Restore exact originals for the present moment
             this.player.x = this._origPositions.player.x;
             this.player.y = this._origPositions.player.y;
@@ -1281,11 +1186,6 @@ class SwitchGame {
         if (character && character.color) {
             document.documentElement.style.setProperty('--accent', character.color);
         }
-    }
-
-    showCharacterMenu() {
-        // Removed dependency on getAvailableCharacters; simply show a switch prompt if there is a valid target
-        this.showSwitchPrompt();
     }
 
     // Render the world, slicing sprite sheets per direction/frame for NPCs and player

@@ -1,111 +1,75 @@
-// Character definitions now use site CSS variables for colors
-// The 8 characters map 1:1 to CSS variables defined in public/styles.css
-// --alexis, --austine, --chloe, --isabell, --nicholas, --opal, --tyson, --victor
+ // Character definitions now use site CSS variables for colors
+ // The 8 characters map 1:1 to CSS variables defined in public/styles.css
+ // --alexis, --austine, --chloe, --isabell, --nicholas, --opal, --tyson, --victor
 
-function getCSSVar(name) {
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name);
-  return (v && v.trim()) || '#888';
-}
+ function getCSSVar(name) {
+   const v = getComputedStyle(document.documentElement).getPropertyValue(name);
+   return (v && v.trim()) || '#888';
+ }
 
-const CHAR_COLORS = {
-  alexis: getCSSVar('--alexis'),
-  austine: getCSSVar('--austine'),
-  chloe: getCSSVar('--chloe'),
-  isabell: getCSSVar('--isabell'),
-  nicholas: getCSSVar('--nicholas'),
-  opal: getCSSVar('--opal'),
-  tyson: getCSSVar('--tyson'),
-  victor: getCSSVar('--victor'),
-};
+ const CHAR_COLORS = {
+   alexis: getCSSVar('--alexis'),
+   austine: getCSSVar('--austine'),
+   chloe: getCSSVar('--chloe'),
+   isabell: getCSSVar('--isabell'),
+   nicholas: getCSSVar('--nicholas'),
+   opal: getCSSVar('--opal'),
+   tyson: getCSSVar('--tyson'),
+   victor: getCSSVar('--victor'),
+ };
 
- // Character to music theme mapping (re-uses existing audio assets)
-const MUSIC_MAP = {
-  alexis: 'audio/alexis.mp3',
-  austine: 'audio/austine.mp3',
-  chloe: 'audio/chloe.mp3',
-  isabell: 'audio/isabell.mp3',
-  nicholas: 'audio/nicholas.mp3',
-  opal: 'audio/opal.mp3',
-  tyson: 'audio/tyson.mp3',
-  victor: 'audio/victor.mp3',
-};
-
-// Character definitions based on the 8 persona names from styles.css
-const CHARACTERS = {
-  alexis: {
-    id: 'alexis',
-    name: 'Alexis',
-    color: CHAR_COLORS.alexis,
-    music: MUSIC_MAP.alexis,
-    description: 'A calm and flowing presence, free-spirited and adaptable.',
-    unlocked: true, // Starting character
-    position: { x: 400, y: 300 },
-  },
-  austine: {
-    id: 'austine',
-    name: 'Austine',
-    color: CHAR_COLORS.austine,
-    music: MUSIC_MAP.austine,
-    description: 'Bright and optimistic, a bringer of illumination.',
-    unlocked: false,
-    position: { x: 200, y: 200 },
-  },
-  chloe: {
-    id: 'chloe',
-    name: 'Chloe',
-    color: CHAR_COLORS.chloe,
-    music: MUSIC_MAP.chloe,
-    description: 'Mysterious; a patient keeper of moments and change.',
-    unlocked: false,
-    position: { x: 600, y: 200 },
-  },
-  isabell: {
-    id: 'isabell',
-    name: 'Isabell',
-    color: CHAR_COLORS.isabell,
-    music: MUSIC_MAP.isabell,
-    description: 'Cosmic perspective; understands breadth and distance.',
-    unlocked: false,
-    position: { x: 100, y: 400 },
-  },
-  nicholas: {
-    id: 'nicholas',
-    name: 'Nicholas',
-    color: CHAR_COLORS.nicholas,
-    music: MUSIC_MAP.nicholas,
-    description: 'Passionate and driven by connection.',
-    unlocked: false,
-    position: { x: 700, y: 400 },
-  },
-  opal: {
-    id: 'opal',
-    name: 'Opal',
-    color: CHAR_COLORS.opal,
-    music: MUSIC_MAP.opal,
-    description: 'Logical and steady, values knowledge and reason.',
-    unlocked: false,
-    position: { x: 300, y: 500 },
-  },
-  tyson: {
-    id: 'tyson',
-    name: 'Tyson',
-    color: CHAR_COLORS.tyson,
-    music: MUSIC_MAP.tyson,
-    description: 'Optimistic, a believer in better futures.',
-    unlocked: false,
-    position: { x: 500, y: 500 },
-  },
-  victor: {
-    id: 'victor',
-    name: 'Victor',
-    color: CHAR_COLORS.victor,
-    music: MUSIC_MAP.victor,
-    description: 'Fierce and focused, channels righteous energy.',
-    unlocked: false,
-    position: { x: 400, y: 100 },
-    isFinalCharacter: true, // Triggers the glitch ending
-  },
-};
+ // Character definitions based on the 8 persona names from styles.css
+ const CHARACTERS = {
+   alexis: {
+     id: 'alexis',
+     name: 'Alexis',
+     color: CHAR_COLORS.alexis,
+     position: { x: 400, y: 300 },
+   },
+   austine: {
+     id: 'austine',
+     name: 'Austine',
+     color: CHAR_COLORS.austine,
+     position: { x: 200, y: 200 },
+   },
+   chloe: {
+     id: 'chloe',
+     name: 'Chloe',
+     color: CHAR_COLORS.chloe,
+     position: { x: 600, y: 200 },
+   },
+   isabell: {
+     id: 'isabell',
+     name: 'Isabell',
+     color: CHAR_COLORS.isabell,
+     position: { x: 100, y: 400 },
+   },
+   nicholas: {
+     id: 'nicholas',
+     name: 'Nicholas',
+     color: CHAR_COLORS.nicholas,
+     position: { x: 700, y: 400 },
+   },
+   opal: {
+     id: 'opal',
+     name: 'Opal',
+     color: CHAR_COLORS.opal,
+     position: { x: 300, y: 500 },
+   },
+   tyson: {
+     id: 'tyson',
+     name: 'Tyson',
+     color: CHAR_COLORS.tyson,
+     position: { x: 500, y: 500 },
+   },
+   victor: {
+     id: 'victor',
+     name: 'Victor',
+     color: CHAR_COLORS.victor,
+     position: { x: 400, y: 100 },
+     isFinalCharacter: true, // Triggers the glitch ending
+   },
+ };
 
 // Allow refreshing character colors after CSS loads (in case CSS not ready at parse time)
 function refreshCharacterColors() {

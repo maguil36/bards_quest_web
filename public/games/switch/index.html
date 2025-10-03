@@ -69,36 +69,6 @@
              text-align: right;
          }
 
-         #characterPortraits {
-             position: absolute;
-             top: 50%;
-             left: 50%;
-             transform: translate(-50%, -50%);
-             width: 80%;
-             max-width: 800px;
-             height: 360px;
-             display: none;
-             z-index: 99;
-         }
-
-         .portrait {
-             position: absolute;
-             width: 280px;
-             height: 360px;
-             background: var(--surface);
-             border: 2px solid var(--border);
-             border-radius: 8px;
-             transition: outline-color 0.15s ease;
-         }
-
-         .portrait.left {
-             left: 0;
-         }
-
-         .portrait.right {
-             right: 0;
-         }
-
         #switchPrompt {
             position: absolute;
             top: 50%;
@@ -178,20 +148,6 @@
             border-radius: 4px;
             font-weight: bold;
             display: none; /* hidden in favor of settings gear */
-        }
-
-        #instructions {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: var(--card);
-            border: 2px solid var(--border);
-            padding: 15px;
-            border-radius: 4px;
-            font-size: 14px;
-            max-width: 200px;
-            z-index: 50;
-            display: none; /* replaced by gear/settings */
         }
 
         /* Restart button */
@@ -330,14 +286,6 @@
             <div id="dialogueText"></div>
             <div id="dialoguePrompt">Press SPACE to continue...</div>
         </div>
-
-        <!-- Portraits panel temporarily disabled per request -->
-        <!--
-        <div id="characterPortraits">
-            <div class="portrait left" id="leftPortrait"></div>
-            <div class="portrait right" id="rightPortrait"></div>
-        </div>
-        -->
 
         <div id="switchPrompt">
             <h3>Switch Character?</h3>
