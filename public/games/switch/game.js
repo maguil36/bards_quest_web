@@ -71,6 +71,8 @@ class SwitchGame {
         this.glitchPixelSize = 4;       // base pixelation size
         this.glitchScratchCanvas = null; // downscale buffer
         this.glitchOverlayIntervalId = null; // cycles flashing images
+        this.scrambleActive = false;    // NPC/player jump-around burst
+        this._nextScrambleAt = 0;       // timestamp for next scramble start
 
         this.init();
     }
@@ -601,12 +603,8 @@ class SwitchGame {
                 this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
             }
 
-            // Highlight speaker portrait card
-            if (this.characterPortraits) this.characterPortraits.style.display = 'block';
-            if (this.leftPortrait) this.leftPortrait.style.outline = current.speaker === 'npc' ? `4px solid ${npcColor}` : '2px solid var(--border)';
-            if (this.rightPortrait) this.rightPortrait.style.outline = current.speaker === 'player' ? `4px solid ${playerColor}` : '2px solid var(--border)';
-            if (this.leftPortrait) this.leftPortrait.style.background = 'var(--surface)';
-            if (this.rightPortrait) this.rightPortrait.style.background = 'var(--surface)';
+            // Portraits panel disabled per request
+            if (this.characterPortraits) this.characterPortraits.style.display = 'none';
 
             // Show dialogue box
             if (this.dialogueBox) this.dialogueBox.style.display = 'block';
@@ -704,7 +702,7 @@ class SwitchGame {
         }
     }
 
-    // Legacy wrapper - route to the unified showDialogueUI above
+    // Legacy wrapper - disable portraits panel and reuse primary UI
     showDialogueUI() {
         const current = this.dialogueManager.getCurrentLine();
         const npc = this.dialogueManager.getCurrentNPC();
@@ -714,9 +712,9 @@ class SwitchGame {
             if (this.dialogueText) this.dialogueText.textContent = current.text;
             if (this.dialogueText) this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
 
-            // Ensure dialogue box and portraits are visible
+            // Ensure dialogue box visible; keep portraits hidden
             if (this.dialogueBox) this.dialogueBox.style.display = 'block';
-            if (this.characterPortraits) this.characterPortraits.style.display = 'block';
+            if (this.characterPortraits) this.characterPortraits.style.display = 'none';
             this.showingDialogue = true;
         }
     }
@@ -738,9 +736,9 @@ class SwitchGame {
                 if (this.dialogueText) this.dialogueText.textContent = current.text;
                 if (this.dialogueText) this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
 
-                // Ensure dialogue box and portraits are visible
+                // Ensure dialogue box visible; keep portraits hidden
                 if (this.dialogueBox) this.dialogueBox.style.display = 'block';
-                if (this.characterPortraits) this.characterPortraits.style.display = 'block';
+                if (this.characterPortraits) this.characterPortraits.style.display = 'none';
                 this.showingDialogue = true;
             }
         }
@@ -761,6 +759,22 @@ class SwitchGame {
             }
             if (typeof this.gameState.save === 'function') {
                 this.gameState.save();
+            }
+        }
+
+        // Check if all interactions are complete (remaining === 0)
+        // If so, and we're not Victor, fade out the music
+        const remaining = (this.gameState && typeof this.gameState.getRemainingInteractionsToFinishGame === 'function')
+            ? this.gameState.getRemainingInteractionsToFinishGame()
+            : 1;
+        const currentChar = this.gameState.getCurrentCharacter();
+
+        if (remaining === 0 && currentChar && currentChar.id !== 'victor') {
+            // All 49 interactions complete and not playing as Victor - fade out music
+            if (this.audioManager && typeof this.audioManager.fadeOutAndStop === 'function') {
+                try {
+                    this.audioManager.fadeOutAndStop(2500); // 2.5 second fade
+                } catch (_) {}
             }
         }
 
@@ -826,16 +840,10 @@ class SwitchGame {
 
         // Ensure portraits are visible and styled consistently with dialogue UI
         if (this.characterPortraits) {
-            this.characterPortraits.style.display = 'block';
-
-            if (this.leftPortrait) {
-                this.leftPortrait.textContent = currentChar.name;
-                this.leftPortrait.style.outline = `4px solid ${currentChar.color || '#888'}`;
-            }
+            this.characterPortraits.style.display = 'none';
 
             if (this.rightPortrait) {
-                this.rightPortrait.textContent = nextChar.name;
-                this.rightPortrait.style.outline = `4px solid ${nextChar.color || '#888'}`;
+                // Portraits hidden while switch prompt is visible
             }
         }
 
@@ -1038,7 +1046,172 @@ class SwitchGame {
     runGlitchLoop() {
         if (!this.isGlitching) return;
         this.renderGlitchFrame();
+
+        const now = performance.now();
+        if (!this._nextScrambleAt) this._nextScrambleAt = now + 1200; // small initial delay
+        if (!this.scrambleActive && now >= this._nextScrambleAt) {
+            this.startScrambleBurst();
+        }
+
         requestAnimationFrame(() => this.runGlitchLoop());
+    }
+
+    startScrambleBurst() {
+        this.scrambleActive = true;
+        // Cache original positions to restore later
+        if (!this._origPositions) this._origPositions = {};
+        this._origPositions.player = { x: this.player.x, y: this.player.y };
+        this._origPositions.npcs = (this.npcs || []).map(n => ({ id: n.id, x: n.position.x, y: n.position.y }));
+
+        // Time-lapse grouping: several scenes over ~2s, then ~5s calm
+        const activeDuration = 2000; // ms
+        const restDuration = 5000;   // ms
+        const perScene = 400;        // ms per snapshot scene
+        const sceneSteps = Math.max(1, Math.floor(activeDuration / perScene));
+
+        const minDistance = 24;  // minimum spacing between characters in a cluster
+        const clusterRadius = 60; // cluster radius from center
+        const mapW = this.mapWidth || this.canvas.width;
+        const mapH = this.mapHeight || this.canvas.height;
+        const pad = 24;
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+        // Build a list of all participants (player + npcs)
+        const participants = [
+            { type: 'player', id: 'player', ref: this.player, orig: this._origPositions.player },
+            ...((this.npcs || []).map(n => ({ type: 'npc', id: n.id, ref: n, orig: this._origPositions.npcs.find(o => o.id === n.id) })))
+        ];
+
+        let groupTargets = new Map(); // updated per scene
+
+        const computeSceneTargets = () => {
+            const targets = new Map();
+            // Choose 1 or 2 clusters per scene (bias to 1 for strong group-up)
+            const clusterCount = (participants.length > 3 && Math.random() < 0.35) ? 2 : 1;
+
+            // Pick anchors (actual characters) for clusters
+            const anchors = [];
+            const shuffled = participants.slice().sort(() => Math.random() - 0.5);
+            for (const p of shuffled) { if (anchors.length >= clusterCount) break; anchors.push(p); }
+
+            // Choose cluster centers anywhere on the map to make movement obvious
+            const centers = [];
+            for (let i = 0; i < anchors.length; i++) {
+                let tries = 20; let cx = 0; let cy = 0; let ok = false;
+                while (tries-- > 0 && !ok) {
+                    cx = clamp(Math.random() * mapW, pad, mapW - pad);
+                    cy = clamp(Math.random() * mapH, pad, mapH - pad);
+                    ok = true;
+                    for (const c of centers) {
+                        if (Math.hypot(c.x - cx, c.y - cy) < 120) { ok = false; break; }
+                    }
+                }
+                centers.push({ x: cx, y: cy, anchor: anchors[i] });
+            }
+
+            // Partition participants across clusters; ensure each cluster has at least the anchor and one more if possible
+            const others = participants.filter(p => !anchors.includes(p));
+            const buckets = centers.map(c => [c.anchor]);
+            const shuffledOthers = others.slice().sort(() => Math.random() - 0.5);
+            for (let i = 0; i < shuffledOthers.length; i++) {
+                const idx = (i % centers.length);
+                buckets[idx].push(shuffledOthers[i]);
+            }
+
+            // Place members near their cluster center with spacing
+            for (let i = 0; i < buckets.length; i++) {
+                const center = centers[i];
+                const placed = [];
+                for (const m of buckets[i]) {
+                    let tries = 28; let pos = null;
+                    while (tries-- > 0 && !pos) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const r = (Math.random() ** 0.65) * clusterRadius; // bias toward center
+                        const tx = clamp(center.x + Math.cos(angle) * r, pad, mapW - pad);
+                        const ty = clamp(center.y + Math.sin(angle) * r, pad, mapH - pad);
+                        let ok = true;
+                        for (const p of placed) {
+                            if (Math.hypot(p.x - tx, p.y - ty) < minDistance) { ok = false; break; }
+                        }
+                        if (ok) pos = { x: tx, y: ty };
+                    }
+                    if (!pos) pos = { x: center.x, y: center.y };
+                    placed.push(pos);
+                    targets.set(m, pos);
+                }
+            }
+            return targets;
+        };
+
+        const applyTargets = () => {
+            for (const [p, pos] of groupTargets.entries()) {
+                if (p.type === 'player') { p.ref.x = pos.x; p.ref.y = pos.y; }
+                else { p.ref.position.x = pos.x; p.ref.position.y = pos.y; }
+                // Optional: orient towards cluster center by looking at nearest neighbor
+                if (p.ref && typeof p.ref.direction === 'string') {
+                    // Find closest other for facing
+                    let nearest = null; let nd = Infinity;
+                    for (const [q, qpos] of groupTargets.entries()) {
+                        if (q === p) continue;
+                        const d = Math.hypot(qpos.x - pos.x, qpos.y - pos.y);
+                        if (d < nd) { nd = d; nearest = qpos; }
+                    }
+                    if (nearest) {
+                        const dx = nearest.x - pos.x; const dy = nearest.y - pos.y;
+                        if (Math.abs(dx) > Math.abs(dy)) p.ref.direction = dx < 0 ? 'left' : 'right';
+                        else p.ref.direction = dy < 0 ? 'up' : 'down';
+                    }
+                }
+            }
+        };
+
+        // Subtle micro-motions during a scene to imply conversation
+        let microAnimId;
+        const microMotion = () => {
+            if (!this.scrambleActive) return;
+            for (const [p, center] of groupTargets.entries()) {
+                const jitter = 2 + Math.random() * 3; // 2-5px micro drift
+                const angle = Math.random() * Math.PI * 2;
+                const nx = clamp(center.x + Math.cos(angle) * jitter, pad, mapW - pad);
+                const ny = clamp(center.y + Math.sin(angle) * jitter, pad, mapH - pad);
+                if (p.type === 'player') { p.ref.x = nx; p.ref.y = ny; }
+                else { p.ref.position.x = nx; p.ref.position.y = ny; }
+            }
+            microAnimId = requestAnimationFrame(microMotion);
+        };
+
+        // Scene progression chain
+        let step = 0;
+        const runScene = () => {
+            if (!this.scrambleActive) return;
+            groupTargets = computeSceneTargets();
+            applyTargets();
+            step++;
+            if (step < sceneSteps) {
+                this._sceneTimer = setTimeout(runScene, perScene);
+            }
+        };
+
+        // Kick off
+        runScene();
+        microAnimId = requestAnimationFrame(microMotion);
+
+        // End active phase -> restore originals and schedule next window after calm period
+        clearTimeout(this._scrambleTimeout);
+        this._scrambleTimeout = setTimeout(() => {
+            this.scrambleActive = false;
+            try { if (this._sceneTimer) clearTimeout(this._sceneTimer); } catch (_) {}
+            try { if (microAnimId) cancelAnimationFrame(microAnimId); } catch(_) {}
+            // Restore exact originals for the present moment
+            this.player.x = this._origPositions.player.x;
+            this.player.y = this._origPositions.player.y;
+            for (const npc of (this.npcs || [])) {
+                const orig = this._origPositions.npcs.find(o => o.id === npc.id);
+                if (orig) { npc.position.x = orig.x; npc.position.y = orig.y; }
+            }
+            // Schedule next scramble after calm
+            this._nextScrambleAt = performance.now() + restDuration;
+        }, activeDuration);
     }
 
     renderGlitchFrame() {
@@ -1047,7 +1220,7 @@ class SwitchGame {
         const scratch = this.glitchScratchCanvas && this.glitchScratchCanvas.getContext('2d');
         if (!scratch || !this.glitchFrozenCanvas) return;
 
-        // Pixelate: draw the frozen snapshot into a smaller buffer with jitter, then scale up
+        // Pixelation pass (jittered)
         ctx.imageSmoothingEnabled = false;
         scratch.imageSmoothingEnabled = false;
 
@@ -1058,11 +1231,10 @@ class SwitchGame {
 
         scratch.clearRect(0, 0, sW, sH);
         scratch.drawImage(this.glitchFrozenCanvas, jitterX, jitterY, this.canvas.width, this.canvas.height, 0, 0, sW, sH);
-
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         ctx.drawImage(this.glitchScratchCanvas, 0, 0, sW, sH, 0, 0, this.canvas.width, this.canvas.height);
 
-        // Horizontal slice offsets to simulate digital tearing
+        // Horizontal slice offsets
         for (let i = 0; i < 10; i++) {
             const y = Math.floor(Math.random() * this.canvas.height);
             const h = Math.max(2, Math.floor(Math.random() * 12));
@@ -1070,7 +1242,7 @@ class SwitchGame {
             ctx.drawImage(this.glitchFrozenCanvas, 0, y, this.canvas.width, h, dx, y, this.canvas.width, h);
         }
 
-        // Draw stuck cells from the frozen snapshot (these remain crisp and stationary)
+        // Stuck cells
         for (const cell of this.glitchStuckCells) {
             ctx.drawImage(
                 this.glitchFrozenCanvas,

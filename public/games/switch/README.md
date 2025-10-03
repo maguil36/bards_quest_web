@@ -30,6 +30,7 @@ Final character (Victor)
   - Several horizontal slices shift left/right, creating digital tearing.
   - A subset of pixels “stick” in place (they freeze and don’t update) while the rest of the image moves around them.
   - A fullscreen overlay flashes patterned images at a regular interval.
+  - Time‑lapse group‑up: during the glitch, characters appear to jump through past/future snapshots of conversations. Roughly every few seconds there is an active phase (~2 seconds) where characters are teleported into one or two clusters at visibly different places on the map; within these clusters characters exhibit subtle micro‑motions to imply they are talking to each other and multiple quick “scenes” are shown. After the active window, everyone snaps back to their exact original present positions. Following a snap‑back, there is a calm phase (~5 seconds) before the next time‑lapse.
 - The glitch is purely visual/audio and does not require input.
 
 ## Saving & Resetting
@@ -43,6 +44,7 @@ Final character (Victor)
 - Each persona has a looping theme track in audio/<characterId>.mp3.
   - Expected files: alexis.mp3, austine.mp3, chloe.mp3, isabell.mp3, nicholas.mp3, opal.mp3, tyson.mp3, victor.mp3
 - Volume is adjustable in Options. Due to browser autoplay rules, music starts after your first interaction (key press is enough).
+- **Music Fade-Out on Completion**: When you complete all 49 non-final interactions (the "Until game complete" counter reaches 0 remaining), the music will automatically fade out over ~2.5 seconds and stop playing. This only occurs when you're not playing as Victor—Victor's music continues uninterrupted during the glitch ending sequence.
 
 ## UI & Feedback
 - Canvas view with a simple procedural map (world ~1600×1200; 32px tiles). The camera follows the player.

@@ -6,6 +6,7 @@ class AudioManager {
         this.volume = 0.5;
         this.isMuted = false;
         this.isEnabled = true;
+        this.isFading = false; // Track if music is currently fading out
 
         // Initialize audio settings
         this.backgroundMusic.volume = this.volume;
@@ -27,6 +28,13 @@ class AudioManager {
     playCharacterMusic(characterId) {
         if (this.isMuted) return;
 
+        // Allow Victor's music to interrupt any fade-out (for the glitch ending)
+        if (characterId === 'victor' && this.isFading) {
+            this.isFading = false;
+        }
+
+        if (this.isFading) return;
+
         const audio = this.backgroundMusic;
 
         // Require a file named after the character id only (no legacy fallbacks)
@@ -35,6 +43,8 @@ class AudioManager {
         if (this.currentTrack !== nextTrack) {
             this.currentTrack = nextTrack;
             audio.src = nextTrack;
+            // Restore volume when starting new track (in case it was lowered during fade)
+            audio.volume = this.isMuted ? 0 : this.volume;
         }
 
         // Attempt to play (may be blocked until user interaction)
@@ -45,6 +55,38 @@ class AudioManager {
                 // Music will start on the next user interaction.
             });
         }
+    }
+
+    // Fade out music over specified duration (in milliseconds), then stop
+    fadeOutAndStop(duration = 2000) {
+        if (this.isFading) return; // Already fading
+        if (this.isMuted || this.backgroundMusic.paused) {
+            // If already muted or paused, just stop immediately
+            this.stopMusic();
+            return;
+        }
+
+        this.isFading = true;
+        const startVolume = this.backgroundMusic.volume;
+        const startTime = Date.now();
+
+        const fadeInterval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1.0);
+
+            // Calculate new volume (linear fade from startVolume to 0)
+            const newVolume = startVolume * (1 - progress);
+            this.backgroundMusic.volume = Math.max(0, newVolume);
+
+            // When fade is complete, stop the music
+            if (progress >= 1.0) {
+                clearInterval(fadeInterval);
+                this.stopMusic();
+                this.isFading = false;
+                // Restore volume for next playback
+                this.backgroundMusic.volume = this.isMuted ? 0 : this.volume;
+            }
+        }, 50); // Update every 50ms for smooth fade
     }
 
     // Stop background music
