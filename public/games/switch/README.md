@@ -22,6 +22,16 @@ Final character (Victor)
   2) Have just spoken to Victor as your current character (the last conversation you finished must be with Victor).
 - Switching to Victor triggers the glitch ending sequence.
 
+## Ending: Glitch sequence
+- When you accept the prompt to switch to Victor (after meeting the conditions), the ending begins immediately.
+- Victor’s music plays continuously throughout the glitch sequence.
+- The screen simulates a failing digital TV signal:
+  - The image becomes heavily pixelated and jitters.
+  - Several horizontal slices shift left/right, creating digital tearing.
+  - A subset of pixels “stick” in place (they freeze and don’t update) while the rest of the image moves around them.
+  - A fullscreen overlay flashes patterned images at a regular interval.
+- The glitch is purely visual/audio and does not require input.
+
 ## Saving & Resetting
 - Progress autosaves to localStorage under the key switchGameState.
   - Saved data includes: current character, finished conversations (speaker:target), unlocked characters, and saved positions for each character/NPC.

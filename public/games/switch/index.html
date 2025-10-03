@@ -134,57 +134,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: black;
             display: none;
             z-index: 200;
-            animation: glitch 0.1s infinite;
+            background: rgba(0,0,0,0.8);
+            mix-blend-mode: screen;
+            pointer-events: none;
         }
 
+        /* Keep a subtle baseline flicker via CSS; heavy flashing is driven by JS */
         @keyframes glitch {
-            0% {
-                background: black;
-                filter: hue-rotate(0deg) saturate(1);
-            }
-            10% {
-                background: #ff0000;
-                filter: hue-rotate(90deg) saturate(3);
-            }
-            20% {
-                background: #00ff00;
-                filter: hue-rotate(180deg) saturate(3);
-            }
-            30% {
-                background: #0000ff;
-                filter: hue-rotate(270deg) saturate(3);
-            }
-            40% {
-                background: #ffffff;
-                filter: invert(1);
-            }
-            50% {
-                background: #ff00ff;
-                filter: hue-rotate(45deg) saturate(5);
-            }
-            60% {
-                background: #ffff00;
-                filter: hue-rotate(135deg) saturate(5);
-            }
-            70% {
-                background: #00ffff;
-                filter: hue-rotate(225deg) saturate(5);
-            }
-            80% {
-                background: black;
-                filter: contrast(10);
-            }
-            90% {
-                background: white;
-                filter: contrast(0.1);
-            }
-            100% {
-                background: black;
-                filter: hue-rotate(360deg) saturate(1);
-            }
+            0% { filter: hue-rotate(0deg) saturate(1); opacity: 0.8; }
+            25% { filter: hue-rotate(90deg) saturate(2); opacity: 0.6; }
+            50% { filter: hue-rotate(180deg) saturate(3); opacity: 0.9; }
+            75% { filter: hue-rotate(270deg) saturate(2); opacity: 0.7; }
+            100% { filter: hue-rotate(360deg) saturate(1); opacity: 0.85; }
         }
 
         #errorMessage {

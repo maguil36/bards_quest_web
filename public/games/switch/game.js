@@ -64,6 +64,14 @@ class SwitchGame {
         this.showingDialogue = false;
         this.showingSwitchPrompt = false;
 
+        // Glitch/ending state
+        this.isGlitching = false;
+        this.glitchFrozenCanvas = null; // snapshot used for stuck-pixel effect
+        this.glitchStuckCells = [];     // array of {x,y,w,h}
+        this.glitchPixelSize = 4;       // base pixelation size
+        this.glitchScratchCanvas = null; // downscale buffer
+        this.glitchOverlayIntervalId = null; // cycles flashing images
+
         this.init();
     }
 
@@ -963,14 +971,112 @@ class SwitchGame {
     }
 
     triggerGlitchEnding() {
+        // Stop the normal game loop and start the glitch renderer instead
         this.isGameRunning = false;
+        this.isGlitching = true;
 
-        // Show glitch overlay
+        // Ensure Victor's music plays during the glitch
+        if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+            try { this.audioManager.playCharacterMusic('victor'); } catch (_) {}
+        }
+
+        // Show the overlay for flashing visuals
         if (this.glitchOverlay) this.glitchOverlay.style.display = 'block';
 
-        // Stop music
-        if (this.audioManager && typeof this.audioManager.stopMusic === 'function') {
-            try { this.audioManager.stopMusic(); } catch (_) {}
+        // Prepare glitch buffers and artifacts
+        this.startGlitchEffect();
+
+        // Kick off the glitch animation loop
+        this.runGlitchLoop();
+    }
+
+    startGlitchEffect() {
+        // Take a snapshot of the current canvas to use as a source for stuck pixels
+        if (!this.glitchFrozenCanvas) this.glitchFrozenCanvas = document.createElement('canvas');
+        this.glitchFrozenCanvas.width = this.canvas.width;
+        this.glitchFrozenCanvas.height = this.canvas.height;
+        const gfc = this.glitchFrozenCanvas.getContext('2d');
+        gfc.drawImage(this.canvas, 0, 0);
+
+        // Downscale buffer used for pixelation
+        if (!this.glitchScratchCanvas) this.glitchScratchCanvas = document.createElement('canvas');
+        const px = Math.max(2, this.glitchPixelSize || 4);
+        this.glitchScratchCanvas.width = Math.max(1, Math.floor(this.canvas.width / px));
+        this.glitchScratchCanvas.height = Math.max(1, Math.floor(this.canvas.height / px));
+
+        // Precompute a set of "stuck" cells that will not update (they remain as the snapshot)
+        const cells = [];
+        const cellCount = 80; // number of frozen cells
+        for (let i = 0; i < cellCount; i++) {
+            const w = Math.floor(2 + Math.random() * 10);
+            const h = Math.floor(2 + Math.random() * 10);
+            const x = Math.floor(Math.random() * (this.canvas.width - w));
+            const y = Math.floor(Math.random() * (this.canvas.height - h));
+            cells.push({ x, y, w, h });
+        }
+        this.glitchStuckCells = cells;
+
+        // Cycle overlay background to simulate flashing images at a regular interval
+        if (this.glitchOverlayIntervalId) {
+            try { clearInterval(this.glitchOverlayIntervalId); } catch (_) {}
+        }
+        const patterns = [
+            'repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0 2px, rgba(0,0,0,0.0) 2px 4px)',
+            'repeating-linear-gradient(90deg, rgba(255,0,0,0.3) 0 6px, rgba(0,255,0,0.3) 6px 12px, rgba(0,0,255,0.3) 12px 18px)',
+            'radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0) 60%)',
+            'repeating-linear-gradient(180deg, rgba(255,255,0,0.35) 0 3px, rgba(255,0,255,0.35) 3px 6px, rgba(0,255,255,0.35) 6px 9px)'
+        ];
+        let pIndex = 0;
+        this.glitchOverlayIntervalId = setInterval(() => {
+            if (this.glitchOverlay) {
+                this.glitchOverlay.style.backgroundImage = patterns[pIndex % patterns.length];
+                pIndex++;
+            }
+        }, 120); // regular flashing interval
+    }
+
+    runGlitchLoop() {
+        if (!this.isGlitching) return;
+        this.renderGlitchFrame();
+        requestAnimationFrame(() => this.runGlitchLoop());
+    }
+
+    renderGlitchFrame() {
+        const ctx = this.ctx;
+        if (!ctx) return;
+        const scratch = this.glitchScratchCanvas && this.glitchScratchCanvas.getContext('2d');
+        if (!scratch || !this.glitchFrozenCanvas) return;
+
+        // Pixelate: draw the frozen snapshot into a smaller buffer with jitter, then scale up
+        ctx.imageSmoothingEnabled = false;
+        scratch.imageSmoothingEnabled = false;
+
+        const sW = this.glitchScratchCanvas.width;
+        const sH = this.glitchScratchCanvas.height;
+        const jitterX = Math.floor(Math.random() * 8) - 4;
+        const jitterY = Math.floor(Math.random() * 8) - 4;
+
+        scratch.clearRect(0, 0, sW, sH);
+        scratch.drawImage(this.glitchFrozenCanvas, jitterX, jitterY, this.canvas.width, this.canvas.height, 0, 0, sW, sH);
+
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.drawImage(this.glitchScratchCanvas, 0, 0, sW, sH, 0, 0, this.canvas.width, this.canvas.height);
+
+        // Horizontal slice offsets to simulate digital tearing
+        for (let i = 0; i < 10; i++) {
+            const y = Math.floor(Math.random() * this.canvas.height);
+            const h = Math.max(2, Math.floor(Math.random() * 12));
+            const dx = Math.floor(Math.random() * 40) - 20;
+            ctx.drawImage(this.glitchFrozenCanvas, 0, y, this.canvas.width, h, dx, y, this.canvas.width, h);
+        }
+
+        // Draw stuck cells from the frozen snapshot (these remain crisp and stationary)
+        for (const cell of this.glitchStuckCells) {
+            ctx.drawImage(
+                this.glitchFrozenCanvas,
+                cell.x, cell.y, cell.w, cell.h,
+                cell.x, cell.y, cell.w, cell.h
+            );
         }
     }
 
