@@ -968,14 +968,19 @@ class SwitchGame {
         this._origPositions.player = { x: this.player.x, y: this.player.y };
         this._origPositions.npcs = (this.npcs || []).map(n => ({ id: n.id, x: n.position.x, y: n.position.y }));
 
+        // Allow a short initial delay so players can observe the glitch visuals
+        // before the first scramble occurs. This value (ms) can be adjusted elsewhere
+        // if needed, and defaults to 1500ms.
+        if (typeof this._initialScrambleDelay !== 'number') this._initialScrambleDelay = 1500;
+
         // Time-lapse grouping: several scenes over ~2s, then ~5s calm
-        const activeDuration = 2000; // ms
-        const restDuration = 5000;   // ms
-        const perScene = 400;        // ms per snapshot scene
+        const activeDuration = 2000; // ms - active phase where characters jump around
+        const restDuration = 5000;   // ms - calm phase where characters stay in present
+        const perScene = 300;        // ms per snapshot scene (faster transitions for more dramatic effect)
         const sceneSteps = Math.max(1, Math.floor(activeDuration / perScene));
 
-        const minDistance = 24;  // minimum spacing between characters in a cluster
-        const clusterRadius = 60; // cluster radius from center
+        const minDistance = 28;   // minimum spacing between characters in a cluster
+        const clusterRadius = 70; // cluster radius from center (larger for more visible grouping)
         const mapW = this.mapWidth || this.canvas.width;
         const mapH = this.mapHeight || this.canvas.height;
         const pad = 24;
@@ -991,8 +996,8 @@ class SwitchGame {
 
         const computeSceneTargets = () => {
             const targets = new Map();
-            // Choose 1 or 2 clusters per scene (bias to 1 for strong group-up)
-            const clusterCount = (participants.length > 3 && Math.random() < 0.35) ? 2 : 1;
+            // Choose 1 or 2 clusters per scene (50% chance for 2 clusters to show varied conversations)
+            const clusterCount = (participants.length > 3 && Math.random() < 0.5) ? 2 : 1;
 
             // Pick anchors (actual characters) for clusters
             const anchors = [];
@@ -1007,8 +1012,9 @@ class SwitchGame {
                     cx = clamp(Math.random() * mapW, pad, mapW - pad);
                     cy = clamp(Math.random() * mapH, pad, mapH - pad);
                     ok = true;
+                    // Ensure clusters are well-separated
                     for (const c of centers) {
-                        if (Math.hypot(c.x - cx, c.y - cy) < 120) { ok = false; break; }
+                        if (Math.hypot(c.x - cx, c.y - cy) < 150) { ok = false; break; }
                     }
                 }
                 centers.push({ x: cx, y: cy, anchor: anchors[i] });
@@ -1072,15 +1078,24 @@ class SwitchGame {
 
         // Subtle micro-motions during a scene to imply conversation
         let microAnimId;
+        let microFrame = 0;
         const microMotion = () => {
             if (!this.scrambleActive) return;
+            microFrame++;
             for (const [p, center] of groupTargets.entries()) {
-                const jitter = 2 + Math.random() * 3; // 2-5px micro drift
-                const angle = Math.random() * Math.PI * 2;
+                // Oscillating motion that looks like characters are gesturing/talking
+                const jitter = 3 + Math.sin(microFrame * 0.15) * 2; // 1-5px oscillating drift
+                const angle = (microFrame * 0.1 + (p.ref.id ? p.ref.id.charCodeAt(0) : 0) * 0.5) % (Math.PI * 2);
                 const nx = clamp(center.x + Math.cos(angle) * jitter, pad, mapW - pad);
                 const ny = clamp(center.y + Math.sin(angle) * jitter, pad, mapH - pad);
                 if (p.type === 'player') { p.ref.x = nx; p.ref.y = ny; }
                 else { p.ref.position.x = nx; p.ref.position.y = ny; }
+
+                // Occasionally change facing direction to simulate animated conversation
+                if (microFrame % 20 === 0 && p.ref && typeof p.ref.direction === 'string') {
+                    const dirs = ['up', 'down', 'left', 'right'];
+                    p.ref.direction = dirs[Math.floor(Math.random() * dirs.length)];
+                }
             }
             microAnimId = requestAnimationFrame(microMotion);
         };
@@ -1091,13 +1106,39 @@ class SwitchGame {
             if (!this.scrambleActive) return;
             groupTargets = computeSceneTargets();
             applyTargets();
+
+            // Move camera to show the action - focus on the center of all character positions
+            if (groupTargets.size > 0) {
+                let sumX = 0, sumY = 0, count = 0;
+                for (const pos of groupTargets.values()) {
+                    sumX += pos.x;
+                    sumY += pos.y;
+                    count++;
+                }
+                const centerX = sumX / count;
+                const centerY = sumY / count;
+                // Smoothly move camera toward the center of action
+                const targetCameraX = centerX - this.canvas.width / 2;
+                const targetCameraY = centerY - this.canvas.height / 2;
+                this.camera.x += (targetCameraX - this.camera.x) * 0.3;
+                this.camera.y += (targetCameraY - this.camera.y) * 0.3;
+            }
+
+            // Add a subtle flash to indicate scene transition
+            if (this.glitchOverlay && step > 0) {
+                this.glitchOverlay.style.opacity = '0.6';
+                setTimeout(() => {
+                    if (this.glitchOverlay) this.glitchOverlay.style.opacity = '0.3';
+                }, 50);
+            }
+
             step++;
             if (step < sceneSteps) {
                 this._sceneTimer = setTimeout(runScene, perScene);
             }
         };
 
-        // Kick off
+        // Kick off scene progression and micro-motion
         runScene();
         microAnimId = requestAnimationFrame(microMotion);
 
@@ -1114,6 +1155,9 @@ class SwitchGame {
                 const orig = this._origPositions.npcs.find(o => o.id === npc.id);
                 if (orig) { npc.position.x = orig.x; npc.position.y = orig.y; }
             }
+            // Reset camera to follow player
+            this.camera.x = this.player.x - this.canvas.width / 2;
+            this.camera.y = this.player.y - this.canvas.height / 2;
             // Schedule next scramble after calm
             this._nextScrambleAt = performance.now() + restDuration;
         }, activeDuration);
@@ -1125,6 +1169,20 @@ class SwitchGame {
         const scratch = this.glitchScratchCanvas && this.glitchScratchCanvas.getContext('2d');
         if (!scratch || !this.glitchFrozenCanvas) return;
 
+        // First, render the current game world (with characters at their current scrambled positions)
+        // This allows us to see the time-lapse grouping effect
+        if (typeof this.render === 'function') {
+            this.render();
+        }
+
+        // Capture the current render to the frozen canvas
+        const gfc = this.glitchFrozenCanvas.getContext('2d');
+        if (gfc) {
+            gfc.clearRect(0, 0, this.glitchFrozenCanvas.width, this.glitchFrozenCanvas.height);
+            gfc.drawImage(this.canvas, 0, 0);
+        }
+
+        // Now apply glitch effects on top
         // Pixelation pass (jittered)
         ctx.imageSmoothingEnabled = false;
         scratch.imageSmoothingEnabled = false;
@@ -1147,8 +1205,9 @@ class SwitchGame {
             ctx.drawImage(this.glitchFrozenCanvas, 0, y, this.canvas.width, h, dx, y, this.canvas.width, h);
         }
 
-        // Stuck cells
-        for (const cell of this.glitchStuckCells) {
+        // Stuck cells - reduce intensity slightly so movement is more visible
+        for (let i = 0; i < Math.min(40, this.glitchStuckCells.length); i++) {
+            const cell = this.glitchStuckCells[i];
             ctx.drawImage(
                 this.glitchFrozenCanvas,
                 cell.x, cell.y, cell.w, cell.h,

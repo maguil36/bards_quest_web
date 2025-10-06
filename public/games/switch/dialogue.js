@@ -36,7 +36,8 @@ const DIALOGUES = {
                 { speaker: 'npc', text: "Shine on, Austine. The world needs your glow." }
             ]
         }
-    }
+    },
+    
 };
 
 // Dialogue management class
