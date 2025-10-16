@@ -63,6 +63,11 @@ const navItems = [
 
         // Only apply the game's theme if user has "default" or no preference
         if (!userTheme || userTheme === 'default') {
+          // Ensure transition attribute is set (default to 'smooth' if not present)
+          if (!document.documentElement.hasAttribute('data-transition')) {
+            document.documentElement.setAttribute('data-transition', 'smooth');
+          }
+          
           // Apply the theme to the parent page
           document.documentElement.setAttribute('data-theme', newTheme);
           console.log('Parent page theme changed to:', newTheme);

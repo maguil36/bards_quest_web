@@ -19,24 +19,230 @@ function normalizeDialogue(dialogue) {
 // Minimal sample dialogue keyed by character IDs (NPC IDs are the same)
 // Add/expand these as desired; DialogueManager will use currentCharacter.id
 const DIALOGUES = {
-    alexis: {
-        name: 'Alexis',
+    opal: {  
+        name: 'Opal',
         dialogues: {
-            alexis: [
-                "Talking to yourself? The wind carries your words back.",
-                "Perhaps it's time to seek perspective from another."
-            ],
-            austine: [
-                { speaker: 'npc', text: "Your radiance brightens even this dim corner of the world." },
-                { speaker: 'player', text: "I try to keep shadows short. What do you guard out here?" },
-                { speaker: 'npc', text: "I've seen many lights in my travels, but yours burns differently." },
+            tyson: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
                 { speaker: 'player', text: "Light means little without clarity." },
                 { speaker: 'npc', text: "Illumination isn't just about seeing - it's about understanding." },
                 { speaker: 'player', text: "Then I'll keep looking closely." },
                 { speaker: 'npc', text: "Shine on, Austine. The world needs your glow." }
-            ]
+            ],
+            austine: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+            ],
+            alexis: [
+                {}
+            ],
+            isabell: [
+                {}
+            ],
+            chloe: [
+                {}
+            ],
+            nicholas: [
+                {}
+            ],
+            victor: [
+                {}
+            ],
         }
     },
+    austine: {  
+        name: 'Austine',
+        dialogues: {
+            tyson: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+                { speaker: 'player', text: "Light means little without clarity." },
+                { speaker: 'npc', text: "Illumination isn't just about seeing - it's about understanding." },
+                { speaker: 'player', text: "Then I'll keep looking closely." },
+                { speaker: 'npc', text: "Shine on, Austine. The world needs your glow." }
+            ],
+            opal: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+            ],
+            alexis: [
+                {}
+            ],
+            isabell: [
+                {}
+            ],
+            chloe: [
+                {}
+            ],
+            nicholas: [
+                {}
+            ],
+            victor: [
+                {}
+            ],
+        }
+    },
+    tyson: {  
+        name: 'Tyson',
+        dialogues: {
+            opal: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+                { speaker: 'player', text: "Light means little without clarity." },
+                { speaker: 'npc', text: "Illumination isn't just about seeing - it's about understanding." },
+                { speaker: 'player', text: "Then I'll keep looking closely." },
+                { speaker: 'npc', text: "Shine on, Austine. The world needs your glow." }
+            ],
+            austine: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+            ],
+            alexis: [
+                {}
+            ],
+            isabell: [
+                {}
+            ],
+            chloe: [
+                {}
+            ],
+            nicholas: [
+                {}
+            ],
+            victor: [
+                {}
+            ],
+        }
+    },
+    alexis: {  
+        name: 'Alexis',
+        dialogues: {
+            tyson: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+                { speaker: 'player', text: "Light means little without clarity." },
+                { speaker: 'npc', text: "Illumination isn't just about seeing - it's about understanding." },
+                { speaker: 'player', text: "Then I'll keep looking closely." },
+                { speaker: 'npc', text: "Shine on, Austine. The world needs your glow." }
+            ],
+            austine: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+            ],
+            opal: [
+                {}
+            ],
+            isabell: [
+                {}
+            ],
+            chloe: [
+                {}
+            ],
+            nicholas: [
+                {}
+            ],
+            victor: [
+                {}
+            ],
+        }
+    },
+    isabell: {  
+        name: 'Isabell',
+        dialogues: {
+            tyson: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+                { speaker: 'player', text: "Light means little without clarity." },
+                { speaker: 'npc', text: "Illumination isn't just about seeing - it's about understanding." },
+                { speaker: 'player', text: "Then I'll keep looking closely." },
+                { speaker: 'npc', text: "Shine on, Austine. The world needs your glow." }
+            ],
+            austine: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+            ],
+            alexis: [
+                {}
+            ],
+            opal: [
+                {}
+            ],
+            chloe: [
+                {}
+            ],
+            nicholas: [
+                {}
+            ],
+            victor: [
+                {}
+            ],
+        }
+    },
+    chloe: {  
+        name: 'Chloe',
+        dialogues: {
+            tyson: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+                { speaker: 'player', text: "Light means little without clarity." },
+                { speaker: 'npc', text: "Illumination isn't just about seeing - it's about understanding." },
+                { speaker: 'player', text: "Then I'll keep looking closely." },
+                { speaker: 'npc', text: "Shine on, Austine. The world needs your glow." }
+            ],
+            austine: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+            ],
+            alexis: [
+                {}
+            ],
+            isabell: [
+                {}
+            ],
+            opal: [
+                {}
+            ],
+            nicholas: [
+                {}
+            ],
+            victor: [
+                {}
+            ],
+        }
+    },
+    nicholas: {  
+        name: 'Nicholas',
+        dialogues: {
+            tyson: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+                { speaker: 'player', text: "Light means little without clarity." },
+                { speaker: 'npc', text: "Illumination isn't just about seeing - it's about understanding." },
+                { speaker: 'player', text: "Then I'll keep looking closely." },
+                { speaker: 'npc', text: "Shine on, Austine. The world needs your glow." }
+            ],
+            austine: [
+                { speaker: 'player', text: "Hey Tyson, see no reason to beat up yourself about the accident, if it wasn't for you we'd likely not be able to win the game now, see." },
+                { speaker: 'npc', text: "" },
+            ],
+            alexis: [
+                {}
+            ],
+            isabell: [
+                {}
+            ],
+            chloe: [
+                {}
+            ],
+            Opal: [
+                {}
+            ],
+            victor: [
+                {}
+            ],
+        }
+    }
     
 };
 

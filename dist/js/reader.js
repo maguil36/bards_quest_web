@@ -6,9 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const cur = Number(root.getAttribute('data-page') || '1');
   const defaultTheme = root.getAttribute('data-default-theme') || '';
   const overruleTheme = root.getAttribute('data-overrule-theme') === '1';
+  const transitionType = root.getAttribute('data-transition') || 'smooth';
 
   const key = 'progress:series-1';
   const cookieName = 'savegame';
+
+  // Apply transition type to document
+  document.documentElement.setAttribute('data-transition', transitionType);
 
   // Apply theme with new logic:
   // 1. If overrule is true: ALWAYS use the default theme (ignores user preference)

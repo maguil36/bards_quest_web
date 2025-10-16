@@ -39,6 +39,8 @@ const links = [
           // Theme
           var theme = (function(){ try { return localStorage.getItem('mspa:theme') || 'space'; } catch { return 'space'; } })();
           if (theme && theme !== 'space') d.setAttribute('data-theme', theme); else d.removeAttribute('data-theme');
+          // Transition (default to 'smooth' for all pages unless overridden)
+          if (!d.hasAttribute('data-transition')) d.setAttribute('data-transition', 'smooth');
           // Desktop layout toggle
           var desktop = (function(){ try { return localStorage.getItem('mspa:ui:desktop') === '1'; } catch { return false; } })();
           d.setAttribute('data-desktop', desktop ? '1' : '0');
@@ -96,25 +98,34 @@ const links = [
     <script>
       // Listen for theme change messages from the game iframe
       window.addEventListener('message', (event) => {
-        // Check if this is a theme change message from the game
-        if (event.data && event.data.type === 'GAME_THEME_CHANGE') {
-          const newTheme = event.data.theme;
+        try {
+          // Check if this is a theme change message from the game
+          if (event.data && event.data.type === 'GAME_THEME_CHANGE') {
+            const newTheme = event.data.theme;
 
-          // Check user's theme preference from localStorage
-          const themeKey = 'mspa:theme';
-          let userTheme = null;
-          try {
-            userTheme = localStorage.getItem(themeKey);
-          } catch (e) {
-            // localStorage not available
-          }
+            // Check user's theme preference from localStorage
+            const themeKey = 'mspa:theme';
+            let userTheme = null;
+            try {
+              userTheme = localStorage.getItem(themeKey);
+            } catch (e) {
+              // localStorage not available
+            }
 
-          // Only apply the game's theme if user has "default" or no preference
-          if (!userTheme || userTheme === 'default') {
-            // Apply the theme to the parent page
-            document.documentElement.setAttribute('data-theme', newTheme);
-            console.log('Parent page theme changed to:', newTheme);
+            // Only apply the game's theme if user has "default" or no preference
+            if (!userTheme || userTheme === 'default') {
+              // Ensure transition attribute is set (default to 'smooth' if not present)
+              if (!document.documentElement.hasAttribute('data-transition')) {
+                document.documentElement.setAttribute('data-transition', 'smooth');
+              }
+
+              // Apply the theme to the parent page
+              document.documentElement.setAttribute('data-theme', newTheme);
+              console.log('Parent page theme changed to:', newTheme);
+            }
           }
+        } catch (e) {
+          // Ignore errors from postMessage handling
         }
       });
     </script>

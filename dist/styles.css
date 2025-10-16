@@ -403,7 +403,7 @@ html[data-contrast="high"] .pesterlog .redacted .msg { color: var(--redacted); t
 .mspa-waypoints { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
 .mspa-waypoint { display: block; border: 1px solid var(--border); background: var(--surface); }
 .mspa-waypoint img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
-=======
+
 /*
   Public stylesheet
   - Theme variables and system (12 aspect themes)
@@ -465,28 +465,105 @@ html[data-contrast="high"] .pesterlog .redacted .msg { color: var(--redacted); t
   /*other*/
   --all: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080);
 
-  /* Smooth theme transitions for game character switches */
+  /* other*/
+  --all: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080);
+}
+
+/* =============================
+   Theme Transition Animations
+   ============================= */
+
+/* Default smooth transitions (2s ease-in-out) */
+html[data-transition="smooth"] {
   transition: background-color 2s ease-in-out;
 }
 
-/* Apply smooth transitions to elements that will change when themes switch */
-html {
-  transition: background-color 2s ease-in-out;
-}
-
-body {
+html[data-transition="smooth"] body {
   transition: background 2s ease-in-out,
               background-color 2s ease-in-out,
               color 2s ease-in-out;
 }
 
-/* Apply transitions to all elements that use theme variables */
-* {
+html[data-transition="smooth"] * {
   transition: background 2s ease-in-out,
               background-color 2s ease-in-out,
               border-color 2s ease-in-out,
               color 2s ease-in-out;
 }
+
+/* Instant transitions (no animation) */
+html[data-transition="instant"] {
+  transition: none;
+}
+
+html[data-transition="instant"] body {
+  transition: none;
+}
+
+html[data-transition="instant"] * {
+  transition: none;
+}
+
+/* Fast transitions (0.5s) */
+html[data-transition="fast"] {
+  transition: background-color 0.5s ease-in-out;
+}
+
+html[data-transition="fast"] body {
+  transition: background 0.5s ease-in-out,
+              background-color 0.5s ease-in-out,
+              color 0.5s ease-in-out;
+}
+
+html[data-transition="fast"] * {
+  transition: background 0.5s ease-in-out,
+              background-color 0.5s ease-in-out,
+              border-color 0.5s ease-in-out,
+              color 0.5s ease-in-out;
+}
+
+/* Slow transitions (4s) */
+html[data-transition="slow"] {
+  transition: background-color 4s ease-in-out;
+}
+
+html[data-transition="slow"] body {
+  transition: background 4s ease-in-out,
+              background-color 4s ease-in-out,
+              color 4s ease-in-out;
+}
+
+html[data-transition="slow"] * {
+  transition: background 4s ease-in-out,
+              background-color 4s ease-in-out,
+              border-color 4s ease-in-out,
+              color 4s ease-in-out;
+}
+
+/* Fade transitions (2s with opacity) */
+html[data-transition="fade"] {
+  transition: background-color 2s ease-in-out,
+              opacity 2s ease-in-out;
+}
+
+html[data-transition="fade"] body {
+  transition: background 2s ease-in-out,
+              background-color 2s ease-in-out,
+              color 2s ease-in-out,
+              opacity 2s ease-in-out;
+}
+
+html[data-transition="fade"] * {
+  transition: background 2s ease-in-out,
+              background-color 2s ease-in-out,
+              border-color 2s ease-in-out,
+              color 2s ease-in-out,
+              opacity 2s ease-in-out;
+}
+
+/* =============================
+   Aspect themes (tint surfaces so whole UI changes)
+   ============================= */
 
 /* =============================
   Aspect themes (tint surfaces so whole UI changes)
@@ -844,7 +921,7 @@ html[data-contrast="high"] .pesterlog .redacted .msg { color: var(--redacted); t
 .mspa-waypoints { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
 .mspa-waypoint { display: block; border: 1px solid var(--border); background: var(--surface); }
 .mspa-waypoint img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
-   ============================= */
+  /* ============================= */
 :root {
   /* Core surfaces and text */
   --bg: #0f1014;

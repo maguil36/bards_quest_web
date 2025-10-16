@@ -24,37 +24,37 @@
      id: 'alexis',
      name: 'Alexis',
      color: CHAR_COLORS.alexis,
-     position: { x: 400, y: 300 },
+     position: { x: 200, y: 520 },
    },
    austine: {
      id: 'austine',
      name: 'Austine',
      color: CHAR_COLORS.austine,
-     position: { x: 200, y: 200 },
+     position: { x: 400, y: 300 },
    },
    chloe: {
      id: 'chloe',
      name: 'Chloe',
      color: CHAR_COLORS.chloe,
-     position: { x: 600, y: 200 },
+     position: { x: 300, y: 230 },
    },
    isabell: {
      id: 'isabell',
      name: 'Isabell',
      color: CHAR_COLORS.isabell,
-     position: { x: 100, y: 400 },
+     position: { x: 250, y: 250 },
    },
    nicholas: {
      id: 'nicholas',
      name: 'Nicholas',
      color: CHAR_COLORS.nicholas,
-     position: { x: 700, y: 400 },
+     position: { x: 700, y: 250 },
    },
    opal: {
      id: 'opal',
      name: 'Opal',
      color: CHAR_COLORS.opal,
-     position: { x: 300, y: 500 },
+     position: { x: 400, y: 480 },
    },
    tyson: {
      id: 'tyson',
@@ -66,7 +66,7 @@
      id: 'victor',
      name: 'Victor',
      color: CHAR_COLORS.victor,
-     position: { x: 400, y: 100 },
+     position: { x: 450, y: 650 },
      isFinalCharacter: true, // Triggers the glitch ending
    },
  };
@@ -94,13 +94,13 @@ const NPCS = [
   {
     id: 'alexis',
     name: 'Alexis',
-    position: { x: 400, y: 300 },
+    position: { x: 200, y: 520 },
     color: CHAR_COLORS.alexis,
   },
   {
     id: 'austine',
     name: 'Austine',
-    position: { x: 200, y: 200 },
+    position: { x: 400, y: 300 },
     color: CHAR_COLORS.austine,
   },
   {
@@ -112,19 +112,19 @@ const NPCS = [
   {
     id: 'isabell',
     name: 'Isabell',
-    position: { x: 100, y: 400 },
+    position: { x: 250, y: 250 },
     color: CHAR_COLORS.isabell,
   },
   {
     id: 'nicholas',
     name: 'Nicholas',
-    position: { x: 700, y: 400 },
+    position: { x: 700, y: 250 },
     color: CHAR_COLORS.nicholas,
   },
   {
     id: 'opal',
     name: 'Opal',
-    position: { x: 300, y: 500 },
+    position: { x: 400, y: 480 },
     color: CHAR_COLORS.opal,
   },
   {
@@ -136,7 +136,7 @@ const NPCS = [
   {
     id: 'victor',
     name: 'Victor',
-    position: { x: 400, y: 100 },
+    position: { x: 450, y: 650 },
     color: CHAR_COLORS.victor,
   },
 ];

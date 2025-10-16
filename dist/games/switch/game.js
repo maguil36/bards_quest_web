@@ -902,11 +902,41 @@ class SwitchGame {
     }
 
     triggerGlitchEnding() {
+        // FIRST: Switch to Victor before the glitch starts
+        // This makes it feel like switching to Victor is what breaks reality
+        const victorChar = CHARACTERS['victor'];
+        if (victorChar && this.gameState.currentCharacter !== 'victor') {
+            // Force switch to Victor
+            this.gameState.currentCharacter = 'victor';
+            this.gameState.unlockCharacter('victor');
+
+            // Update player position to Victor's position
+            const savedPos = this.gameState.characterPositions['victor'];
+            if (savedPos) {
+                this.player.x = savedPos.x;
+                this.player.y = savedPos.y;
+            }
+
+            // Update UI and theme
+            this.updateCharacterUI();
+            this.applyCharacterTheme(victorChar);
+
+            // Brief pause to let the theme transition start before glitching
+            setTimeout(() => {
+                this.startGlitchSequence();
+            }, 500); // Half second delay to see Victor's theme start to apply
+        } else {
+            // Already Victor, start immediately
+            this.startGlitchSequence();
+        }
+    }
+
+    startGlitchSequence() {
         // Stop the normal game loop and start the glitch renderer instead
         this.isGameRunning = false;
         this.isGlitching = true;
 
-        // Ensure Victor's music plays during the glitch
+        // Ensure Victor's music plays during the glitch (ending theme)
         if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
             this.audioManager.playCharacterMusic('victor');
         }
@@ -914,11 +944,77 @@ class SwitchGame {
         // Show the overlay for flashing visuals
         if (this.glitchOverlay) this.glitchOverlay.style.display = 'block';
 
+        // Add extra glitchy effects to make it feel like reality is breaking
+        this.addRealityBreakEffects();
+
         // Prepare glitch buffers and artifacts
         this.startGlitchEffect();
 
         // Kick off the glitch animation loop
         this.runGlitchLoop();
+    }
+
+    addRealityBreakEffects() {
+        // Make the canvas shake/vibrate
+        if (this.canvas) {
+            this.canvas.style.animation = 'glitch-shake 0.3s infinite';
+        }
+
+        // Add random color shifts to the page
+        const colorShiftInterval = setInterval(() => {
+            if (!this.isGlitching) {
+                clearInterval(colorShiftInterval);
+                return;
+            }
+
+            // Random hue rotation
+            const hue = Math.random() * 360;
+            if (this.canvas) {
+                this.canvas.style.filter = `hue-rotate(${hue}deg) saturate(${1 + Math.random() * 0.5})`;
+            }
+        }, 200);
+
+        // Randomly invert colors briefly
+        const invertInterval = setInterval(() => {
+            if (!this.isGlitching) {
+                clearInterval(invertInterval);
+                return;
+            }
+
+            if (Math.random() < 0.3) { // 30% chance each interval
+                if (this.canvas) {
+                    this.canvas.style.filter = 'invert(1)';
+                    setTimeout(() => {
+                        if (this.canvas && this.isGlitching) {
+                            this.canvas.style.filter = '';
+                        }
+                    }, 100);
+                }
+            }
+        }, 400);
+
+        // Make UI elements glitch out
+        const uiElements = [
+            document.getElementById('currentCharacter'),
+            document.getElementById('ui'),
+            document.getElementById('dialogueBox')
+        ];
+
+        const uiGlitchInterval = setInterval(() => {
+            if (!this.isGlitching) {
+                clearInterval(uiGlitchInterval);
+                return;
+            }
+
+            uiElements.forEach(el => {
+                if (el && Math.random() < 0.4) {
+                    el.style.transform = `translate(${Math.random() * 10 - 5}px, ${Math.random() * 10 - 5}px)`;
+                    setTimeout(() => {
+                        if (el) el.style.transform = '';
+                    }, 100);
+                }
+            });
+        }, 300);
     }
 
     startGlitchEffect() {

@@ -40,6 +40,12 @@
   function applyTheme(){
     const t = selTheme?.value || get(K.theme,'default') || 'default';
     if (selTheme) selTheme.value = t;
+
+    // Ensure transition attribute is set (default to 'smooth' for options page)
+    if (!document.documentElement.hasAttribute('data-transition')) {
+      document.documentElement.setAttribute('data-transition', 'smooth');
+    }
+
     if (t === 'default') {
       // Default: remove theme attribute and clear stored preference
       // This allows page-specific themes to be used
