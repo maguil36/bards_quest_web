@@ -733,6 +733,14 @@ class SwitchGame {
             : false;
         const lastTalked = this.gameState && this.gameState.lastNPCTalkedId;
 
+        // NEW: If we just talked to Victor but the unlock criteria aren't met, don't show any prompt
+        if (lastTalked === 'victor') {
+            // Only show prompt if Victor's unlock criteria are fully met
+            if (!(remaining === 0 && spokeVictor && this.gameState.canSwitchToCharacter && this.gameState.canSwitchToCharacter('victor'))) {
+                return; // Don't show switch prompt when talking to Victor unless unlock criteria met
+            }
+        }
+
         let targetId = null;
         if (remaining === 0 && spokeVictor && lastTalked === 'victor' && this.gameState.canSwitchToCharacter && this.gameState.canSwitchToCharacter('victor')) {
             targetId = 'victor';

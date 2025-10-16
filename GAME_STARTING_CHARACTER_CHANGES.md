@@ -5,6 +5,7 @@
 Modified the Switch game to:
 1. Start with **Opal** as the initial character (instead of Alexis)
 2. Only allow character switching when **"Remaining to progress: 0"** (all required dialogues completed for current character)
+3. **Fixed bug:** Prevent switch prompt from appearing when talking to Victor unless his specific unlock criteria are met
 
 ## Changes Made
 
@@ -56,16 +57,48 @@ showSwitchPrompt() {
 - Prevents premature character switching
 - Ensures players complete each character's dialogue requirements
 
+### 3. Victor Switch Prompt Bug Fix
+**File:** `public/games/switch/game.js`
+
+Added a check to prevent the switch prompt from appearing when talking to Victor unless his unlock criteria are met:
+
+```javascript
+// NEW: If we just talked to Victor but the unlock criteria aren't met, don't show any prompt
+if (lastTalked === 'victor') {
+    // Only show prompt if Victor's unlock criteria are fully met
+    if (!(remaining === 0 && spokeVictor && this.gameState.canSwitchToCharacter && this.gameState.canSwitchToCharacter('victor'))) {
+        return; // Don't show switch prompt when talking to Victor unless unlock criteria met
+    }
+}
+```
+
+**Bug Description:**
+- Previously, when talking to Victor, the game would show a switch prompt to switch to another character (the last non-final NPC talked to)
+- This was incorrect behavior - no switch prompt should appear when talking to Victor unless his specific unlock criteria are met
+
+**Fix:**
+- Added an early return check that detects if the last NPC talked to was Victor
+- If Victor's unlock criteria aren't met (game complete AND spoken to Victor as current character), the function returns without showing any prompt
+- This ensures Victor conversations don't trigger inappropriate switch prompts
+
+**Victor's Unlock Criteria:**
+- All 42 required interactions must be completed (remaining == 0)
+- Current character must have spoken to Victor
+- The last interaction must be with Victor
+- Only then will the switch prompt appear, offering to switch TO Victor
+
 ## Game Flow
 
 ### Before Changes
 1. Start as Alexis
 2. Could switch after any dialogue completion (if conditions met)
+3. Talking to Victor would show switch prompt to other characters (BUG)
 
 ### After Changes
 1. Start as Opal
 2. Must complete ALL required dialogues for current character before switching
 3. "Remaining to progress: 0" is required to see the switch prompt
+4. Talking to Victor shows NO switch prompt unless his unlock criteria are met
 
 ## Testing Checklist
 
@@ -76,6 +109,10 @@ showSwitchPrompt() {
 - [ ] Complete all required dialogues for Opal (Remaining to progress: 0)
 - [ ] Verify switch prompt DOES appear after completing the last required dialogue
 - [ ] Switch to another character and repeat the process
+- [ ] **NEW:** Talk to Victor before completing all 42 interactions
+- [ ] **NEW:** Verify NO switch prompt appears when talking to Victor (before unlock)
+- [ ] **NEW:** Complete all 42 interactions and talk to Victor as current character
+- [ ] **NEW:** Verify switch prompt DOES appear, offering to switch TO Victor
 
 ## Related Files
 
@@ -95,3 +132,4 @@ showSwitchPrompt() {
 - New games will start with Opal
 - The restriction applies to all characters equally
 - Victor (final character) still has special unlock requirements on top of this restriction
+- **Bug fix ensures Victor conversations don't trigger inappropriate switch prompts**
