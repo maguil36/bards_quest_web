@@ -144,9 +144,9 @@ const NPCS = [
  // Game state management
 class GameState {
   constructor() {
-    this.currentCharacter = 'alexis';
+    this.currentCharacter = 'opal';
     this.completedDialogues = new Set(); // Format: "characterId:npcId"
-    this.unlockedCharacters = new Set(['alexis']);
+    this.unlockedCharacters = new Set(['opal']);
     this.characterPositions = {};
     this.lastNPCTalkedId = null;
     this.lastNonFinalNPCTalkedId = null;

@@ -709,6 +709,16 @@ class SwitchGame {
     showSwitchPrompt() {
         const currentChar = this.gameState.getCurrentCharacter();
 
+        // Check if current character has completed all required dialogues (Remaining to progress: 0)
+        const remainingForCharacter = (this.gameState && typeof this.gameState.getRemainingForCharacterProgress === 'function')
+            ? this.gameState.getRemainingForCharacterProgress(currentChar.id)
+            : 1;
+
+        // Only allow switching if the current character has talked to everyone they need to (remaining = 0)
+        if (remainingForCharacter > 0) {
+            return; // Don't show switch prompt if character hasn't completed all dialogues
+        }
+
         // Determine who we are allowed to propose as a switch target under strict rules
         // Rule 1: If Until game complete > 0, Victor must NEVER be proposed.
         // Rule 2: If Until game complete == 0 AND we have spoken to Victor as this character,

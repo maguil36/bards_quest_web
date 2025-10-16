@@ -146,4 +146,3 @@ export function getDefaultTheme(chapterId: number, pageNumber: number): ThemeCon
 **Want consistent theme throughout?**
 - User should select a specific theme (not "Default")
 - Or set `overrule: true` on pages that must have specific themes
-## Game Theme IntegrationThe Switch game changes themes based on active character (when "Default" is selected).### Character Themes- **Alexis** → Rage | **Austine** → Mind | **Chloe** → Life | **Isabell** → Blood- **Nicholas** → Light | **Opal** → Space | **Tyson** → Doom | **Victor** → Time### Behavior- **"Default" selected**: Theme changes as you switch characters- **Specific theme selected**: Theme stays consistent throughout game- **UI accent**: Always matches current character colorSee `GAME_THEME_INTEGRATION.md` for full details.
