@@ -1,0 +1,1 @@
+import"./hoisted.rlpklw6A.js";window.addEventListener("message",e=>{if(e.data&&e.data.type==="GAME_THEME_CHANGE"){const a=e.data.theme,m="mspa:theme";let t=null;try{t=localStorage.getItem(m)}catch{}(!t||t==="default")&&(document.documentElement.setAttribute("data-theme",a),console.log("Parent page theme changed to:",a))}});

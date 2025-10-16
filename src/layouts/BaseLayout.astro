@@ -92,5 +92,31 @@ const links = [
         <div class="container">© {new Date().getFullYear()} Bards Quest</div>
       </footer>
     )}
+
+    <script>
+      // Listen for theme change messages from the game iframe
+      window.addEventListener('message', (event) => {
+        // Check if this is a theme change message from the game
+        if (event.data && event.data.type === 'GAME_THEME_CHANGE') {
+          const newTheme = event.data.theme;
+
+          // Check user's theme preference from localStorage
+          const themeKey = 'mspa:theme';
+          let userTheme = null;
+          try {
+            userTheme = localStorage.getItem(themeKey);
+          } catch (e) {
+            // localStorage not available
+          }
+
+          // Only apply the game's theme if user has "default" or no preference
+          if (!userTheme || userTheme === 'default') {
+            // Apply the theme to the parent page
+            document.documentElement.setAttribute('data-theme', newTheme);
+            console.log('Parent page theme changed to:', newTheme);
+          }
+        }
+      });
+    </script>
   </body>
 </html>

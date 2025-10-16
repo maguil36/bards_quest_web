@@ -1267,20 +1267,62 @@ class SwitchGame {
             // localStorage not available or access denied; fall back to default behavior
         }
 
-        // Only apply character theme if user has selected "Default" or has no preference
+        // Only request a theme change from the parent if user has selected "Default" or has no preference
         // If user selected a specific theme (e.g. 'space', 'breath', etc.), respect that choice
         if (!userTheme || userTheme === 'default') {
             const theme = (character && character.id && THEME_BY_CHAR[character.id])
                 ? THEME_BY_CHAR[character.id]
                 : 'space';
-            document.documentElement.setAttribute('data-theme', theme);
+
+            // Instead of changing the embed's own theme, ask the parent page to change its theme via postMessage.
+            // Parent pages can listen for message.type === 'GAME_THEME_CHANGE' to apply the theme change.
+            try {
+                window.parent.postMessage({
+                    type: 'GAME_THEME_CHANGE',
+                    theme: theme
+                }, '*');
+            } catch (e) {
+                // If we can't communicate with parent, that's okay — just fail silently.
+                console.warn('Could not send theme change to parent page', e);
+            }
         }
         // If the user has a specific theme preference, do not override it here.
 
-        // Always drive UI accent directly from the current character color
+        // Always drive UI accent directly from the current character color inside the iframe/game UI
         if (character && character.color) {
             document.documentElement.style.setProperty('--accent', character.color);
         }
+    }
+
+    transitionToTheme(oldTheme, newTheme) {
+        const overlay = document.getElementById('themeTransitionOverlay');
+        if (!overlay) {
+            // Fallback: just change theme instantly if overlay doesn't exist
+            document.documentElement.setAttribute('data-theme', newTheme);
+            return;
+        }
+
+        // Ensure overlay has necessary base styles for transition
+        // (expected CSS: overlay positioned over the viewport, transitions opacity over 2s)
+        overlay.setAttribute('data-overlay-theme', newTheme);
+
+        // Kick off a crossfade:
+        //  - Add 'transitioning' class to fade the overlay in (0 -> 1 opacity) over ~1s
+        //  - At the halfway point (1s), swap the document theme so the new theme is revealed
+        //  - Then remove 'transitioning' after the full 2s to fade the overlay out
+        overlay.classList.add('transitioning');
+
+        // After 1 second (halfway through the 2s transition), change the actual theme
+        setTimeout(() => {
+            document.documentElement.setAttribute('data-theme', newTheme);
+        }, 1000);
+
+        // After 2 seconds (full transition), fade out and clean up
+        setTimeout(() => {
+            overlay.classList.remove('transitioning');
+            // Cleanup attribute to keep DOM tidy (optional)
+            overlay.removeAttribute('data-overlay-theme');
+        }, 2000);
     }
 
     // Render the world, slicing sprite sheets per direction/frame for NPCs and player
