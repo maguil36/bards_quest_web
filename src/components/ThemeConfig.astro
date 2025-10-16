@@ -1,0 +1,103 @@
+---
+/**
+ * ThemeConfig.astro
+ * 
+ * Define default themes for specific pages in your comic.
+ * 
+ * HOW IT WORKS:
+ * - Each page can have a default theme assigned based on chapter ID and page number
+ * - If overrule is TRUE: the page theme is ALWAYS used, ignoring user preferences
+ * - If overrule is FALSE: user preferences override the default theme
+ * - If user selects "Default" in options: page-specific themes are used
+ * - If user selects "Space" in options: space theme is always used (no colors)
+ * - If user selects any other theme: that theme overrides defaults (unless overrule is true)
+ * 
+ * AVAILABLE THEMES:
+ * space, breath, light, time, heart, mind, hope, rage, life, doom, blood, void
+ * 
+ * USAGE EXAMPLES:
+ * 
+ * 1. Set a theme for a specific page (can be overridden by user):
+ *    if (chapterId === 1 && pageNumber === 5) return { theme: 'breath', overrule: false };
+ * 
+ * 2. Set a theme that CANNOT be overridden by user preferences:
+ *    if (chapterId === 2 && pageNumber === 10) return { theme: 'time', overrule: true };
+ * 
+ * 3. Set a theme for a range of pages:
+ *    if (chapterId === 2 && pageNumber >= 10 && pageNumber <= 20) {
+ *      return { theme: 'mind', overrule: false };
+ *    }
+ * 
+ * 4. Force a theme for story-critical moments:
+ *    if (chapterId === 3 && pageNumber === 1) {
+ *      return { theme: 'rage', overrule: true };  // Always rage, no matter what
+ *    }
+ * 
+ * 5. Use shorthand (defaults to overrule: false):
+ *    if (chapterId === 4 && pageNumber === 5) return { theme: 'hope' };
+ */
+
+export interface ThemeConfig {
+  theme: string;
+  overrule?: boolean;  // If true, ignores user preferences
+}
+
+/**
+ * Get the default theme configuration for a specific chapter and page.
+ * Returns null if no default theme is defined for that page.
+ * 
+ * EDIT THIS FUNCTION to define your page-specific themes!
+ */
+export function getDefaultTheme(chapterId: number, pageNumber: number): ThemeConfig | null {
+  // ========================================
+  // DEFINE YOUR THEMES BELOW THIS LINE
+  // ========================================
+  
+  // Example: Chapter 1 themes (can be overridden by user)
+  if (chapterId === 1) {
+    if (pageNumber === 1) return { theme: 'time', overrule: false };
+    if (pageNumber === 2) return { theme: 'time', overrule: false };
+    if (pageNumber === 3) return { theme: 'time', overrule: false };
+    if (pageNumber === 4) return { theme: 'time', overrule: false };
+    if (pageNumber === 5) return { theme: 'time', overrule: false };
+    if (pageNumber === 6) return { theme: 'time', overrule: false };
+    if (pageNumber === 7) return { theme: 'space', overrule: false };
+    if (pageNumber === 8) return { theme: 'space', overrule: false };
+    if (pageNumber === 9) return { theme: 'space', overrule: false };
+    if (pageNumber === 10) return { theme: 'space', overrule: false };
+    if (pageNumber === 11) return { theme: 'space', overrule: false };
+    if (pageNumber === 12) return { theme: 'space', overrule: false };
+    if (pageNumber === 13) return { theme: 'space', overrule: false };
+  }
+  
+  // Add your own chapter/page combinations below:
+  // if (chapterId === X) {
+  //   if (pageNumber === Y) return { theme: 'theme-name', overrule: false };
+  //   if (pageNumber === Z) return { theme: 'theme-name', overrule: true };
+  // }
+  
+  // ========================================
+  // DEFINE YOUR THEMES ABOVE THIS LINE
+  // ========================================
+  
+  // Return null to use 'space' as default (or user preference if set)
+  return null;
+}
+
+/**
+ * Check if a page has a default theme defined.
+ * You typically don't need to edit this function.
+ */
+export function hasDefaultTheme(chapterId: number, pageNumber: number): boolean {
+  return getDefaultTheme(chapterId, pageNumber) !== null;
+}
+
+/**
+ * Check if a page's theme should overrule user preferences.
+ * You typically don't need to edit this function.
+ */
+export function shouldOverruleUserPreference(chapterId: number, pageNumber: number): boolean {
+  const config = getDefaultTheme(chapterId, pageNumber);
+  return config?.overrule === true;
+}
+---

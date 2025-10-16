@@ -37,6 +37,24 @@ function getNarrationContent(ch: any, p: number): { hasNarration: boolean; narra
       hasNarration: true,
       narration: "Well looks like we're back! And whoever this is looks way better then that last guy!\n\n But wait, this isn't right, did we miss something?\n\nIt looks like we've moved very far foward in the story now. Oh well, not like anyone likes the start of these advetures anyways, I hear they tend to be real boring."
     };
+
+    if (p === 8) return {
+      hasNarration: true,
+      narration: "This is Opal. Hopefully she doesn't break the game like the other guy did. Would you like to play as her? Thats a joke, you are getting a choice, not yet anyhow."
+    };
+
+    if (p === 9) return {
+      hasNarration: true,
+      narration: "Your name is Opal, you are the Hero of Space, a lot has happened and your journey is nearly over. Your team of 4 who all found themselves awakened on the moon of prospit, are almost ready to face the final boss of your game session, the black king. \n You have just finished discussing the caviots to facing this final boss with the other team who all awoke on the moon of derse where you currently are."
+    };
+    if (p === 10) return {
+      hasNarration: true,
+      narration: "You are likely now the most important player in your group. Alexis might be the strongest but your role will decide whether or not the goal of your group is successful in the creation of a new universe to replace the one that was destroyed through starting the game. \nThe other team's job will be to fight the black queen who is here right now on derse, but not for long. Once both enemies are defeated your role will be to finish the creation of the new universe."
+    };
+    if (p === 11) return {
+      hasNarration: true,
+      narration: "Your team used to be covered in golden pijamas just like how they are all wearing purple like the walls of derse, but now your team all wears their own special costums to represent the heros you all are respectively. \nNow you need to just rap up talking to everyone and then you can leave to be on your way."
+    };
     
   }
   

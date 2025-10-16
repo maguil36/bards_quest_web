@@ -14,6 +14,9 @@ export function getPageTitle(chapter: any, page: number): string {
     if (page === 6) return "It's Going to Crash Again, Isn't It...";
     if (page === 7) return "Be Anyone Else";
     if (page === 8) return "Inspect New Character";
+    if (page === 9) return "Be Opal";
+    if (page === 10) return "Recall your Critical Role";
+    if (page === 11) return "Look at the Other Team Again";
     if (page === 12) return "Switch Characters";
 
     // Add more special titles as needed

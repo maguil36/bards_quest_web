@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Switch - Character Adventure Game</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameCanvas {
+            border: 2px solid var(--border);
+            background: var(--surface);
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+         #dialogueBox {
+             position: absolute;
+             bottom: 20px;
+             left: 50%;
+             transform: translateX(-50%);
+             width: 80%;
+             max-width: 700px;
+             background: var(--card);
+             border: 2px solid var(--border);
+             border-radius: 8px;
+             padding: 16px 16px 8px 16px;
+             display: none;
+             z-index: 100;
+         }
+
+         #dialogueText {
+             font-size: 18px;
+             line-height: 1.6;
+             margin-bottom: 8px;
+             padding: 8px 10px;
+             border-radius: 6px;
+             background: var(--surface);
+         }
+
+         .speaker-player #dialogueText {
+             box-shadow: 0 0 0 2px var(--accent);
+         }
+         .speaker-npc #dialogueText {
+             box-shadow: 0 0 0 2px var(--border);
+         }
+
+         #dialoguePrompt {
+             font-size: 14px;
+             color: var(--muted);
+             text-align: right;
+         }
+
+        #switchPrompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            display: none;
+            z-index: 101;
+        }
+
+        #switchPrompt button {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #switchPrompt button:hover {
+            opacity: 0.8;
+        }
+
+        #glitchOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 200;
+            background: rgba(0,0,0,0.8);
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+
+        /* Keep a subtle baseline flicker via CSS; heavy flashing is driven by JS */
+        @keyframes glitch {
+            0% { filter: hue-rotate(0deg) saturate(1); opacity: 0.8; }
+            25% { filter: hue-rotate(90deg) saturate(2); opacity: 0.6; }
+            50% { filter: hue-rotate(180deg) saturate(3); opacity: 0.9; }
+            75% { filter: hue-rotate(270deg) saturate(2); opacity: 0.7; }
+            100% { filter: hue-rotate(360deg) saturate(1); opacity: 0.85; }
+        }
+
+        #errorMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            text-align: center;
+            display: none;
+            z-index: 201;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+        }
+
+        #currentCharacter {
+            background: var(--card);
+            border: 2px solid var(--border);
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none; /* hidden in favor of settings gear */
+        }
+
+        /* Restart button */
+        #restartGameBtn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+        }
+        #restartGameBtn:hover { opacity: 0.9; }
+
+        /* Settings gear button */
+        #settingsButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 60;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #settingsButton:hover { filter: brightness(1.05); }
+        #settingsButton .gear {
+            width: 22px; height: 22px; fill: var(--text);
+        }
+
+        /* Settings modal */
+        #settingsModal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 120;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+        #settingsHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        #settingsTitle { font-size: 18px; font-weight: 700; }
+        #settingsClose {
+            background: transparent; border: none; color: var(--text); cursor: pointer; font-size: 20px; line-height: 1;
+        }
+        .settingsRow { margin: 12px 0; }
+        .settingsLabel { font-weight: 600; margin-bottom: 6px; }
+        .settingsValue { color: var(--muted); }
+        .volumeRow { display: flex; align-items: center; gap: 10px; }
+        #volumeSlider { flex: 1; }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <div id="ui">
+            <div id="currentCharacter">Playing as: <span id="characterName">Alexis</span></div>
+        </div>
+
+        <!-- Old instructions hidden; replaced by settings gear -->
+        <div id="instructions">
+            <strong>Controls:</strong><br>
+            WASD or Arrow Keys - Move<br>
+            SPACE - Interact<br>
+            ESC - Character Menu
+        </div>
+
+        <!-- Settings gear button -->
+        <button id="settingsButton" aria-label="Open settings">
+            <svg class="gear" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19.14,12.94a7.43,7.43,0,0,0,.05-.94,7.43,7.43,0,0,0-.05-.94l2.11-1.65a.5.5,0,0,0,.12-.63l-2-3.46a.5.5,0,0,0-.6-.22L16.7,5a7.22,7.22,0,0,0-1.63-.94l-.25-2.6A.5.5,0,0,0,14.33.5H9.67a.5.5,0,0,0-.49.42L8.93,3.52A7.22,7.22,0,0,0,7.3,4.46L4.23,3.1a.5.5,0,0,0-.6.22l-2,3.46a.5.5,0,0,0,.12.63L3.86,9.06a7.43,7.43,0,0,0-.05.94,7.43,7.43,0,0,0,.05.94L1.77,12.59a.5.5,0,0,0-.12.63l2,3.46a.5.5,0,0,0,.6.22L7.3,15.54a7.22,7.22,0,0,0,1.63.94l.25,2.6a.5.5,0,0,0,.49.42h4.66a.5.5,0,0,0,.49-.42l.25-2.6a7.22,7.22,0,0,0,1.63-.94l3.07,1.36a.5.5,0,0,0,.6-.22l2-3.46a.5.5,0,0,0-.12-.63ZM12,15.5A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/>
+            </svg>
+        </button>
+
+        <!-- Settings modal -->
+        <div id="settingsModal">
+            <div id="settingsHeader">
+                <div id="settingsTitle">Settings</div>
+                <button id="settingsClose" aria-label="Close settings">×</button>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Playing as</div>
+                <div class="settingsValue"><span id="settingsCurrentCharacter">Alexis</span></div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Controls</div>
+                <div class="settingsValue">
+                    WASD or Arrow Keys — Move<br>
+                    Space — Interact / talk<br>
+                    Esc — Close windows; open Options if none are open
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Progress</div>
+                <div class="settingsValue">
+                    Talked to (this character): <span id="settingsCharProgress">0</span>/<span id="settingsCharTotal">0</span><br>
+                    Remaining to progress: <span id="settingsCharRemaining">0</span><br>
+                    Until game complete: <span id="settingsGameRemaining">42</span> remaining
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Volume</div>
+                <div class="volumeRow">
+                    <input type="range" id="volumeSlider" min="0" max="100" step="1" value="50" />
+                    <span id="volumeValue">50%</span>
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Danger zone</div>
+                <div class="settingsValue" style="display:flex; flex-direction: column; gap: 10px;">
+                    <button id="restartGameBtn" title="This will erase your progress and restart the game from the beginning">Re-start game</button>
+                    <small>Warning: This permanently clears your saved progress (characters, positions, and conversations) and restarts the game.</small>
+                </div>
+            </div>
+        </div>
+
+        <div id="dialogueBox">
+            <div id="dialogueText"></div>
+            <div id="dialoguePrompt">Press SPACE to continue...</div>
+        </div>
+
+        <div id="switchPrompt">
+            <h3>Switch Character?</h3>
+            <p>You've talked to everyone as <span id="switchFromCharacter"></span>.</p>
+            <p>Would you like to switch to <span id="switchToCharacter"></span>?</p>
+            <button id="switchYes">Yes, Switch!</button>
+            <button id="switchNo">Not Yet</button>
+        </div>
+
+        <div id="glitchOverlay"></div>
+        <div id="errorMessage">
+            ERROR: REALITY.EXE HAS STOPPED WORKING<br>
+            ATTEMPTING TO RECOVER...<br>
+            SWITCHING TO BACKUP REALITY...
+        </div>
+    </div>
+
+    <audio id="backgroundMusic" loop preload="auto" crossorigin="anonymous"></audio>
+
+    <script>
+      // Minimal on-page error display to help diagnose black screens in production-like builds
+      window.addEventListener('error', function (e) {
+        const box = document.getElementById('errorMessage');
+        const details = [
+          'Runtime error:',
+          e && e.message ? e.message : 'Unknown error',
+          e && e.filename ? ('\nFile: ' + e.filename) : '',
+          (typeof e.lineno === 'number') ? ('\nLine: ' + e.lineno) : '',
+          (typeof e.colno === 'number') ? ('\nColumn: ' + e.colno) : '',
+          e && e.error && e.error.stack ? ('\n\nStack:\n' + e.error.stack) : ''
+        ].join('');
+        if (box) {
+          box.style.display = 'block';
+          box.style.whiteSpace = 'pre-wrap';
+          box.style.zIndex = '1000';
+          box.textContent = details;
+        } else {
+          alert(details);
+        }
+      });
+
+      // Surface unhandled promise rejections as well
+      window.addEventListener('unhandledrejection', function (e) {
+        const box = document.getElementById('errorMessage');
+        const reason = e && (e.reason && (e.reason.stack || e.reason.message)) ? (e.reason.stack || e.reason.message) : String(e.reason || 'Unknown reason');
+        const details = 'Unhandled promise rejection:\n' + reason;
+        if (box) {
+          box.style.display = 'block';
+          box.style.whiteSpace = 'pre-wrap';
+          box.style.zIndex = '1000';
+          box.textContent = details;
+        } else {
+          alert(details);
+        }
+      });
+    </script>
+    <script src="characters.js"></script>
+    <script src="dialogue.js"></script>
+    <script src="audio.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>

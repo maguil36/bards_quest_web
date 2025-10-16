@@ -9,6 +9,7 @@ import DialogueBox from '../../../components/DialogueBox.astro';
 import NavigationCommand from '../../../components/NavigationCommand.astro';
 import UtilityLinks from '../../../components/UtilityLinks.astro';
 import GameEmbed from '../../../components/GameEmbed.astro';
+import { getDefaultTheme } from '../../../components/ThemeConfig.astro';
 
 export function getStaticPaths() {
   const paths = [];
@@ -41,11 +42,16 @@ const nextImgSrc = !showGame && nextPage ? getImageSrc(nextPage) : null;
 
 // Get page title for the layout using centralized utility
 const pageTitle = getPageTitle(chapter, currentPage);
+
+// Get default theme configuration for this page (if any)
+const themeConfig = getDefaultTheme(chapter.id, currentPage);
+const defaultTheme = themeConfig?.theme || '';
+const overruleTheme = themeConfig?.overrule ? '1' : '0';
 ---
 <MSPALayout title={pageTitle}>
   {nextImgSrc && <link slot="head" rel="preload" as="image" href={nextImgSrc} />}
 
-  <article id="reader-root" class="reader" data-chapter={chapter.id} data-total={chapter.totalPages} data-page={currentPage}>
+  <article id="reader-root" class="reader" data-chapter={chapter.id} data-total={chapter.totalPages} data-page={currentPage} data-default-theme={defaultTheme} data-overrule-theme={overruleTheme}>
     <PageTitle chapter={chapter} page={currentPage} />
 
     {showGame && gameConfig ? (
