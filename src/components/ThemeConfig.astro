@@ -11,6 +11,7 @@
  * - If user selects "Default" in options: page-specific themes are used
  * - If user selects "Space" in options: space theme is always used (no colors)
  * - If user selects any other theme: that theme overrides defaults (unless overrule is true)
+ * - originalTheme: Specify what theme to transition FROM (optional, for theme-to-theme transitions)
  *
  * AVAILABLE THEMES:
  * space, breath, light, time, heart, mind, hope, rage, life, doom, blood, void
@@ -36,22 +37,33 @@
  * 4. Set a theme with slow transition for dramatic effect:
  *    if (chapterId === 3 && pageNumber === 1) return { theme: 'void', transition: 'slow', overrule: true };
  *
- * 5. Set a theme for a range of pages:
+ * 5. Transition from one specific theme to another (theme-to-theme transition):
+ *    if (chapterId === 1 && pageNumber === 7) return { originalTheme: 'time', theme: 'space', transition: 'slow', overrule: false };
+ *
+ * 6. Set a theme for a range of pages:
  *    if (chapterId === 2 && pageNumber >= 10 && pageNumber <= 20) {
  *      return { theme: 'mind', overrule: false };
  *    }
  *
- * 6. Force a theme for story-critical moments:
+ * 7. Force a theme for story-critical moments:
  *    if (chapterId === 3 && pageNumber === 1) {
  *      return { theme: 'rage', overrule: true };  // Always rage, no matter what
  *    }
  *
- * 7. Use shorthand (defaults to overrule: false, transition: 'smooth'):
+ * 8. Use shorthand (defaults to overrule: false, transition: 'smooth'):
  *    if (chapterId === 4 && pageNumber === 5) return { theme: 'hope' };
+ *
+ * ADDITIONAL EXAMPLES (showing originalTheme usage):
+ *  - Theme-to-theme transition on a page (transition from one named theme to another):
+ *    if (chapterId === 1 && pageNumber === 7) return { originalTheme: 'time', theme: 'space', transition: 'slow', overrule: false };
+ *
+ *  - Use originalTheme when you want a very specific visual transition:
+ *    if (chapterId === 2 && pageNumber === 25) return { originalTheme: 'hope', theme: 'rage', transition: 'fast' };
  */
 
 export interface ThemeConfig {
   theme: string;
+  originalTheme?: string;  // Optional: specify what theme to transition FROM
   overrule?: boolean;  // If true, ignores user preferences
   transition?: 'smooth' | 'instant' | 'fast' | 'slow' | 'fade';  // Transition animation type
 }
@@ -75,7 +87,8 @@ export function getDefaultTheme(chapterId: number, pageNumber: number): ThemeCon
     if (pageNumber === 4) return { theme: 'time', transition: 'instant', overrule: false };
     if (pageNumber === 5) return { theme: 'time', transition: 'instant', overrule: false };
     if (pageNumber === 6) return { theme: 'time', transition: 'instant', overrule: false };
-    if (pageNumber === 7) return { theme: 'space', transition: 'instant', overrule: false };
+    // Example of theme-to-theme transition: from 'time' to 'space' with slow transition
+    if (pageNumber === 7) return { originalTheme: 'time', theme: 'space', transition: 'fast', overrule: false };
     if (pageNumber === 8) return { theme: 'space', transition: 'instant', overrule: false };
     if (pageNumber === 9) return { theme: 'space', transition: 'instant', overrule: false };
     if (pageNumber === 10) return { theme: 'space', transition: 'instant', overrule: false };
@@ -102,6 +115,9 @@ export function getDefaultTheme(chapterId: number, pageNumber: number): ThemeCon
   //
   //   // Default smooth transition (2s) - most common
   //   if (pageNumber === 20) return { theme: 'time', transition: 'smooth' };
+  //
+  //   // Theme-to-theme transition: from 'hope' to 'rage' with fast transition
+  //   if (pageNumber === 25) return { originalTheme: 'hope', theme: 'rage', transition: 'fast' };
   // }
   //
   // if (chapterId === X) {

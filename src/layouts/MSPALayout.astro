@@ -63,14 +63,29 @@ const navItems = [
 
         // Only apply the game's theme if user has "default" or no preference
         if (!userTheme || userTheme === 'default') {
-          // Ensure transition attribute is set (default to 'smooth' if not present)
-          if (!document.documentElement.hasAttribute('data-transition')) {
+          // Get the current theme before changing
+          const currentTheme = document.documentElement.getAttribute('data-theme') || 'space';
+
+          // Only transition if the theme is actually changing
+          if (currentTheme !== newTheme) {
+            // Step 1: Set transition to instant temporarily
+            document.documentElement.setAttribute('data-transition', 'instant');
+
+            // Step 2: Ensure current theme is applied
+            document.documentElement.setAttribute('data-theme', currentTheme);
+
+            // Step 3: Force a reflow to ensure the browser renders the current state
+            void document.documentElement.offsetHeight;
+
+            // Step 4: Restore smooth transition
             document.documentElement.setAttribute('data-transition', 'smooth');
+
+            // Step 5: Use requestAnimationFrame to apply new theme on next frame
+            requestAnimationFrame(() => {
+              document.documentElement.setAttribute('data-theme', newTheme);
+              console.log('Parent page theme smoothly transitioned to:', newTheme);
+            });
           }
-          
-          // Apply the theme to the parent page
-          document.documentElement.setAttribute('data-theme', newTheme);
-          console.log('Parent page theme changed to:', newTheme);
         }
       }
     });

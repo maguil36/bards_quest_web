@@ -225,37 +225,9 @@ html[data-transition="fade"] * {
               color 2s ease-in-out,
               opacity 2s ease-in-out;
 }
-
-/* Default: smooth transitions for all theme changes */
-html,
-html body,
-html * {
-  transition: background 2s ease-in-out,
-              background-color 2s ease-in-out,
-              border-color 2s ease-in-out,
-              color 2s ease-in-out;
-}
 /* =============================
    Theme Transition Animations
    ============================= */
-
-/* Default: smooth transitions for all theme changes (applies even without data-transition attribute) */
-html {
-  transition: background-color 2s ease-in-out;
-}
-
-html body {
-  transition: background 2s ease-in-out,
-              background-color 2s ease-in-out,
-              color 2s ease-in-out;
-}
-
-html * {
-  transition: background 2s ease-in-out,
-              background-color 2s ease-in-out,
-              border-color 2s ease-in-out,
-              color 2s ease-in-out;
-}
 
 /* Default: smooth transitions for all theme changes */
 html,

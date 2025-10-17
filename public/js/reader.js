@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const total = Number(root.getAttribute('data-total') || '0');
   const cur = Number(root.getAttribute('data-page') || '1');
   const defaultTheme = root.getAttribute('data-default-theme') || '';
+  const originalTheme = root.getAttribute('data-original-theme') || '';
   const overruleTheme = root.getAttribute('data-overrule-theme') === '1';
   const transitionType = root.getAttribute('data-transition') || 'smooth';
 
@@ -40,11 +41,40 @@ document.addEventListener('DOMContentLoaded', () => {
     effectiveTheme = userTheme;
   }
 
-  // Apply the theme
-  if (effectiveTheme === 'space') {
-    document.documentElement.removeAttribute('data-theme');
+  // Handle theme-to-theme transitions
+  // If originalTheme is specified, temporarily set it before transitioning to the new theme
+  if (originalTheme && originalTheme !== effectiveTheme) {
+    // First, set the original theme without transition
+    const currentTransition = document.documentElement.getAttribute('data-transition');
+    document.documentElement.setAttribute('data-transition', 'instant');
+
+    if (originalTheme === 'space') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', originalTheme);
+    }
+
+    // Force a reflow to ensure the original theme is applied
+    void document.documentElement.offsetHeight;
+
+    // Restore the transition type and apply the new theme
+    document.documentElement.setAttribute('data-transition', currentTransition);
+
+    // Use requestAnimationFrame to ensure the transition happens
+    requestAnimationFrame(() => {
+      if (effectiveTheme === 'space') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', effectiveTheme);
+      }
+    });
   } else {
-    document.documentElement.setAttribute('data-theme', effectiveTheme);
+    // Apply the theme normally (no specific original theme)
+    if (effectiveTheme === 'space') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', effectiveTheme);
+    }
   }
 
   const saveData = (c, p) => {
