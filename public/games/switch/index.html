@@ -32,42 +32,43 @@
             image-rendering: crisp-edges;
         }
 
-         #dialogueBox {
-             position: absolute;
-             bottom: 20px;
-             left: 50%;
-             transform: translateX(-50%);
-             width: 80%;
-             max-width: 700px;
-             background: var(--card);
-             border: 2px solid var(--border);
-             border-radius: 8px;
-             padding: 16px 16px 8px 16px;
-             display: none;
-             z-index: 100;
-         }
+        #dialogueBox {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 700px;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 16px 8px 16px;
+            display: none;
+            z-index: 100;
+        }
 
-         #dialogueText {
-             font-size: 18px;
-             line-height: 1.6;
-             margin-bottom: 8px;
-             padding: 8px 10px;
-             border-radius: 6px;
-             background: var(--surface);
-         }
+        #dialogueText {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: var(--surface);
+            transition: background 2s ease-in-out, background-color 2s ease-in-out, boarder-color 2s ease-in-out !important;
+        }
 
-         .speaker-player #dialogueText {
-             box-shadow: 0 0 0 2px var(--accent);
-         }
-         .speaker-npc #dialogueText {
-             box-shadow: 0 0 0 2px var(--border);
-         }
+        .speaker-player #dialogueText {
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+        .speaker-npc #dialogueText {
+            box-shadow: 0 0 0 2px var(--border);
+        }
 
-         #dialoguePrompt {
-             font-size: 14px;
-             color: var(--muted);
-             text-align: right;
-         }
+        #dialoguePrompt {
+            font-size: 14px;
+            color: var(--muted);
+            text-align: right;
+        }
 
         #switchPrompt {
             position: absolute;
