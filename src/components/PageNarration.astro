@@ -15,47 +15,77 @@ function getNarrationContent(ch: any, p: number): { hasNarration: boolean; narra
     };
     if (p === 2) return {
       hasNarration: true,
-      narration: `Well that was strange, looks like for some reason you can't enter a name. In fact, where did he go in general?`
+      narration: `Huh, well that was strange, looks like for some reason you can't enter a name. In fact, where did he go in general?`
     };
     if (p === 3) return {
-      hasNarration: true,
-      narration: `There he is, hey wait a minute, something isn't right...`
+      hasNarration: false,
+      narration: ''
     };
     if (p === 4) return {
       hasNarration: true,
-      narration: 'And there is goes again, man the story just started and its already broken? What an awaful story. You should demand a refund!'
+      narration: `Hey there he is, wait a minute, something isn't right...`
     };
     if (p === 5) return {
       hasNarration: true,
-      narration: 'Well its back again, but again at what point are you at is anyones guess.'
+      narration: 'Except there it goes again, man the story just started and its already broken? What an awaful story. You should demand a refund!'
     };
     if (p === 6) return {
       hasNarration: true,
-      narration: 'And there it goes again. Lets just try again with someone else, as it seems focusing on that guy just keeps breaking the story.'
+      narration: 'Look its back again, but at what point are you at is anyones guess.'
     };
     if (p === 7) return {
       hasNarration: true,
-      narration: "Well looks like we're back! And whoever this is looks way better then that last guy!\n\n But wait, this isn't right, did we miss something?\n\nIt looks like we've moved very far foward in the story now. Oh well, not like anyone likes the start of these advetures anyways, I hear they tend to be real boring."
+      narration: 'Lame, its gone again. Lets just try again with someone else, as it seems focusing on that guy just keeps breaking the story.'
     };
-
     if (p === 8) return {
       hasNarration: true,
-      narration: "This is Opal. Hopefully she doesn't break the game like the other guy did. Would you like to play as her? Thats a joke, you are getting a choice, not yet anyhow."
+      narration: "Oh, looks like we're back! And whoever this is looks way better then that last guy!\n\n But wait, this isn't right, did we miss something?\n\nIt looks like we've moved very far foward in the story now. Oh well, not like anyone likes the start of these advetures anyways, I hear they tend to be real boring."
     };
 
     if (p === 9) return {
       hasNarration: true,
-      narration: "Your name is Opal, you are the Hero of Space, a lot has happened and your journey is nearly over. Your team of 4 who all found themselves awakened on the moon of prospit, are almost ready to face the final boss of your game session, the black king. \n You have just finished discussing the caviots to facing this final boss with the other team who all awoke on the moon of derse where you currently are."
+      narration: "This is Opal. Hopefully she doesn't break the game like the other guy did. Would you like to play as her? Thats a joke, you are not getting a choice, not yet anyhow."
     };
+
     if (p === 10) return {
       hasNarration: true,
-      narration: "You are likely now the most important player in your group. Alexis might be the strongest but your role will decide whether or not the goal of your group is successful in the creation of a new universe to replace the one that was destroyed through starting the game. \nThe other team's job will be to fight the black queen who is here right now on derse, but not for long. Once both enemies are defeated your role will be to finish the creation of the new universe."
+      narration: "Your name is Opal, you are the Hero of Space, a lot has happened and your journey is nearly over. Your team of 4 who all found themselves awakened on the Moon of Prospit, are almost ready to face the final boss of your game session, the Black King. \n You are near the end of listening to the caviots of how to defeat him and listening in on how the other team from the Moon of Derse must defeat the Black Queen."
     };
     if (p === 11) return {
+      hasNarration: false, narration: ""
+    };
+    if (p === 12) return {
       hasNarration: true,
-      narration: "Your team used to be covered in golden pijamas just like how they are all wearing purple like the walls of derse, but now your team all wears their own special costums to represent the heros you all are respectively. \nNow you need to just rap up talking to everyone and then you can leave to be on your way."
+      narration: "Your team used to be covered in golden pijamas just like how the derse team are all wearing purple pijamas, but now your team all wears their own special costums to represent the heros you all are respectively. \n Your probably wondering who all of these characters are lets go figure out."
+    };
+    if (p === 13) return {
+      hasNarration: false, narration: ""
+    };
+    if (p === 14) return {
+      hasNarration: true,
+      narration: "Why? Why would you swap to him again? He keeps breaking the story. Please stop, get some help. Fine I guess we should move onto someone else again and hope you didn't miss all of the action."
+    };
+    if (p === 15) return {
+      hasNarration: true,
+      narration: "Good you didn't miss this part, its one of my favorites of this story."
+    };
+    if (p === 16) return {
+      hasNarration: false,
+      narration: ""
+    };
+    if (p === 17) return {
+      hasNarration: false,
+      narration: ""
     };
     
+    if (p === 18) return {
+      hasNarration: false,
+      narration: ""
+    };
+    if (p === 19) return {
+      hasNarration: false,
+      narration: ""
+    };
   }
   
   // Add more special narration cases here as needed

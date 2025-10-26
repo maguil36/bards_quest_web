@@ -4,21 +4,29 @@
  */
 
 export function getPageTitle(chapter: any, page: number): string {
-  // Special titles for Bard's Quest first chapter
+  // Special titles for Bard's Quest first 
+
   if (chapter?.id === 1) {
     if (page === 1) return "Bard's Quest";
-    if (page === 2) return "Enter Name";
-    if (page === 3) return "Find the Boy";
+    if (page === 2) return "Attach a Name";
+    if (page === 3) return "R Find the Boy";
+    if (page === 3) return "Device whats Going On";
     if (page === 4) return "Inspect Further";
     if (page === 5) return "Try to Get It to Work Again";
     if (page === 6) return "It's Going to Crash Again, Isn't It...";
     if (page === 7) return "Be Anyone Else";
     if (page === 8) return "Inspect New Character";
     if (page === 9) return "Be Opal";
-    if (page === 10) return "Recall your Critical Role";
-    if (page === 11) return "Look at the Other Team Again";
+    if (page === 10) return "Listen to the End of the Speech";
+    if (page === 11) return "Observe All other Characters";
     if (page === 12) return "Switch Characters";
-
+    if (page === 13) return "Make it Stop Switch back";
+    if (page === 14) return "Be Alexis";
+    if (page === 15) return "Fight the Black King";
+    if (page === 16) return "Be Austine";
+    if (page === 17) return "Fight the Black Queen";
+    if (page === 18) return "End of Chapter 1";
+    
     // Add more special titles as needed
   }
 

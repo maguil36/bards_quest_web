@@ -12,29 +12,39 @@ function getDialogueContent(ch: any, p: number): {
 } {
   // Special cases where dialogue should be hidden
    if (ch.id === 1) {
-    if (p === 1) return {showDialog: false, dialogueLines: []};
-    if (p === 2) return {showDialog: false, dialogueLines: []};
-    if (p === 3) return {showDialog: false, dialogueLines: []};
-    if (p === 4) return {showDialog: false, dialogueLines: []};
-    if (p === 5) return {showDialog: false, dialogueLines: []};
-    if (p === 6) return {showDialog: false, dialogueLines: []};
-    if (p === 7) return {showDialog: false, dialogueLines: []};
-    if (p === 8) return {showDialog: false, dialogueLines: []};
-    if (p === 9) return {showDialog: false, dialogueLines: []};
-    if (p === 10) return {showDialog: false, dialogueLines: []};
-    if (p === 11) return {showDialog: false, dialogueLines: []};
-    if (p === 12) return {showDialog: false, dialogueLines: []};
+    if (p === 10) return {showDialog: true,
+      dialogueLines: [
+      { person: 'austine', handle: 'Austine', message: 'text' },
+      { person: 'austine', handle: 'Austine', message: 'text2' }
+    ]};
+    if (p === 14) return {showDialog: true,
+      dialogueLines: [
+      { person: 'alexis', handle: 'Alexis', message: 'text' },
+      { person: 'alexis', handle: 'Alexis', message: 'text2' }
+    ]};
+    if (p === 15) return {showDialog: true,
+      dialogueLines: [
+      { person: 'alexis', handle: 'Alexis', message: 'text' },
+      { person: 'alexis', handle: 'Alexis', message: 'text2' }
+    ]};
+    if (p === 16) return {showDialog: true,
+      dialogueLines: [
+      { person: 'austine', handle: 'Austine', message: 'text' },
+      { person: 'austine', handle: 'Austine', message: 'text2' }
+    ]};
+    if (p === 17) return {showDialog: true,
+      dialogueLines: [
+      { person: 'austine', handle: 'Austine', message: 'text' },
+      { person: 'austine', handle: 'Austine', message: 'text2' }
+    ]};
 
   }
   
   // Add specific dialogue content for different pages here
   // For now, using placeholder content
   return {
-    showDialog: true,
-    dialogueLines: [
-      { person: 'person1', handle: 'person1', message: 'text' },
-      { person: 'person2', handle: 'person2', message: 'text2' }
-    ]
+    showDialog: false,
+    dialogueLines: []
   };
 }
 

@@ -79,7 +79,6 @@ export function getDefaultTheme(chapterId: number, pageNumber: number): ThemeCon
   // DEFINE YOUR THEMES BELOW THIS LINE
   // ========================================
 
-  // Example: Chapter 1 themes (can be overridden by user)
   if (chapterId === 1) {
     if (pageNumber === 1) return { theme: 'time', transition: 'fast', overrule: false };
     if (pageNumber === 2) return { theme: 'time', transition: 'instant', overrule: false };
@@ -87,43 +86,20 @@ export function getDefaultTheme(chapterId: number, pageNumber: number): ThemeCon
     if (pageNumber === 4) return { theme: 'time', transition: 'instant', overrule: false };
     if (pageNumber === 5) return { theme: 'time', transition: 'instant', overrule: false };
     if (pageNumber === 6) return { theme: 'time', transition: 'instant', overrule: false };
-    // Example of theme-to-theme transition: from 'time' to 'space' with slow transition
-    if (pageNumber === 7) return { originalTheme: 'time', theme: 'space', transition: 'fast', overrule: false };
-    if (pageNumber === 8) return { theme: 'space', transition: 'instant', overrule: false };
+    if (pageNumber === 7) return { theme: 'time', transition: 'instant', overrule: false };
+    if (pageNumber === 8) return { originalTheme: 'time', theme: 'space', transition: 'fast', overrule: false };
     if (pageNumber === 9) return { theme: 'space', transition: 'instant', overrule: false };
     if (pageNumber === 10) return { theme: 'space', transition: 'instant', overrule: false };
     if (pageNumber === 11) return { theme: 'space', transition: 'instant', overrule: false };
     if (pageNumber === 12) return { theme: 'space', transition: 'instant', overrule: false };
-    if (pageNumber === 13) return { theme: 'space', transition: 'slow', overrule: false };
-  }
-
-  // Add your own chapter/page combinations below:
-  //
-  // Examples with transitions:
-  // if (chapterId === 2) {
-  //   // Instant transition (no animation) - good for sudden reveals
-  //   if (pageNumber === 1) return { theme: 'rage', transition: 'instant' };
-  //
-  //   // Fast transition (0.5s) - good for quick mood changes
-  //   if (pageNumber === 5) return { theme: 'heart', transition: 'fast' };
-  //
-  //   // Slow transition (4s) - good for dramatic moments
-  //   if (pageNumber === 10) return { theme: 'void', transition: 'slow', overrule: true };
-  //
-  //   // Fade transition (2s with opacity) - good for dream sequences
-  //   if (pageNumber === 15) return { theme: 'hope', transition: 'fade' };
-  //
-  //   // Default smooth transition (2s) - most common
-  //   if (pageNumber === 20) return { theme: 'time', transition: 'smooth' };
-  //
-  //   // Theme-to-theme transition: from 'hope' to 'rage' with fast transition
-  //   if (pageNumber === 25) return { originalTheme: 'hope', theme: 'rage', transition: 'fast' };
-  // }
-  //
-  // if (chapterId === X) {
-  //   if (pageNumber === Y) return { theme: 'theme-name', overrule: false };
-  //   if (pageNumber === Z) return { theme: 'theme-name', overrule: true };
-  // }
+    if (pageNumber === 13) return { theme: 'space', transition: 'instant', overrule: false };
+    if (pageNumber === 14) return { theme: 'time', transition: 'instant', overrule: false };
+    if (pageNumber === 15) return { originalTheme: 'time', theme: 'rage', transition: 'fast', overrule: false }; 
+    if (pageNumber === 16) return { theme: 'rage', transition: 'instant', overrule: false };
+    if (pageNumber === 17) return { originalTheme: 'rage', theme: 'mind', transition: 'fast', overrule: false };
+    if (pageNumber === 18) return { theme: 'mind', transition: 'instant', overrule: false };
+    if (pageNumber === 19) return { theme: 'mind', transition: 'instant', overrule: false };
+  } 
 
   // ========================================
   // DEFINE YOUR THEMES ABOVE THIS LINE
