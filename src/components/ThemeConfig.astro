@@ -22,6 +22,7 @@
  * - 'fast': 0.5-second quick transition
  * - 'slow': 4-second slow transition
  * - 'fade': 2-second fade with slight opacity change
+ * - 'scroll': Theme changes based on scroll position (requires originalTheme)
  *
  * USAGE EXAMPLES:
  *
@@ -53,6 +54,11 @@
  * 8. Use shorthand (defaults to overrule: false, transition: 'smooth'):
  *    if (chapterId === 4 && pageNumber === 5) return { theme: 'hope' };
  *
+ * 9. Scroll-based transition (theme changes as you scroll down the page):
+ *    if (chapterId === 5 && pageNumber === 1) return { originalTheme: 'breath', theme: 'time', transition: 'scroll' };
+ *    // Scrolling down: breath → time (at 50% scroll)
+ *    // Scrolling up: time → breath (at 50% scroll)
+ *
  * ADDITIONAL EXAMPLES (showing originalTheme usage):
  *  - Theme-to-theme transition on a page (transition from one named theme to another):
  *    if (chapterId === 1 && pageNumber === 7) return { originalTheme: 'time', theme: 'space', transition: 'slow', overrule: false };
@@ -65,7 +71,7 @@ export interface ThemeConfig {
   theme: string;
   originalTheme?: string;  // Optional: specify what theme to transition FROM
   overrule?: boolean;  // If true, ignores user preferences
-  transition?: 'smooth' | 'instant' | 'fast' | 'slow' | 'fade';  // Transition animation type
+  transition?: 'smooth' | 'instant' | 'fast' | 'slow' | 'fade' | 'scroll';  // Transition animation type
 }
 
 /**
@@ -98,7 +104,8 @@ export function getDefaultTheme(chapterId: number, pageNumber: number): ThemeCon
     if (pageNumber === 16) return { theme: 'rage', transition: 'instant', overrule: false };
     if (pageNumber === 17) return { originalTheme: 'rage', theme: 'mind', transition: 'fast', overrule: false };
     if (pageNumber === 18) return { theme: 'mind', transition: 'instant', overrule: false };
-    if (pageNumber === 19) return { theme: 'mind', transition: 'instant', overrule: false };
+    if (pageNumber === 19) return { theme: 'space', transition: 'instant', overrule: false };
+    if (pageNumber === 20) return { originalTheme: 'space', theme: 'void', transition: 'scroll', overrule: false };
   } 
 
   // ========================================

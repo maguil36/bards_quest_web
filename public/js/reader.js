@@ -44,30 +44,36 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle theme-to-theme transitions
   // If originalTheme is specified, temporarily set it before transitioning to the new theme
   if (originalTheme && originalTheme !== effectiveTheme) {
-    // First, set the original theme without transition
-    const currentTransition = document.documentElement.getAttribute('data-transition');
-    document.documentElement.setAttribute('data-transition', 'instant');
-
-    if (originalTheme === 'space') {
-      document.documentElement.removeAttribute('data-theme');
+    // Special handling for scroll transition
+    if (transitionType === 'scroll') {
+      // Set up scroll-based theme transition
+      setupScrollTransition(originalTheme, effectiveTheme);
     } else {
-      document.documentElement.setAttribute('data-theme', originalTheme);
-    }
+      // First, set the original theme without transition
+      const currentTransition = document.documentElement.getAttribute('data-transition');
+      document.documentElement.setAttribute('data-transition', 'instant');
 
-    // Force a reflow to ensure the original theme is applied
-    void document.documentElement.offsetHeight;
-
-    // Restore the transition type and apply the new theme
-    document.documentElement.setAttribute('data-transition', currentTransition);
-
-    // Use requestAnimationFrame to ensure the transition happens
-    requestAnimationFrame(() => {
-      if (effectiveTheme === 'space') {
+      if (originalTheme === 'space') {
         document.documentElement.removeAttribute('data-theme');
       } else {
-        document.documentElement.setAttribute('data-theme', effectiveTheme);
+        document.documentElement.setAttribute('data-theme', originalTheme);
       }
-    });
+
+      // Force a reflow to ensure the original theme is applied
+      void document.documentElement.offsetHeight;
+
+      // Restore the transition type and apply the new theme
+      document.documentElement.setAttribute('data-transition', currentTransition);
+
+      // Use requestAnimationFrame to ensure the transition happens
+      requestAnimationFrame(() => {
+        if (effectiveTheme === 'space') {
+          document.documentElement.removeAttribute('data-theme');
+        } else {
+          document.documentElement.setAttribute('data-theme', effectiveTheme);
+        }
+      });
+    }
   } else {
     // Apply the theme normally (no specific original theme)
     if (effectiveTheme === 'space') {
@@ -75,6 +81,170 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       document.documentElement.setAttribute('data-theme', effectiveTheme);
     }
+  }
+
+  // Scroll-based transition handler
+  function setupScrollTransition(fromTheme, toTheme) {
+    // Get theme colors (must match CSS exactly!)
+    const getThemeColors = (themeName) => {
+      const themeColors = {
+        'space': { bg: '#0f1014', text: '#e8e9ec', accent: '#4da3ff', card: '#13141a', surface: '#111217' },
+        'breath': { bg: '#F3F4F9', text: '#000000', accent: '#007eb4', card: '#D6DAF0', surface: '#D6DAF0' },
+        'light': { bg: '#ffffff', text: '#000000', accent: '#ff8000', card: '#dddddd', surface: '#dddddd' },
+        'time': { bg: 'color-mix(in srgb, #0f1014 70%, #ff4d4d 30%)', text: '#e8e9ec', accent: '#ff4d4d', card: 'color-mix(in srgb, #13141a 80%, #ff4d4d 20%)', surface: 'color-mix(in srgb, #111217 85%, #ff4d4d 15%)' },
+        'heart': { bg: 'color-mix(in srgb, #0f1014 70%, #ff4da6 30%)', text: '#e8e9ec', accent: '#ff4da6', card: 'color-mix(in srgb, #13141a 80%, #ff4da6 20%)', surface: 'color-mix(in srgb, #111217 85%, #ff4da6 15%)' },
+        'mind': { bg: 'color-mix(in srgb, #0f1014 70%, #00c2a0 30%)', text: '#e8e9ec', accent: '#00c2a0', card: 'color-mix(in srgb, #13141a 80%, #00c2a0 20%)', surface: 'color-mix(in srgb, #111217 85%, #00c2a0 15%)' },
+        'hope': { bg: 'color-mix(in srgb, #dddddd 95%, #ffd700 5%)', text: '#000000', accent: '#df9f03', card: '#eeeeee', surface: '#ffffff' },
+        'rage': { bg: 'color-mix(in srgb, #0f1014 70%, #a855f7 30%)', text: '#ff00ff', accent: '#00ffff', card: 'color-mix(in srgb, #13141a 85%, #a855f7 15%)', surface: 'color-mix(in srgb, #111217 85%, #a855f7 15%)' },
+        'life': { bg: '#535353', text: '#ffffff', accent: '#043400', card: '#c6c6c6', surface: '#efefef' },
+        'doom': { bg: '#000000', text: '#888888', accent: '#204020', card: '#555555', surface: '#888888' },
+        'blood': { bg: '#ffffee', text: '#800000', accent: '#100068', card: '#f0dfd6', surface: '#f0dfd6' },
+        'void': { bg: 'color-mix(in srgb, #0f1014 70%, #4f46e5 30%)', text: '#ffffff', accent: '#4f46e5', card: 'color-mix(in srgb, #0f1014 70%, #4f46e5 30%)', surface: 'color-mix(in srgb, #0f1014 70%, #4f46e5 30%)' }
+      };
+      return themeColors[themeName] || themeColors['space'];
+    };
+
+    // Color interpolation helper
+    function interpolateColor(color1, color2, factor) {
+      // Parse hex colors and color-mix
+      const parseColor = (color) => {
+        if (color.startsWith('color-mix')) {
+          // Parse color-mix(in srgb, #color1 X%, #color2 Y%)
+          const match = color.match(/color-mix\(in srgb,\s*([#0-9a-fA-F]{6,7})\s+(\d+)%,\s*([#0-9a-fA-F]{6,7})\s+(\d+)%\)/);
+          if (match) {
+            const color1 = match[1];
+            const percent1 = parseInt(match[2]) / 100;
+            const color2 = match[3];
+            const percent2 = parseInt(match[4]) / 100;
+
+            // Parse both colors
+            const c1 = {
+              r: parseInt(color1.slice(1, 3), 16),
+              g: parseInt(color1.slice(3, 5), 16),
+              b: parseInt(color1.slice(5, 7), 16)
+            };
+            const c2 = {
+              r: parseInt(color2.slice(1, 3), 16),
+              g: parseInt(color2.slice(3, 5), 16),
+              b: parseInt(color2.slice(5, 7), 16)
+            };
+
+            // Mix the colors
+            return {
+              r: Math.round(c1.r * percent1 + c2.r * percent2),
+              g: Math.round(c1.g * percent1 + c2.g * percent2),
+              b: Math.round(c1.b * percent1 + c2.b * percent2)
+            };
+          }
+        }
+        if (color.startsWith('#')) {
+          const r = parseInt(color.slice(1, 3), 16);
+          const g = parseInt(color.slice(3, 5), 16);
+          const b = parseInt(color.slice(5, 7), 16);
+          return { r, g, b };
+        }
+        return { r: 0, g: 0, b: 0 };
+      };
+
+      const c1 = parseColor(color1);
+      const c2 = parseColor(color2);
+
+      const r = Math.round(c1.r + (c2.r - c1.r) * factor);
+      const g = Math.round(c1.g + (c2.g - c1.g) * factor);
+      const b = Math.round(c1.b + (c2.b - c1.b) * factor);
+
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Start with the original theme
+    if (fromTheme === 'space') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', fromTheme);
+    }
+
+    const fromColors = getThemeColors(fromTheme);
+    const toColors = getThemeColors(toTheme);
+
+    let ticking = false;
+
+    function updateThemeBasedOnScroll() {
+      const scrollY = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = docHeight > 0 ? Math.min(Math.max(scrollY / docHeight, 0), 1) : 0;
+
+      // Define gradient zone (80% of scroll range)
+      const gradientZoneSize = 0.8;
+      const gradientStart = 0.1; // Start gradient at 10% scroll
+      const gradientEnd = gradientStart + gradientZoneSize; // End at 90% scroll
+
+      let colorFactor = 0;
+
+      if (scrollPercent <= gradientStart) {
+        // Before gradient zone - use original theme
+        colorFactor = 0;
+      } else if (scrollPercent >= gradientEnd) {
+        // After gradient zone - use target theme
+        colorFactor = 1;
+      } else {
+        // Inside gradient zone - interpolate
+        colorFactor = (scrollPercent - gradientStart) / gradientZoneSize;
+      }
+
+      // Apply smooth easing to the color transition
+      const easedFactor = colorFactor < 0.5
+        ? 2 * colorFactor * colorFactor
+        : 1 - Math.pow(-2 * colorFactor + 2, 2) / 2;
+
+      // Interpolate colors
+      const currentBg = interpolateColor(fromColors.bg, toColors.bg, easedFactor);
+      const currentText = interpolateColor(fromColors.text, toColors.text, easedFactor);
+      const currentAccent = interpolateColor(fromColors.accent, toColors.accent, easedFactor);
+      const currentCard = interpolateColor(fromColors.card, toColors.card, easedFactor);
+      const currentSurface = interpolateColor(fromColors.surface, toColors.surface, easedFactor);
+
+      // Apply colors to CSS variables (both dynamic and base variables)
+      document.documentElement.style.setProperty('--bg-color', currentBg);
+      document.documentElement.style.setProperty('--text-color', currentText);
+      document.documentElement.style.setProperty('--accent-color', currentAccent);
+      document.documentElement.style.setProperty('--panel-bg', currentCard);
+
+      // Also update the base CSS variables for full element coverage
+      document.documentElement.style.setProperty('--bg', currentBg);
+      document.documentElement.style.setProperty('--text', currentText);
+      document.documentElement.style.setProperty('--accent', currentAccent);
+      document.documentElement.style.setProperty('--card', currentCard);
+      document.documentElement.style.setProperty('--surface', currentSurface);
+
+      // Update theme attribute for other styles
+      if (scrollPercent >= gradientEnd) {
+        if (toTheme === 'space') {
+          document.documentElement.removeAttribute('data-theme');
+        } else {
+          document.documentElement.setAttribute('data-theme', toTheme);
+        }
+      } else if (scrollPercent <= gradientStart) {
+        if (fromTheme === 'space') {
+          document.documentElement.removeAttribute('data-theme');
+        } else {
+          document.documentElement.setAttribute('data-theme', fromTheme);
+        }
+      }
+
+      ticking = false;
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateThemeBasedOnScroll);
+        ticking = true;
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Initial check
+    updateThemeBasedOnScroll();
   }
 
   const saveData = (c, p) => {
