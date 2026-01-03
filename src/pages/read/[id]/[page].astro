@@ -50,7 +50,7 @@ const originalTheme = themeConfig?.originalTheme || '';
 const overruleTheme = themeConfig?.overrule ? '1' : '0';
 const transitionType = themeConfig?.transition || 'smooth';
 ---
-<MSPALayout title={pageTitle}>
+<MSPALayout title={pageTitle} page={currentPage}>
   {nextImgSrc && <link slot="head" rel="preload" as="image" href={nextImgSrc} />}
 
   <article id="reader-root" class="reader" data-chapter={chapter.id} data-total={chapter.totalPages} data-page={currentPage} data-default-theme={defaultTheme} data-original-theme={originalTheme} data-overrule-theme={overruleTheme} data-transition={transitionType}>

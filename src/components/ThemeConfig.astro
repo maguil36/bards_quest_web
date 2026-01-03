@@ -23,6 +23,7 @@
  * - 'slow': 4-second slow transition
  * - 'fade': 2-second fade with slight opacity change
  * - 'scroll': Theme changes based on scroll position (requires originalTheme)
+ * - 'crawl': Gradient crawls up from bottom as you scroll (requires originalTheme)
  *
  * USAGE EXAMPLES:
  *
@@ -59,6 +60,10 @@
  *    // Scrolling down: breath → time (at 50% scroll)
  *    // Scrolling up: time → breath (at 50% scroll)
  *
+ * 10. Crawl transition (gradient crawls up from bottom as you scroll):
+ *    if (chapterId === 5 && pageNumber === 2) return { originalTheme: 'space', theme: 'time', transition: 'crawl' };
+ *    // A 20% gradient zone crawls up from the bottom, transitioning from space to time
+ *
  * ADDITIONAL EXAMPLES (showing originalTheme usage):
  *  - Theme-to-theme transition on a page (transition from one named theme to another):
  *    if (chapterId === 1 && pageNumber === 7) return { originalTheme: 'time', theme: 'space', transition: 'slow', overrule: false };
@@ -71,7 +76,7 @@ export interface ThemeConfig {
   theme: string;
   originalTheme?: string;  // Optional: specify what theme to transition FROM
   overrule?: boolean;  // If true, ignores user preferences
-  transition?: 'smooth' | 'instant' | 'fast' | 'slow' | 'fade' | 'scroll';  // Transition animation type
+  transition?: 'smooth' | 'instant' | 'fast' | 'slow' | 'fade' | 'scroll' | 'crawl';  // Transition animation type
 }
 
 /**
@@ -98,14 +103,14 @@ export function getDefaultTheme(chapterId: number, pageNumber: number): ThemeCon
     if (pageNumber === 10) return { theme: 'space', transition: 'instant', overrule: false };
     if (pageNumber === 11) return { theme: 'space', transition: 'instant', overrule: false };
     if (pageNumber === 12) return { theme: 'space', transition: 'instant', overrule: false };
-    if (pageNumber === 13) return { theme: 'space', transition: 'instant', overrule: false };
+    if (pageNumber === 13) return { originalTheme: 'time', theme: 'space', transition: 'fast', overrule: false };
     if (pageNumber === 14) return { theme: 'time', transition: 'instant', overrule: false };
     if (pageNumber === 15) return { originalTheme: 'time', theme: 'rage', transition: 'fast', overrule: false }; 
     if (pageNumber === 16) return { theme: 'rage', transition: 'instant', overrule: false };
     if (pageNumber === 17) return { originalTheme: 'rage', theme: 'mind', transition: 'fast', overrule: false };
     if (pageNumber === 18) return { theme: 'mind', transition: 'instant', overrule: false };
     if (pageNumber === 19) return { theme: 'space', transition: 'instant', overrule: false };
-    if (pageNumber === 20) return { originalTheme: 'space', theme: 'void', transition: 'scroll', overrule: false };
+    if (pageNumber === 20) return { originalTheme: 'space', theme: 'void', transition: 'crawl', overrule: false };
   } 
 
   // ========================================

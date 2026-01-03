@@ -1,8 +1,8 @@
 ---
 import MSPALayout from '../layouts/MSPALayout.astro';
-const canonical = Astro.site ? new URL('/404', Astro.site).toString() : Astro.url.toString();
+const canonical = Astro.site ? new URL('/legal', Astro.site).toString() : undefined;
 ---
-<MSPALayout title="404 – Not Found" description="The page you were looking for could not be found." canonical={canonical}>
+<MSPALayout title="Legal" description="Legal information and terms." canonical={canonical} page={0}>
   <h1>Legal</h1>
   <p>Bards quest doesn't own any of the IP from homestuck. Bards quest simply is taking concepts from the original web comic. Please read the original comic.</p>
   <div class="ctas">

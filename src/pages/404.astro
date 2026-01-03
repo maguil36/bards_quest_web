@@ -1,8 +1,8 @@
 ---
 import MSPALayout from '../layouts/MSPALayout.astro';
-const canonical = Astro.site ? new URL('/404', Astro.site).toString() : Astro.url.toString();
+const canonical = Astro.site ? new URL('/404', Astro.site).toString() : undefined;
 ---
-<MSPALayout title="404 – Not Found" description="The page you were looking for could not be found." canonical={canonical}>
+<MSPALayout title="404 – Not Found" description="The page you were looking for could not be found." canonical={canonical} page={0}>
   <h1>404</h1>
   <p>Page not found. It may have been moved or deleted.</p>
   <div class="ctas">

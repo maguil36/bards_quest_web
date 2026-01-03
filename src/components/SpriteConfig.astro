@@ -1,0 +1,482 @@
+---
+/**
+ * SpriteConfig.astro
+ *
+ * Define sprite configurations for each page and aspect theme.
+ * Each page can have different sprite configurations per aspect.
+ *
+ * AVAILABLE ASPECTS:
+ * space, breath, light, time, heart, mind, hope, rage, life, doom, blood, void
+ *
+ * SPRITE TYPES:
+ * - 'clock': Animated clock with configurable behavior (time aspect)
+ * - 'tooltip': Shows aspect icon with hover tooltip (mind, light aspects)
+ * - 'level': Character level/rank indicator (breath aspect)
+ * - 'quadrant': Relationship quadrant display (blood aspect)
+ * - 'specibus': Weapon type display (rage aspect)
+ * - 'inventory': Captchalogue system (doom aspect)
+ * - 'health': Health bar (life aspect)
+ * - 'emotion': Mood/emotion indicator (heart aspect)
+ * - 'godtier': God tier symbols (hope aspect)
+ * - 'hidden': Hidden metadata storage (void aspect)
+ * - 'static': Static SVG image (space and other aspects)
+ *
+ * ===== TIME ASPECT (Clock) =====
+ * See src/sprites/time.ts for detailed documentation on:
+ * - Modes: 'default' (UTC), 'loop', 'final'
+ * - Time values: 'HH:MM:SS', 'random', '= X' (pause), '+ X' (relative), '> X' (jump), 'NaN' (hide hands)
+ * - Date values: 'YYYY:MM:DD', 'random', '= X' (pause), '+ X' (relative), '> X' (jump), 'NaN' (hide date)
+ * - Speed multiplier
+ * - Triggers: 'automatic', 'click', 'game'
+ *
+ * Examples:
+ *   time: timeSprite  // Default UTC clock with current date
+ *   time: createTimeConfig('loop', '12:30:50', '12:30:59', { middleTimes: ['+ 5'], speed: 1 })
+ *   time: createTimeConfig('loop', '08:00:00', '17:00:00', { trigger: 'click' })
+ *   time: createTimeConfig('loop', '00:00:00', '23:59:59', {
+ *     startDate: '2009:04:13',
+ *     endDate: '+ 1',
+ *     middleTimes: ['+ 43200'],
+ *     middleDates: ['+ 0']
+ *   })
+ *
+ * ===== SPACE ASPECT (Static Images) =====
+ * See src/sprites/space.ts for available images:
+ * - 'Derse', 'Prospit', 'Skaia'
+ * - 'LOXAY1' through 'LOXAY9' (9 different lands)
+ * - 'NaN' (black circle, default)
+ *
+ * Examples:
+ *   space: createSpaceConfig('Derse')
+ *   space: createSpaceConfig('LOXAY3')
+ *
+ * ===== MIND ASPECT (Tooltip) =====
+ * Shows the mind aspect icon with mental state text on hover (1-3 words)
+ *
+ * Examples:
+ *   mind: createMindConfig('thinking...')
+ *   mind: createMindConfig('confused')
+ *   mind: createMindConfig('focused')
+ *
+ * ===== LIGHT ASPECT (Tooltip) =====
+ * Shows the light aspect icon with hidden fact/meta-state on hover
+ *
+ * Examples:
+ *   light: createLightConfig('This character knows the truth')
+ *   light: createLightConfig('Hidden knowledge revealed')
+ *
+ * ===== BREATH ASPECT (Level Indicator) =====
+ * Character level/rank progression display
+ *
+ * Examples:
+ *   breath: createBreathConfig(5, 10)  // Level 5 of 10
+ *   breath: createBreathConfig(3, 10, 'Novice')  // Level 3 with name
+ *
+ * ===== BLOOD ASPECT (Quadrant) =====
+ * Relationship quadrant indicator from external card suit icons
+ * Available quadrants: heart, diamond, spade, club, none
+ *
+ * Examples:
+ *   blood: await createBloodConfig('heart')
+ *   blood: await createBloodConfig('diamond', 'Rose')  // With target name
+ *
+ * ===== RAGE ASPECT (Specibus) =====
+ * Strife specibus (weapon type) display from external icons
+ * Available weapons: sword, hammer, spear, bow, axe, mace, staff, dagger
+ *
+ * Examples:
+ *   rage: await createRageConfig('sword')
+ *   rage: await createRageConfig('hammer', 'Zillyhoo')  // With weapon name
+ *
+ * ===== DOOM ASPECT (Inventory) =====
+ * Inventory/captchalogue system display
+ *
+ * Examples:
+ *   doom: createDoomConfig([{ name: 'Apple', code: 'APPLE' }], 8)
+ *   doom: createDoomConfig([{ name: 'Sword' }, { name: 'Shield' }])
+ *
+ * ===== LIFE ASPECT (Health Bar) =====
+ * Health bar display with optional numbers
+ *
+ * Examples:
+ *   life: createLifeConfig(75, 100)  // 75/100 HP
+ *   life: createLifeConfig(50, 100, false)  // No numbers shown
+ *
+ * ===== HEART ASPECT (Emotion) =====
+ * Mood/emotion indicator with intensity
+ *
+ * Examples:
+ *   heart: createHeartConfig('happy', 8)
+ *   heart: createHeartConfig('determined', 10)
+ *
+ * ===== HOPE ASPECT (God Tier) =====
+ * God tier symbols per character
+ *
+ * Examples:
+ *   hope: createHopeConfig('John', 'breath', 'heir')
+ *   hope: createHopeConfig('Rose', 'light', 'seer')
+ *
+ * ===== VOID ASPECT (Hidden) =====
+ * Hidden metadata storage (not displayed, for secrets)
+ *
+ * Examples:
+ *   void: createVoidConfig({ secret: 'hidden value', flag: true })
+ */
+
+import { defaultSprite } from '../sprites/default';
+import { spaceSprite, createSpaceConfig } from '../sprites/space';
+import { breathSprite, createBreathConfig } from '../sprites/breath';
+import { lightSprite, createLightConfig } from '../sprites/light';
+import { timeSprite, createTimeConfig } from '../sprites/time';
+import { heartSprite, createHeartConfig } from '../sprites/heart';
+import { mindSprite, createMindConfig } from '../sprites/mind';
+import { hopeSprite, createHopeConfig } from '../sprites/hope';
+import { rageSprite, createRageConfig } from '../sprites/rage';
+import { lifeSprite, createLifeConfig } from '../sprites/life';
+import { doomSprite, createDoomConfig } from '../sprites/doom';
+import { bloodSprite, createBloodConfig } from '../sprites/blood';
+import { voidSprite, createVoidConfig } from '../sprites/void';
+
+export interface ClockConfig {
+  type: 'clock';
+  mode: 'default' | 'loop' | 'final';
+  startTime?: string;
+  middleTimes?: string[];
+  endTime?: string;
+  speed?: number;
+  trigger?: 'automatic' | 'click' | 'game';
+}
+
+export interface StaticConfig {
+  type: 'static';
+  svg: string;
+}
+
+export type SpriteConfig = ClockConfig | StaticConfig | any;
+
+/**
+ * Page-specific sprite configurations.
+ * Structure: { pageNumber: { aspect: config } }
+ *
+ * If an aspect is not defined for a page, it will fall back to the default sprite.
+ * You can override specific aspects per page as needed.
+ */
+export const pageConfigs: Record<number, Record<string, any>> = await (async () => ({
+  1: {
+    time: createTimeConfig('loop', '12:30:50', '+ 0', {
+      startDate: '2026:01:01',
+      middleTimes: ['+ 5', '= 5', '+ 0', '+ 5']
+    }),
+    space: createSpaceConfig('Earth'),
+    breath: createBreathConfig(1, 10),
+    light: createLightConfig('Page 1 secret'),
+    heart: createHeartConfig('calm', 5),
+    mind: createMindConfig('observing'),
+    hope: createHopeConfig('Character 1', 'breath', 'heir'),
+    rage: await createRageConfig('sword'),
+    life: createLifeConfig(50, 100),
+    doom: createDoomConfig([]),
+    blood: await createBloodConfig('heart'),
+    void: createVoidConfig({ page: 1 })
+  },
+  2: {
+    time: createTimeConfig('loop', '08:00:00', '08:00:30', { speed: 2 }),
+    space: createSpaceConfig('Prospit'),
+    breath: createBreathConfig(1, 10),
+    light: createLightConfig('Page 2 secret'),
+    heart: createHeartConfig('excited', 7),
+    mind: createMindConfig('curious'),
+    hope: createHopeConfig('Character 2', 'light', 'seer'),
+    rage: await createRageConfig('hammer'),
+    life: createLifeConfig(95, 100),
+    doom: createDoomConfig([{ name: 'Apple' }]),
+    blood: await createBloodConfig('diamond'),
+    void: createVoidConfig({ page: 2 })
+  },
+  3: {
+    time: createTimeConfig('default'),
+    space: createSpaceConfig('Derse'),
+    breath: createBreathConfig(2, 10),
+    light: createLightConfig('Page 3 secret'),
+    heart: createHeartConfig('nervous', 6),
+    mind: createMindConfig('thinking...'),
+    hope: createHopeConfig('Character 3', 'time', 'knight'),
+    rage: await createRageConfig('spear'),
+    life: createLifeConfig(88, 100),
+    doom: createDoomConfig([{ name: 'Sword' }]),
+    blood: await createBloodConfig('spade'),
+    void: createVoidConfig({ page: 3 })
+  },
+  4: {
+    time: createTimeConfig('loop', '12:00:00', '12:05:00', { speed: 2 }),
+    space: createSpaceConfig('LOXAY1'),
+    breath: createBreathConfig(2, 10),
+    light: createLightConfig('Page 4 secret'),
+    heart: createHeartConfig('happy', 8),
+    mind: createMindConfig('focused'),
+    hope: createHopeConfig('Character 4', 'space', 'mage'),
+    rage: await createRageConfig('axe'),
+    life: createLifeConfig(92, 100),
+    doom: createDoomConfig([{ name: 'Shield' }]),
+    blood: await createBloodConfig('club'),
+    void: createVoidConfig({ page: 4 })
+  },
+  5: {
+    time: createTimeConfig('default'),
+    space: createSpaceConfig('LOXAY2'),
+    breath: createBreathConfig(3, 10),
+    light: createLightConfig('Page 5 secret'),
+    heart: createHeartConfig('determined', 9),
+    mind: createMindConfig('planning'),
+    hope: createHopeConfig('Character 5', 'heart', 'prince'),
+    rage: await createRageConfig('bow'),
+    life: createLifeConfig(85, 100),
+    doom: createDoomConfig([{ name: 'Potion' }]),
+    blood: await createBloodConfig('heart'),
+    void: createVoidConfig({ page: 5 })
+  },
+  6: {
+    time: createTimeConfig('loop', '06:00:00', '06:10:00', { speed: 1.5 }),
+    space: createSpaceConfig('LOXAY3'),
+    breath: createBreathConfig(3, 10),
+    light: createLightConfig('Page 6 secret'),
+    heart: createHeartConfig('confused', 4),
+    mind: createMindConfig('uncertain'),
+    hope: createHopeConfig('Character 6', 'mind', 'thief'),
+    rage: await createRageConfig('dagger'),
+    life: createLifeConfig(78, 100),
+    doom: createDoomConfig([{ name: 'Key' }]),
+    blood: await createBloodConfig('diamond'),
+    void: createVoidConfig({ page: 6 })
+  },
+  7: {
+    time: createTimeConfig('default'),
+    space: createSpaceConfig('LOXAY4'),
+    breath: createBreathConfig(4, 10),
+    light: createLightConfig('Page 7 secret'),
+    heart: createHeartConfig('angry', 7),
+    mind: createMindConfig('irritated'),
+    hope: createHopeConfig('Character 7', 'hope', 'page'),
+    rage: await createRageConfig('staff'),
+    life: createLifeConfig(70, 100),
+    doom: createDoomConfig([{ name: 'Book' }]),
+    blood: await createBloodConfig('spade'),
+    void: createVoidConfig({ page: 7 })
+  },
+  8: {
+    time: createTimeConfig('loop', '18:00:00', '18:15:00', { speed: 3 }),
+    space: createSpaceConfig('LOXAY5'),
+    breath: createBreathConfig(4, 10),
+    light: createLightConfig('Page 8 secret'),
+    heart: createHeartConfig('sad', 5),
+    mind: createMindConfig('melancholy'),
+    hope: createHopeConfig('Character 8', 'rage', 'bard'),
+    rage: await createRageConfig('mace'),
+    life: createLifeConfig(65, 100),
+    doom: createDoomConfig([{ name: 'Map' }]),
+    blood: await createBloodConfig('club'),
+    void: createVoidConfig({ page: 8 })
+  },
+  9: {
+    time: createTimeConfig('default'),
+    space: createSpaceConfig('LOXAY6'),
+    breath: createBreathConfig(5, 10),
+    light: createLightConfig('Page 9 secret'),
+    heart: createHeartConfig('excited', 8),
+    mind: createMindConfig('energized'),
+    hope: createHopeConfig('Character 9', 'life', 'sylph'),
+    rage: await createRageConfig('staff'),
+    life: createLifeConfig(100, 100),
+    doom: createDoomConfig([{ name: 'Compass' }]),
+    blood: await createBloodConfig('heart'),
+    void: createVoidConfig({ page: 9 })
+  },
+  10: {
+    time: createTimeConfig('loop', '00:00:00', '00:05:00', { speed: 1 }),
+    space: createSpaceConfig('LOXAY7'),
+    breath: createBreathConfig(5, 10),
+    light: createLightConfig('Page 10 secret'),
+    heart: createHeartConfig('calm', 6),
+    mind: createMindConfig('peaceful'),
+    hope: createHopeConfig('Character 10', 'doom', 'witch'),
+    rage: await createRageConfig('hammer'),
+    life: createLifeConfig(90, 100),
+    doom: createDoomConfig([{ name: 'Scroll' }]),
+    blood: await createBloodConfig('diamond'),
+    void: createVoidConfig({ page: 10 })
+  },
+  11: {
+    time: createTimeConfig('default'),
+    space: createSpaceConfig('LOXAY8'),
+    breath: createBreathConfig(6, 10),
+    light: createLightConfig('Page 11 secret'),
+    heart: createHeartConfig('nervous', 7),
+    mind: createMindConfig('anxious'),
+    hope: createHopeConfig('Character 11', 'blood', 'heir'),
+    rage: await createRageConfig('sword'),
+    life: createLifeConfig(82, 100),
+    doom: createDoomConfig([{ name: 'Gem' }]),
+    blood: await createBloodConfig('spade'),
+    void: createVoidConfig({ page: 11 })
+  },
+  12: {
+    time: createTimeConfig('loop', '15:30:00', '15:45:00', { speed: 2 }),
+    space: createSpaceConfig('LOXAY9'),
+    breath: createBreathConfig(6, 10),
+    light: createLightConfig('Page 12 secret'),
+    heart: createHeartConfig('determined', 10),
+    mind: createMindConfig('resolute'),
+    hope: createHopeConfig('Character 12', 'void', 'rogue'),
+    rage: await createRageConfig('dagger'),
+    life: createLifeConfig(75, 100),
+    doom: createDoomConfig([{ name: 'Orb' }]),
+    blood: await createBloodConfig('club'),
+    void: createVoidConfig({ page: 12 })
+  },
+  13: {
+    time: createTimeConfig('default'),
+    space: createSpaceConfig('Skaia'),
+    breath: createBreathConfig(7, 10),
+    light: createLightConfig('Page 13 secret'),
+    heart: createHeartConfig('happy', 9),
+    mind: createMindConfig('joyful'),
+    hope: createHopeConfig('Character 13', 'breath', 'maid'),
+    rage: await createRageConfig('bow'),
+    life: createLifeConfig(95, 100),
+    doom: createDoomConfig([{ name: 'Ring' }]),
+    blood: await createBloodConfig('heart'),
+    void: createVoidConfig({ page: 13 })
+  },
+  14: {
+    time: createTimeConfig('loop', '09:00:00', '09:20:00', { speed: 1.5 }),
+    space: createSpaceConfig('Prospit'),
+    breath: createBreathConfig(7, 10),
+    light: createLightConfig('Page 14 secret'),
+    heart: createHeartConfig('confused', 5),
+    mind: createMindConfig('puzzled'),
+    hope: createHopeConfig('Character 14', 'light', 'knight'),
+    rage: await createRageConfig('spear'),
+    life: createLifeConfig(68, 100),
+    doom: createDoomConfig([{ name: 'Amulet' }]),
+    blood: await createBloodConfig('diamond'),
+    void: createVoidConfig({ page: 14 })
+  },
+  15: {
+    time: createTimeConfig('default'),
+    space: createSpaceConfig('Derse'),
+    breath: createBreathConfig(8, 10),
+    light: createLightConfig('Page 15 secret'),
+    heart: createHeartConfig('angry', 8),
+    mind: createMindConfig('furious'),
+    hope: createHopeConfig('Character 15', 'time', 'prince'),
+    rage: await createRageConfig('axe'),
+    life: createLifeConfig(60, 100),
+    doom: createDoomConfig([{ name: 'Crown' }]),
+    blood: await createBloodConfig('spade'),
+    void: createVoidConfig({ page: 15 })
+  },
+  16: {
+    time: createTimeConfig('loop', '21:00:00', '21:10:00', { speed: 2.5 }),
+    space: createSpaceConfig('LOXAY1'),
+    breath: createBreathConfig(8, 10),
+    light: createLightConfig('Page 16 secret'),
+    heart: createHeartConfig('sad', 6),
+    mind: createMindConfig('sorrowful'),
+    hope: createHopeConfig('Character 16', 'space', 'thief'),
+    rage: await createRageConfig('sword'),
+    life: createLifeConfig(55, 100),
+    doom: createDoomConfig([{ name: 'Scepter' }]),
+    blood: await createBloodConfig('club'),
+    void: createVoidConfig({ page: 16 })
+  },
+  17: {
+    time: createTimeConfig('default'),
+    space: createSpaceConfig('LOXAY2'),
+    breath: createBreathConfig(9, 10),
+    light: createLightConfig('Page 17 secret'),
+    heart: createHeartConfig('excited', 10),
+    mind: createMindConfig('thrilled'),
+    hope: createHopeConfig('Character 17', 'heart', 'page'),
+    rage: await createRageConfig('dagger'),
+    life: createLifeConfig(88, 100),
+    doom: createDoomConfig([{ name: 'Tablet' }]),
+    blood: await createBloodConfig('heart'),
+    void: createVoidConfig({ page: 17 })
+  },
+  18: {
+    time: createTimeConfig('loop', '03:00:00', '03:30:00', { speed: 1 }),
+    space: createSpaceConfig('LOXAY3'),
+    breath: createBreathConfig(9, 10),
+    light: createLightConfig('Page 18 secret'),
+    heart: createHeartConfig('calm', 7),
+    mind: createMindConfig('serene'),
+    hope: createHopeConfig('Character 18', 'mind', 'bard'),
+    rage: await createRageConfig('bow'),
+    life: createLifeConfig(72, 100),
+    doom: createDoomConfig([{ name: 'Chalice' }]),
+    blood: await createBloodConfig('diamond'),
+    void: createVoidConfig({ page: 18 })
+  },
+  19: {
+    time: createTimeConfig('default'),
+    space: createSpaceConfig('LOXAY4'),
+    breath: createBreathConfig(10, 10),
+    light: createLightConfig('Page 19 secret'),
+    heart: createHeartConfig('determined', 9),
+    mind: createMindConfig('focused'),
+    hope: createHopeConfig('Character 19', 'hope', 'sylph'),
+    rage: await createRageConfig('hammer'),
+    life: createLifeConfig(100, 100),
+    doom: createDoomConfig([{ name: 'Artifact' }]),
+    blood: await createBloodConfig('spade'),
+    void: createVoidConfig({ page: 19 })
+  },
+  20: {
+    time: createTimeConfig('loop', '12:30:00', '13:00:00', { speed: 3 }),
+    space: createSpaceConfig('LOXAY5'),
+    breath: createBreathConfig(10, 10),
+    light: createLightConfig('Page 20 secret'),
+    heart: createHeartConfig('happy', 10),
+    mind: createMindConfig('triumphant'),
+    hope: createHopeConfig('Character 20', 'rage', 'witch'),
+    rage: await createRageConfig('sword'),
+    life: createLifeConfig(100, 100),
+    doom: createDoomConfig([{ name: 'Trophy' }]),
+    blood: await createBloodConfig('club'),
+    void: createVoidConfig({ page: 20 })
+  }
+}))();
+
+/**
+ * Default fallback configuration for pages not explicitly defined (e.g., non-webcomic pages)
+ */
+export const defaultPageConfig: Record<string, any> = await (async () => ({
+  time: createTimeConfig('default'),
+  space: createSpaceConfig('Skaia'),
+  breath: createBreathConfig(1, 10),
+  light: createLightConfig('Default page'),
+  heart: createHeartConfig('calm', 5),
+  mind: createMindConfig('neutral'),
+  hope: createHopeConfig('Default', 'space', 'knight'),
+  rage: await createRageConfig('sword'),
+  life: createLifeConfig(100, 100),
+  doom: createDoomConfig([]),
+  blood: await createBloodConfig('none'),
+  void: createVoidConfig({ default: true })
+}))();
+
+/**
+ * Default fallback configuration for aspects not defined in page configs
+ */
+const defaultConfig: SpriteConfig = {
+  type: 'static',
+  svg: defaultSprite
+};
+
+/**
+ * Get sprite configuration for a specific page and aspect.
+ */
+export function getSpriteConfig(page: number, aspect: string): SpriteConfig {
+  return pageConfigs[page]?.[aspect] || defaultPageConfig[aspect] || defaultConfig;
+}
+---

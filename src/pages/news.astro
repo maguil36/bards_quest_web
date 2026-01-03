@@ -2,7 +2,7 @@
 import MSPALayout from '../layouts/MSPALayout.astro';
 const canonical = Astro.site ? new URL('/news', Astro.site).toString() : undefined;
 ---
-<MSPALayout title="News" description="Latest updates and announcements." canonical={canonical}>
+<MSPALayout title="News" description="Latest updates and announcements." canonical={canonical} page={0}>
   <h1>News</h1>
   <p>Updates and announcements about Bards Quest.</p>
   <div class="ctas">

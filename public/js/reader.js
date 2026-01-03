@@ -48,6 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (transitionType === 'scroll') {
       // Set up scroll-based theme transition
       setupScrollTransition(originalTheme, effectiveTheme);
+    } else if (transitionType === 'crawl') {
+      // Set up crawling gradient transition
+      setupCrawlTransition(originalTheme, effectiveTheme);
+    } else if (transitionType === 'crawl') {
+      // Set up crawling gradient transition
+      setupCrawlTransition(originalTheme, effectiveTheme);
     } else {
       // First, set the original theme without transition
       const currentTransition = document.documentElement.getAttribute('data-transition');
@@ -245,6 +251,191 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial check
     updateThemeBasedOnScroll();
+  }
+
+  // Crawl-based transition handler - gradient crawls up from bottom as you scroll
+  function setupCrawlTransition(fromTheme, toTheme) {
+    // Helper to parse color strings (including color-mix)
+    const parseColor = (colorStr) => {
+      if (colorStr.startsWith('color-mix')) {
+        const match = colorStr.match(/color-mix\(in srgb,\s*([#\w]+)\s+([\d.]+)%,\s*([#\w]+)\s+([\d.]+)%\)/);
+        if (match) {
+          const [, color1, percent1, color2, percent2] = match;
+          const p1 = parseFloat(percent1) / 100;
+          const p2 = parseFloat(percent2) / 100;
+          const rgb1 = hexToRgb(color1);
+          const rgb2 = hexToRgb(color2);
+          return {
+            r: Math.round(rgb1.r * p1 + rgb2.r * p2),
+            g: Math.round(rgb1.g * p1 + rgb2.g * p2),
+            b: Math.round(rgb1.b * p1 + rgb2.b * p2)
+          };
+        }
+      }
+      return hexToRgb(colorStr);
+    };
+
+    const hexToRgb = (hex) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 0, g: 0, b: 0 };
+    };
+
+    const interpolateColor = (color1, color2, factor) => {
+      const c1 = parseColor(color1);
+      const c2 = parseColor(color2);
+      const r = Math.round(c1.r + (c2.r - c1.r) * factor);
+      const g = Math.round(c1.g + (c2.g - c1.g) * factor);
+      const b = Math.round(c1.b + (c2.b - c1.b) * factor);
+      return `rgb(${r}, ${g}, ${b})`;
+    };
+
+    // Get theme colors
+    const getThemeColors = (themeName) => {
+      const themeColors = {
+        'space': { bg: '#0f1014', text: '#e8e9ec', accent: '#4da3ff', card: '#13141a', surface: '#111217' },
+        'breath': { bg: '#F3F4F9', text: '#000000', accent: '#007eb4', card: '#D6DAF0', surface: '#D6DAF0' },
+        'light': { bg: '#ffffff', text: '#000000', accent: '#ff8000', card: '#dddddd', surface: '#dddddd' },
+        'time': { bg: 'color-mix(in srgb, #0f1014 70%, #ff4d4d 30%)', text: '#e8e9ec', accent: '#ff4d4d', card: 'color-mix(in srgb, #13141a 80%, #ff4d4d 20%)', surface: 'color-mix(in srgb, #111217 85%, #ff4d4d 15%)' },
+        'heart': { bg: 'color-mix(in srgb, #0f1014 70%, #ff4da6 30%)', text: '#e8e9ec', accent: '#ff4da6', card: 'color-mix(in srgb, #13141a 80%, #ff4da6 20%)', surface: 'color-mix(in srgb, #111217 85%, #ff4da6 15%)' },
+        'mind': { bg: 'color-mix(in srgb, #0f1014 70%, #00c2a0 30%)', text: '#e8e9ec', accent: '#00c2a0', card: 'color-mix(in srgb, #13141a 80%, #00c2a0 20%)', surface: 'color-mix(in srgb, #111217 85%, #00c2a0 15%)' },
+        'hope': { bg: 'color-mix(in srgb, #dddddd 95%, #ffd700 5%)', text: '#000000', accent: '#df9f03', card: '#eeeeee', surface: '#ffffff' },
+        'rage': { bg: 'color-mix(in srgb, #0f1014 70%, #a855f7 30%)', text: '#ff00ff', accent: '#00ffff', card: 'color-mix(in srgb, #13141a 85%, #a855f7 15%)', surface: 'color-mix(in srgb, #111217 85%, #a855f7 15%)' },
+        'life': { bg: '#535353', text: '#ffffff', accent: '#043400', card: '#c6c6c6', surface: '#efefef' },
+        'doom': { bg: '#000000', text: '#888888', accent: '#204020', card: '#555555', surface: '#888888' },
+        'blood': { bg: '#ffffee', text: '#800000', accent: '#100068', card: '#f0dfd6', surface: '#f0dfd6' },
+        'void': { bg: 'color-mix(in srgb, #0f1014 70%, #4f46e5 30%)', text: '#ffffff', accent: '#4f46e5', card: 'color-mix(in srgb, #0f1014 70%, #4f46e5 30%)', surface: 'color-mix(in srgb, #0f1014 70%, #4f46e5 30%)' }
+      };
+      return themeColors[themeName] || themeColors['space'];
+    };
+
+    // Start with the original theme
+    if (fromTheme === 'space') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', fromTheme);
+    }
+
+    const fromColors = getThemeColors(fromTheme);
+    const toColors = getThemeColors(toTheme);
+
+    let ticking = false;
+
+    function updateCrawlGradient() {
+      const scrollY = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = docHeight > 0 ? Math.min(Math.max(scrollY / docHeight, 0), 1) : 0;
+
+      // Gradient zone is 90% of the viewport
+      const viewportHeight = window.innerHeight;
+      const gradientZone = viewportHeight * 2; // 90% in pixels
+
+      // Calculate where the crawl line is (in pixels from bottom of viewport)
+      // At 0% scroll: crawl line is below viewport
+      // At 50% scroll: crawl line is at top of viewport (2x speed)
+      // Multiply by 2 to make it crawl 2x faster than scroll
+      const crawlLineFromBottom = (scrollPercent * 1.25) * (viewportHeight + gradientZone) - gradientZone;
+
+      // Convert to position from top
+      const crawlLineFromTop = viewportHeight - crawlLineFromBottom;
+
+      // Helper to create gradient for a color pair
+      const createCrawlGradient = (fromColor, toColor) => {
+        // Top of gradient zone (in pixels from top)
+        const gradientTop = crawlLineFromTop - gradientZone;
+        // Bottom of gradient zone (in pixels from top)
+        const gradientBottom = crawlLineFromTop;
+
+        const gradientStops = [];
+
+        // Above gradient: old theme
+        if (gradientTop > 0) {
+          gradientStops.push(`${fromColor} 0px`);
+          gradientStops.push(`${fromColor} ${gradientTop}px`);
+        }
+
+        // Gradient zone: interpolate
+        const numSteps = 10;
+        for (let i = 0; i <= numSteps; i++) {
+          const factor = i / numSteps;
+          const position = gradientTop + (gradientZone * factor);
+
+          if (position >= 0 && position <= viewportHeight) {
+            // Apply quadratic easing (x²) to the transition factor
+            // This makes the old theme dominant until about 70% through the gradient
+            // then quickly transitions to the new theme
+            const easedFactor = factor * factor;
+            const color = interpolateColor(fromColor, toColor, easedFactor);
+            gradientStops.push(`${color} ${position}px`);
+          }
+        }
+
+        // Below gradient: new theme
+        if (gradientBottom < viewportHeight) {
+          gradientStops.push(`${toColor} ${Math.max(0, gradientBottom)}px`);
+          gradientStops.push(`${toColor} ${viewportHeight}px`);
+        } else if (gradientStops.length === 0) {
+          // Fully transitioned
+          gradientStops.push(`${toColor} 0px`);
+          gradientStops.push(`${toColor} ${viewportHeight}px`);
+        }
+
+        return `linear-gradient(to bottom, ${gradientStops.join(', ')})`;
+      };
+
+      // Apply gradients to all color properties
+      const bgGradient = createCrawlGradient(fromColors.bg, toColors.bg);
+      const cardGradient = createCrawlGradient(fromColors.card, toColors.card);
+      const surfaceGradient = createCrawlGradient(fromColors.surface, toColors.surface);
+
+      // Apply to CSS variables as gradients with fixed attachment
+      // This makes the gradient position relative to viewport, not each element
+      document.documentElement.style.setProperty('--bg', bgGradient);
+      document.documentElement.style.setProperty('--card', cardGradient);
+      document.documentElement.style.setProperty('--surface', surfaceGradient);
+
+      // Set background attachment to fixed for unified gradient effect
+      document.body.style.backgroundAttachment = 'fixed';
+      document.body.style.backgroundSize = '100% 100vh';
+
+      // Apply to all card and surface elements
+      const cards = document.querySelectorAll('.mspa-card, [style*="var(--card)"]');
+      cards.forEach(el => {
+        el.style.backgroundAttachment = 'fixed';
+        el.style.backgroundSize = '100% 100vh';
+      });
+
+      const surfaces = document.querySelectorAll('.panel, .mspa-nav, [style*="var(--surface)"]');
+      surfaces.forEach(el => {
+        el.style.backgroundAttachment = 'fixed';
+        el.style.backgroundSize = '100% 100vh';
+      });
+
+      // For text and accent, use average color since they can't be gradients
+      const avgTransition = Math.min(Math.max(scrollPercent, 0), 1);
+      const currentText = interpolateColor(fromColors.text, toColors.text, avgTransition);
+      const currentAccent = interpolateColor(fromColors.accent, toColors.accent, avgTransition);
+
+      document.documentElement.style.setProperty('--text', currentText);
+      document.documentElement.style.setProperty('--accent', currentAccent);
+
+      ticking = false;
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateCrawlGradient);
+        ticking = true;
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Initial render
+    updateCrawlGradient();
   }
 
   const saveData = (c, p) => {

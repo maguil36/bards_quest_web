@@ -2,7 +2,7 @@
 import MSPALayout from '../layouts/MSPALayout.astro';
 const canonical = Astro.site ? new URL('/', Astro.site).toString() : undefined;
 ---
-<MSPALayout title="Bards Quest" description="Portable archives." canonical={canonical}>
+<MSPALayout title="Bards Quest" description="Portable archives." canonical={canonical} page={0}>
   <h1>Bards Quest</h1>
   <p>A web-comic of a group of friends playing a game of adventure trying to create a new universe after their own has ended. It includes gifs, games, animations, and music.</p>
   <p>You can change settings in <a href="/options">Options</a>. Also consider keeping an eye on <a href="/news"> news </a> as any updates will be posted there. </p>

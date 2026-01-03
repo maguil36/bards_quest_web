@@ -1,12 +1,13 @@
 ---
-// ---
 import MSPALayout from '../layouts/MSPALayout.astro';
 import { books } from '../content.js';
 
 export function getStaticPaths() { return [{ params: {}}]; }
+
+const canonical = Astro.site ? new URL('/map', Astro.site).toString() : undefined;
 ---
 
-<MSPALayout title="Browse Adventures" description="Jump into any chapter at start, middle, or end." canonical={Astro.site ? new URL('/map', Astro.site).toString() : undefined}>
+<MSPALayout title="Browse Adventures" description="Jump into any chapter at start, middle, or end." canonical={canonical} page={0}>
   <h1 class="mspa-title">BROWSE ADVENTURES</h1>
   <p class="mspa-sub">Choose a book, then jump into the start, middle, or end of any chapter.</p>
 

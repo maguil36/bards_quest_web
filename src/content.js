@@ -7,8 +7,9 @@
  *   bookId: number,
  *   chapterInBook: number,
  *   title: string,
- *   totalPages: number, // using as number of waypoints for now
+ *   totalPages: number,
  *   cover: string,
+ *   waypoints: Array<{ label: string, page: number, thumb: string }>,
  * }} Chapter
  */
 

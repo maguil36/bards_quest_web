@@ -1,8 +1,8 @@
 ---
 import MSPALayout from '../layouts/MSPALayout.astro';
-const canonical = Astro.site ? new URL('/404', Astro.site).toString() : Astro.url.toString();
+const canonical = Astro.site ? new URL('/privacy', Astro.site).toString() : undefined;
 ---
-<MSPALayout title="404 – Not Found" description="The page you were looking for could not be found." canonical={canonical}>
+<MSPALayout title="Privacy Policy" description="Privacy policy and data handling." canonical={canonical} page={0}>
   <h1>Privacy</h1>
   <p>Bards quest respects your data and privacy. Bards quest is an open source project, if you wish to constribute please check out the github. Bards quest requires you enable cookies for full functionality, but does not log any of your information.</p>
   <div class="ctas">

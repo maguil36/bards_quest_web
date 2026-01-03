@@ -2,7 +2,7 @@
 import MSPALayout from '../layouts/MSPALayout.astro';
 const canonical = Astro.site ? new URL('/options', Astro.site).toString() : undefined;
 ---
-<MSPALayout title="Options" description="Preferences and appearance." canonical={canonical}>
+<MSPALayout title="Options" description="Preferences and appearance." canonical={canonical} page={0}>
   <h1>Options</h1>
   <p class="muted">Any changes you make here are applied immediately and saved to this browser.</p>
 
