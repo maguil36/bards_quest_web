@@ -58,38 +58,41 @@
  *   mind: createMindConfig('confused')
  *   mind: createMindConfig('focused')
  *
- * ===== LIGHT ASPECT (Tooltip) =====
- * Shows the light aspect icon with hidden fact/meta-state on hover
+ * ===== LIGHT ASPECT (Character Icons) =====
+ * Shows character icon with tooltip on hover (only visible on light theme)
+ * Uses POV character automatically, only message needs to be specified
  *
  * Examples:
- *   light: createLightConfig('This character knows the truth')
- *   light: createLightConfig('Hidden knowledge revealed')
+ *   light: createLightConfig('Alexis appears')
+ *   light: createLightConfig('A mysterious figure emerges')
  *
  * ===== BREATH ASPECT (Level Indicator) =====
  * Character level/rank progression display
+ * Uses POV character automatically
  *
  * Examples:
  *   breath: createBreathConfig(5, 10)  // Level 5 of 10
  *   breath: createBreathConfig(3, 10, 'Novice')  // Level 3 with name
  *
- * ===== BLOOD ASPECT (Quadrant) =====
+ * ===== HEART ASPECT (Quadrant) =====
  * Relationship quadrant indicator from external card suit icons
  * Available quadrants: heart, diamond, spade, club, none
  *
  * Examples:
- *   blood: await createBloodConfig('heart')
- *   blood: await createBloodConfig('diamond', 'Rose')  // With target name
+ *   heart: await createHeartConfig('heart')
+ *   heart: await createHeartConfig('diamond', 'Rose')  // With target name
  *
  * ===== RAGE ASPECT (Specibus) =====
  * Strife specibus (weapon type) display from external icons
- * Available weapons: sword, hammer, spear, bow, axe, mace, staff, dagger
+ * Uses POV character's weapon automatically
  *
  * Examples:
- *   rage: await createRageConfig('sword')
- *   rage: await createRageConfig('hammer', 'Zillyhoo')  // With weapon name
+ *   rage: createRageConfig()  // Uses POV character's weapon
+ *   rage: createRageConfig('Zillyhoo')  // With custom weapon name
  *
  * ===== DOOM ASPECT (Inventory) =====
  * Inventory/captchalogue system display
+ * Uses POV character's inventory automatically
  *
  * Examples:
  *   doom: createDoomConfig([{ name: 'Apple', code: 'APPLE' }], 8)
@@ -102,12 +105,20 @@
  *   life: createLifeConfig(75, 100)  // 75/100 HP
  *   life: createLifeConfig(50, 100, false)  // No numbers shown
  *
- * ===== HEART ASPECT (Emotion) =====
- * Mood/emotion indicator with intensity
+ * ===== BLOOD ASPECT (Grist Counter) =====
+ * Grist counter display showing character inventory with page-based deltas
+ * Uses POV character automatically unless overridden
+ * Available grist types: Build, Amber, Amethyst, Artifact, Caulk, Chalk, Cobalt, Diamond,
+ *                        Garnet, Gold, Iodine, Marble, Mercury, Quartz, Ruby, Rust, Shale,
+ *                        Sulfur, Tar, Uranium, Zillium
+ *
+ * The system tracks inventory by adding/subtracting deltas across pages.
+ * Only grists with non-zero amounts are displayed.
  *
  * Examples:
- *   heart: createHeartConfig('happy', 8)
- *   heart: createHeartConfig('determined', 10)
+ *   blood: createBloodConfig(1, { 'Build': 10, 'Amber': 5 })  // Uses POV character
+ *   blood: createBloodConfig(2, { 'Build': -5 })  // Page 2: POV has 5 Build, 5 Amber
+ *   blood: createBloodConfig(1, { 'Build': 20 }, 'victor')  // Override with specific character
  *
  * ===== HOPE ASPECT (God Tier) =====
  * God tier symbols per character
@@ -118,9 +129,10 @@
  *
  * ===== VOID ASPECT (Hidden) =====
  * Hidden metadata storage (not displayed, for secrets)
- *
+ * Messages are logged to the browser console when the page loads
  * Examples:
- *   void: createVoidConfig({ secret: 'hidden value', flag: true })
+ *   void: createVoidConfig({ secret: 'hidden value', flag: true }, 'This is a hidden message')
+ *   void: createVoidConfig({ page: 1 }, 'The journey begins in silence.')
  */
 
 import { defaultSprite } from '../sprites/default';
@@ -144,6 +156,9 @@ export interface ClockConfig {
   middleTimes?: string[];
   endTime?: string;
   speed?: number;
+  startDate?: string;
+  middleDates?: string[];
+  endDate?: string;
   trigger?: 'automatic' | 'click' | 'game';
 }
 
@@ -156,294 +171,317 @@ export type SpriteConfig = ClockConfig | StaticConfig | any;
 
 /**
  * Page-specific sprite configurations.
- * Structure: { pageNumber: { aspect: config } }
+ * Structure: { pageNumber: { pov: 'character', aspect: config } }
+ *
+ * POV (Point of View) determines which character's perspective the page shows.
+ * This automatically informs rage, light, blood, breath, and doom aspects.
  *
  * If an aspect is not defined for a page, it will fall back to the default sprite.
  * You can override specific aspects per page as needed.
  */
 export const pageConfigs: Record<number, Record<string, any>> = await (async () => ({
   1: {
+    pov: 'alexis',
     time: createTimeConfig('loop', '12:30:50', '+ 0', {
       startDate: '2026:01:01',
       middleTimes: ['+ 5', '= 5', '+ 0', '+ 5']
     }),
     space: createSpaceConfig('Earth'),
     breath: createBreathConfig(1, 10),
-    light: createLightConfig('Page 1 secret'),
-    heart: createHeartConfig('calm', 5),
+    light: createLightConfig('Alexis appears'),
+    heart: await createHeartConfig('heart'),
     mind: createMindConfig('observing'),
     hope: createHopeConfig('Character 1', 'breath', 'heir'),
-    rage: await createRageConfig('sword'),
+    rage: createRageConfig(),
     life: createLifeConfig(50, 100),
     doom: createDoomConfig([]),
-    blood: await createBloodConfig('heart'),
-    void: createVoidConfig({ page: 1 })
+    blood: createBloodConfig(1, { 'Build': 10 }),
+    void: createVoidConfig({ page: 1 }, '')
   },
   2: {
+    pov: 'isabell',
     time: createTimeConfig('loop', '08:00:00', '08:00:30', { speed: 2 }),
     space: createSpaceConfig('Prospit'),
     breath: createBreathConfig(1, 10),
-    light: createLightConfig('Page 2 secret'),
-    heart: createHeartConfig('excited', 7),
+    light: createLightConfig('Austine joins'),
+    heart: await createHeartConfig('diamond'),
     mind: createMindConfig('curious'),
     hope: createHopeConfig('Character 2', 'light', 'seer'),
-    rage: await createRageConfig('hammer'),
+    rage: createRageConfig(),
     life: createLifeConfig(95, 100),
     doom: createDoomConfig([{ name: 'Apple' }]),
-    blood: await createBloodConfig('diamond'),
-    void: createVoidConfig({ page: 2 })
+    blood: createBloodConfig(2, {'Build': 5}),
+    void: createVoidConfig({ page: 2 }, 'Dreams whisper truths the waking mind cannot grasp.')
   },
   3: {
+    pov: 'alexis',
     time: createTimeConfig('default'),
     space: createSpaceConfig('Derse'),
     breath: createBreathConfig(2, 10),
-    light: createLightConfig('Page 3 secret'),
-    heart: createHeartConfig('nervous', 6),
+    light: createLightConfig('Chloe enters'),
+    heart: await createHeartConfig('spade'),
     mind: createMindConfig('thinking...'),
     hope: createHopeConfig('Character 3', 'time', 'knight'),
-    rage: await createRageConfig('spear'),
+    rage: createRageConfig(),
     life: createLifeConfig(88, 100),
     doom: createDoomConfig([{ name: 'Sword' }]),
-    blood: await createBloodConfig('spade'),
-    void: createVoidConfig({ page: 3 })
+    blood: createBloodConfig(3, { 'Chalk': 5 }),
+    void: createVoidConfig({ page: 3 }, 'In darkness, we find what light conceals.')
   },
   4: {
+    pov: 'alexis',
     time: createTimeConfig('loop', '12:00:00', '12:05:00', { speed: 2 }),
     space: createSpaceConfig('LOXAY1'),
     breath: createBreathConfig(2, 10),
-    light: createLightConfig('Page 4 secret'),
-    heart: createHeartConfig('happy', 8),
+    light: createLightConfig('Isabell arrives'),
+    heart: await createHeartConfig('club'),
     mind: createMindConfig('focused'),
     hope: createHopeConfig('Character 4', 'space', 'mage'),
-    rage: await createRageConfig('axe'),
+    rage: createRageConfig(),
     life: createLifeConfig(92, 100),
     doom: createDoomConfig([{ name: 'Shield' }]),
-    blood: await createBloodConfig('club'),
-    void: createVoidConfig({ page: 4 })
+    blood: createBloodConfig(4, { 'Build': -3 }),
+    void: createVoidConfig({ page: 4 }, 'The land remembers what we forget.')
   },
   5: {
+    pov: 'alexis',
     time: createTimeConfig('default'),
     space: createSpaceConfig('LOXAY2'),
     breath: createBreathConfig(3, 10),
-    light: createLightConfig('Page 5 secret'),
-    heart: createHeartConfig('determined', 9),
+    light: createLightConfig('Nicholas appears'),
+    heart: await createHeartConfig('heart'),
     mind: createMindConfig('planning'),
     hope: createHopeConfig('Character 5', 'heart', 'prince'),
-    rage: await createRageConfig('bow'),
+    rage: createRageConfig(),
     life: createLifeConfig(85, 100),
     doom: createDoomConfig([{ name: 'Potion' }]),
-    blood: await createBloodConfig('heart'),
-    void: createVoidConfig({ page: 5 })
+    blood: createBloodConfig(5, { 'Garnet': 10 }),
+    void: createVoidConfig({ page: 5 }, 'Every choice echoes in the void.')
   },
   6: {
+    pov: 'alexis',
     time: createTimeConfig('loop', '06:00:00', '06:10:00', { speed: 1.5 }),
     space: createSpaceConfig('LOXAY3'),
     breath: createBreathConfig(3, 10),
-    light: createLightConfig('Page 6 secret'),
-    heart: createHeartConfig('confused', 4),
-    mind: createMindConfig('uncertain'),
-    hope: createHopeConfig('Character 6', 'mind', 'thief'),
-    rage: await createRageConfig('dagger'),
+    light: createLightConfig('Opal joins'),
+    heart: await createHeartConfig('diamond'),
+    mind: createMindConfig('analyzing'),
+    hope: createHopeConfig('Character 6', 'mind', 'page'),
+    rage: createRageConfig(),
     life: createLifeConfig(78, 100),
     doom: createDoomConfig([{ name: 'Key' }]),
-    blood: await createBloodConfig('diamond'),
-    void: createVoidConfig({ page: 6 })
+    blood: createBloodConfig(6, { 'Iodine': 8 }),
+    void: createVoidConfig({ page: 6 }, 'Knowledge is a double-edged blade.')
   },
   7: {
+    pov: 'alexis',
     time: createTimeConfig('default'),
     space: createSpaceConfig('LOXAY4'),
     breath: createBreathConfig(4, 10),
-    light: createLightConfig('Page 7 secret'),
-    heart: createHeartConfig('angry', 7),
+    light: createLightConfig('Tyson shows up'),
+    heart: await createHeartConfig('spade'),
     mind: createMindConfig('irritated'),
     hope: createHopeConfig('Character 7', 'hope', 'page'),
-    rage: await createRageConfig('staff'),
+    rage: createRageConfig(),
     life: createLifeConfig(70, 100),
     doom: createDoomConfig([{ name: 'Book' }]),
-    blood: await createBloodConfig('spade'),
-    void: createVoidConfig({ page: 7 })
+    blood: createBloodConfig(7, { 'Mercury': 7 }),
+    void: createVoidConfig({ page: 7 }, 'Rage burns brightest before it fades.')
   },
   8: {
+    pov: 'alexis',
     time: createTimeConfig('loop', '18:00:00', '18:15:00', { speed: 3 }),
     space: createSpaceConfig('LOXAY5'),
     breath: createBreathConfig(4, 10),
-    light: createLightConfig('Page 8 secret'),
-    heart: createHeartConfig('sad', 5),
+    light: createLightConfig('Victor arrives'),
+    heart: await createHeartConfig('club'),
     mind: createMindConfig('melancholy'),
     hope: createHopeConfig('Character 8', 'rage', 'bard'),
-    rage: await createRageConfig('mace'),
+    rage: createRageConfig(),
     life: createLifeConfig(65, 100),
     doom: createDoomConfig([{ name: 'Map' }]),
-    blood: await createBloodConfig('club'),
-    void: createVoidConfig({ page: 8 })
+    blood: createBloodConfig(8, { 'Quartz': 12 }),
+    void: createVoidConfig({ page: 8 }, 'Sorrow carves deeper than any blade.')
   },
   9: {
+    pov: 'alexis',
     time: createTimeConfig('default'),
     space: createSpaceConfig('LOXAY6'),
     breath: createBreathConfig(5, 10),
-    light: createLightConfig('Page 9 secret'),
-    heart: createHeartConfig('excited', 8),
+    light: createLightConfig('Alice appears'),
+    heart: await createHeartConfig('heart'),
     mind: createMindConfig('energized'),
     hope: createHopeConfig('Character 9', 'life', 'sylph'),
-    rage: await createRageConfig('staff'),
+    rage: createRageConfig(),
     life: createLifeConfig(100, 100),
     doom: createDoomConfig([{ name: 'Compass' }]),
-    blood: await createBloodConfig('heart'),
-    void: createVoidConfig({ page: 9 })
+    blood: createBloodConfig(9, { 'Ruby': 15 }),
+    void: createVoidConfig({ page: 9 }, 'Life finds a way, even in the void.')
   },
   10: {
+    pov: 'alexis',
     time: createTimeConfig('loop', '00:00:00', '00:05:00', { speed: 1 }),
     space: createSpaceConfig('LOXAY7'),
     breath: createBreathConfig(5, 10),
-    light: createLightConfig('Page 10 secret'),
-    heart: createHeartConfig('calm', 6),
+    light: createLightConfig('Audrey enters'),
+    heart: await createHeartConfig('diamond'),
     mind: createMindConfig('peaceful'),
     hope: createHopeConfig('Character 10', 'doom', 'witch'),
-    rage: await createRageConfig('hammer'),
+    rage: createRageConfig(),
     life: createLifeConfig(90, 100),
     doom: createDoomConfig([{ name: 'Scroll' }]),
-    blood: await createBloodConfig('diamond'),
-    void: createVoidConfig({ page: 10 })
+    blood: createBloodConfig(10, { 'Rust': 9 }),
+    void: createVoidConfig({ page: 10 }, 'Midnight holds secrets the day will never know.')
   },
   11: {
+    pov: 'alexis',
     time: createTimeConfig('default'),
     space: createSpaceConfig('LOXAY8'),
     breath: createBreathConfig(6, 10),
-    light: createLightConfig('Page 11 secret'),
-    heart: createHeartConfig('nervous', 7),
-    mind: createMindConfig('anxious'),
-    hope: createHopeConfig('Character 11', 'blood', 'heir'),
-    rage: await createRageConfig('sword'),
+    light: createLightConfig('Clayton joins'),
+    heart: await createHeartConfig('spade'),
+    mind: createMindConfig('determined'),
+    hope: createHopeConfig('Character 11', 'blood', 'thief'),
+    rage: createRageConfig(),
     life: createLifeConfig(82, 100),
-    doom: createDoomConfig([{ name: 'Gem' }]),
-    blood: await createBloodConfig('spade'),
-    void: createVoidConfig({ page: 11 })
+    doom: createDoomConfig([{ name: 'Lantern' }]),
+    blood: createBloodConfig(11, { 'Shale': 6 }),
+    void: createVoidConfig({ page: 11 }, 'Blood binds us to what we cannot escape.')
   },
   12: {
+    pov: 'irene',
     time: createTimeConfig('loop', '15:30:00', '15:45:00', { speed: 2 }),
     space: createSpaceConfig('LOXAY9'),
     breath: createBreathConfig(6, 10),
-    light: createLightConfig('Page 12 secret'),
-    heart: createHeartConfig('determined', 10),
+    light: createLightConfig('Irene appears'),
+    heart: await createHeartConfig('club'),
     mind: createMindConfig('resolute'),
     hope: createHopeConfig('Character 12', 'void', 'rogue'),
-    rage: await createRageConfig('dagger'),
+    rage: createRageConfig(),
     life: createLifeConfig(75, 100),
     doom: createDoomConfig([{ name: 'Orb' }]),
-    blood: await createBloodConfig('club'),
-    void: createVoidConfig({ page: 12 })
+    blood: createBloodConfig(12, { 'Sulfur': 11 }),
+    void: createVoidConfig({ page: 12 }, 'To steal from nothing is to gain everything.')
   },
   13: {
+    pov: 'alexis',
     time: createTimeConfig('default'),
     space: createSpaceConfig('Skaia'),
     breath: createBreathConfig(7, 10),
-    light: createLightConfig('Page 13 secret'),
-    heart: createHeartConfig('happy', 9),
+    light: createLightConfig('Nix arrives'),
+    heart: await createHeartConfig('heart'),
     mind: createMindConfig('joyful'),
     hope: createHopeConfig('Character 13', 'breath', 'maid'),
-    rage: await createRageConfig('bow'),
+    rage: createRageConfig(),
     life: createLifeConfig(95, 100),
     doom: createDoomConfig([{ name: 'Ring' }]),
-    blood: await createBloodConfig('heart'),
-    void: createVoidConfig({ page: 13 })
+    blood: createBloodConfig(13, { 'Tar': 14 }),
+    void: createVoidConfig({ page: 13 }, 'The battlefield reflects all possible futures.')
   },
   14: {
+    pov: 'alexis',
     time: createTimeConfig('loop', '09:00:00', '09:20:00', { speed: 1.5 }),
     space: createSpaceConfig('Prospit'),
     breath: createBreathConfig(7, 10),
-    light: createLightConfig('Page 14 secret'),
-    heart: createHeartConfig('confused', 5),
+    light: createLightConfig('Nix (alt) appears'),
+    heart: await createHeartConfig('diamond'),
     mind: createMindConfig('puzzled'),
     hope: createHopeConfig('Character 14', 'light', 'knight'),
-    rage: await createRageConfig('spear'),
+    rage: createRageConfig(),
     life: createLifeConfig(68, 100),
     doom: createDoomConfig([{ name: 'Amulet' }]),
-    blood: await createBloodConfig('diamond'),
-    void: createVoidConfig({ page: 14 })
+    blood: createBloodConfig(14, { 'Uranium': 20 }),
+    void: createVoidConfig({ page: 14 }, 'Golden towers hide golden lies.')
   },
   15: {
+    pov: 'alexis',
     time: createTimeConfig('default'),
     space: createSpaceConfig('Derse'),
     breath: createBreathConfig(8, 10),
-    light: createLightConfig('Page 15 secret'),
-    heart: createHeartConfig('angry', 8),
+    light: createLightConfig('Octavian enters'),
+    heart: await createHeartConfig('spade'),
     mind: createMindConfig('furious'),
     hope: createHopeConfig('Character 15', 'time', 'prince'),
-    rage: await createRageConfig('axe'),
+    rage: createRageConfig(),
     life: createLifeConfig(60, 100),
     doom: createDoomConfig([{ name: 'Crown' }]),
-    blood: await createBloodConfig('spade'),
-    void: createVoidConfig({ page: 15 })
+    blood: createBloodConfig(15, { 'Zillium': 25 }),
+    void: createVoidConfig({ page: 15 }, 'Purple spires pierce the veil of reality.')
   },
   16: {
+    pov: 'alexis',
     time: createTimeConfig('loop', '21:00:00', '21:10:00', { speed: 2.5 }),
     space: createSpaceConfig('LOXAY1'),
     breath: createBreathConfig(8, 10),
-    light: createLightConfig('Page 16 secret'),
-    heart: createHeartConfig('sad', 6),
-    mind: createMindConfig('sorrowful'),
-    hope: createHopeConfig('Character 16', 'space', 'thief'),
-    rage: await createRageConfig('sword'),
-    life: createLifeConfig(55, 100),
-    doom: createDoomConfig([{ name: 'Scepter' }]),
-    blood: await createBloodConfig('club'),
-    void: createVoidConfig({ page: 16 })
+    light: createLightConfig('Trenton joins'),
+    heart: await createHeartConfig('club'),
+    mind: createMindConfig('confident'),
+    hope: createHopeConfig('Character 16', 'space', 'heir'),
+    rage: createRageConfig(),
+    life: createLifeConfig(88, 100),
+    doom: createDoomConfig([{ name: 'Gem' }]),
+    blood: createBloodConfig(16, { 'Diamond': 18 }),
+    void: createVoidConfig({ page: 16 }, 'Night falls, and with it, hope.')
   },
   17: {
+    pov: 'alexis',
     time: createTimeConfig('default'),
     space: createSpaceConfig('LOXAY2'),
     breath: createBreathConfig(9, 10),
-    light: createLightConfig('Page 17 secret'),
-    heart: createHeartConfig('excited', 10),
+    light: createLightConfig('Vettia appears'),
+    heart: await createHeartConfig('heart'),
     mind: createMindConfig('thrilled'),
     hope: createHopeConfig('Character 17', 'heart', 'page'),
-    rage: await createRageConfig('dagger'),
+    rage: createRageConfig(),
     life: createLifeConfig(88, 100),
     doom: createDoomConfig([{ name: 'Tablet' }]),
-    blood: await createBloodConfig('heart'),
-    void: createVoidConfig({ page: 17 })
+    blood: createBloodConfig(17, { 'Gold': 30 }),
+    void: createVoidConfig({ page: 17 }, 'The heart knows what the mind denies.')
   },
   18: {
+    pov: 'alexis',
     time: createTimeConfig('loop', '03:00:00', '03:30:00', { speed: 1 }),
     space: createSpaceConfig('LOXAY3'),
     breath: createBreathConfig(9, 10),
-    light: createLightConfig('Page 18 secret'),
-    heart: createHeartConfig('calm', 7),
+    light: createLightConfig('Okwos emerges'),
+    heart: await createHeartConfig('diamond'),
     mind: createMindConfig('serene'),
     hope: createHopeConfig('Character 18', 'mind', 'bard'),
-    rage: await createRageConfig('bow'),
+    rage: createRageConfig(),
     life: createLifeConfig(72, 100),
     doom: createDoomConfig([{ name: 'Chalice' }]),
-    blood: await createBloodConfig('diamond'),
-    void: createVoidConfig({ page: 18 })
+    blood: createBloodConfig(18, { 'Artifact': 22 }),
+    void: createVoidConfig({ page: 18 }, 'In the witching hour, truth speaks.')
   },
   19: {
+    pov: 'alexis',
     time: createTimeConfig('default'),
     space: createSpaceConfig('LOXAY4'),
     breath: createBreathConfig(10, 10),
-    light: createLightConfig('Page 19 secret'),
-    heart: createHeartConfig('determined', 9),
+    light: createLightConfig('Gwenhas arrives'),
+    heart: await createHeartConfig('spade'),
     mind: createMindConfig('focused'),
     hope: createHopeConfig('Character 19', 'hope', 'sylph'),
-    rage: await createRageConfig('hammer'),
+    rage: createRageConfig(),
     life: createLifeConfig(100, 100),
     doom: createDoomConfig([{ name: 'Artifact' }]),
-    blood: await createBloodConfig('spade'),
-    void: createVoidConfig({ page: 19 })
+    blood: createBloodConfig(19, { 'Cobalt': 28 }),
+    void: createVoidConfig({ page: 19 }, 'Hope is the last light before the void.')
   },
   20: {
+    pov: 'alexis',
     time: createTimeConfig('loop', '12:30:00', '13:00:00', { speed: 3 }),
     space: createSpaceConfig('LOXAY5'),
     breath: createBreathConfig(10, 10),
-    light: createLightConfig('Page 20 secret'),
-    heart: createHeartConfig('happy', 10),
+    light: createLightConfig('Dhesas appears'),
+    heart: await createHeartConfig('club'),
     mind: createMindConfig('triumphant'),
     hope: createHopeConfig('Character 20', 'rage', 'witch'),
-    rage: await createRageConfig('sword'),
+    rage: createRageConfig(),
     life: createLifeConfig(100, 100),
     doom: createDoomConfig([{ name: 'Trophy' }]),
-    blood: await createBloodConfig('club'),
-    void: createVoidConfig({ page: 20 })
+    blood: createBloodConfig(20, { 'Build': 50, 'Amethyst': 10 }),
+    void: createVoidConfig({ page: 20 }, 'The end is just another beginning hidden in shadow.')
   }
 }))();
 
@@ -451,18 +489,19 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
  * Default fallback configuration for pages not explicitly defined (e.g., non-webcomic pages)
  */
 export const defaultPageConfig: Record<string, any> = await (async () => ({
+  pov: 'redacted',
   time: createTimeConfig('default'),
-  space: createSpaceConfig('Skaia'),
+  space: createSpaceConfig('Earth'),
   breath: createBreathConfig(1, 10),
-  light: createLightConfig('Default page'),
-  heart: createHeartConfig('calm', 5),
+  light: createLightConfig('Unknown'),
+  heart: await createHeartConfig('none'),
   mind: createMindConfig('neutral'),
-  hope: createHopeConfig('Default', 'space', 'knight'),
-  rage: await createRageConfig('sword'),
+  hope: createHopeConfig('Default', 'hope', 'knight'),
+  rage: createRageConfig(),
   life: createLifeConfig(100, 100),
   doom: createDoomConfig([]),
-  blood: await createBloodConfig('none'),
-  void: createVoidConfig({ default: true })
+  blood: createBloodConfig(0, {}),
+  void: createVoidConfig({ default: true }, '')
 }))();
 
 /**

@@ -1,7 +1,6 @@
 export interface RageSpecibusConfig {
   type: 'static';
   svg: string;
-  weaponType: string;
   weaponName?: string;
 }
 
@@ -16,26 +15,42 @@ export const rageWeaponPaths: Record<string, string> = {
   'dagger': '/images/rage/dagger.svg'
 };
 
-export const rageSprite = {
-  type: 'static' as const,
-  svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><image href="${rageWeaponPaths['sword']}" x="0" y="0" width="100" height="100"/></svg>`,
-  weaponType: 'sword'
+export const characterWeapons: Record<string, string> = {
+  'alexis': 'sword',
+  'austine': 'hammer',
+  'chloe': 'spear',
+  'isabell': 'bow',
+  'nicholas': 'axe',
+  'opal': 'mace',
+  'tyson': 'staff',
+  'victor': 'dagger',
+  'alice': 'sword',
+  'audrey': 'hammer',
+  'clayton': 'spear',
+  'irene': 'bow',
+  'nix': 'axe',
+  'nix2': 'mace',
+  'octavian': 'staff',
+  'trenton': 'dagger',
+  'vettia': 'sword',
+  'okwos': 'hammer',
+  'gwenhas': 'spear',
+  'dhesas': 'bow',
+  'redacted': 'sword'
 };
 
-export async function createRageConfig(
-  weaponType: string,
+export const rageSprite = {
+  type: 'static' as const,
+  svg: '',
+  weaponName: ''
+};
+
+export function createRageConfig(
   weaponName?: string
-): Promise<RageSpecibusConfig> {
-  const weaponPath = rageWeaponPaths[weaponType.toLowerCase()];
-
-  if (!weaponPath) {
-    throw new Error(`Unknown weapon type: ${weaponType}. Available: ${Object.keys(rageWeaponPaths).join(', ')}`);
-  }
-
+): RageSpecibusConfig {
   return {
     type: 'static',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><image href="${weaponPath}" x="0" y="0" width="100" height="100"/></svg>`,
-    weaponType,
+    svg: '',
     weaponName
   };
 }

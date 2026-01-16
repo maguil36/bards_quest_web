@@ -563,6 +563,103 @@ body.mspa {
 .sprite.left { left: 10px; }
 .sprite.right { right: 10px; }
 
+.light-tooltip-container {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.light-tooltip {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  background: rgba(255, 128, 0, 0.95);
+  color: #000;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.light-tooltip-container:hover .light-tooltip {
+  opacity: 1;
+}
+
+.grist-counter {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  overflow: visible;
+  transition: all 0.3s ease;
+}
+
+.grist-counter.expanded {
+  height: auto;
+}
+
+.grist-list {
+  position: relative;
+  width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.grist-item {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.grist-item.active {
+  display: flex;
+}
+
+.grist-counter.expanded .grist-item {
+  display: flex;
+}
+
+.grist-counter.expanded .grist-item.above {
+  opacity: 0.5;
+  transform: translateY(-10px);
+  clip-path: inset(50% 0 0 0);
+}
+
+.grist-counter.expanded .grist-item.below {
+  opacity: 0.5;
+  transform: translateY(10px);
+  clip-path: inset(0 0 50% 0);
+}
+
+.grist-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.grist-amount {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(139, 0, 0, 0.9);
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  font-family: monospace;
+  padding: 2px 4px;
+  border-radius: 2px;
+  min-width: 16px;
+  text-align: center;
+}
+
 /* =============================
    Reader
    ============================= */

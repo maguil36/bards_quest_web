@@ -1,8 +1,13 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import { pageConfigs, defaultPageConfig } from '../components/SpriteConfig.astro';
+import { getDefaultTheme } from '../components/ThemeConfig.astro';
 
 const { title = 'Bards Quest', description = 'Portable archives.', canonical, page = 1 } = Astro.props;
+
+// Get theme config for this page (assuming chapter 1)
+const themeConfig = getDefaultTheme(1, typeof page === 'number' ? page : 1);
+
 const navItems = [
   { label: 'BARDS QUEST', href: '/' },
   { label: 'XTWITTER', href: 'https://x.com', external: true },
@@ -17,6 +22,31 @@ const navItems = [
 ];
 ---
 <BaseLayout title={title} description={description} canonical={canonical} showHeader={false} showFooter={false} bodyClass="mspa">
+  <script slot="head" define:vars={{ themeConfigStr: themeConfig ? JSON.stringify(themeConfig) : 'null' }}>
+    // This runs AFTER BaseLayout's script to override theme if needed
+    (function() {
+      const pageThemeConfig = themeConfigStr !== 'null' ? JSON.parse(themeConfigStr) : null;
+      const userTheme = (function(){ try { return localStorage.getItem('mspa:theme'); } catch { return null; } })();
+
+      if (pageThemeConfig) {
+        const shouldApplyPageTheme = pageThemeConfig.overrule || !userTheme || userTheme === 'default';
+
+        if (shouldApplyPageTheme) {
+          const targetTheme = pageThemeConfig.theme;
+          const originalTheme = pageThemeConfig.originalTheme;
+          const transition = pageThemeConfig.transition || 'smooth';
+
+          // For scroll/crawl transitions, start with originalTheme
+          if ((transition === 'crawl' || transition === 'scroll') && originalTheme) {
+            document.documentElement.setAttribute('data-theme', originalTheme);
+          } else {
+            document.documentElement.setAttribute('data-theme', targetTheme);
+          }
+          document.documentElement.setAttribute('data-transition', 'instant');
+        }
+      }
+    })();
+  </script>
   <slot name="head" slot="head" />
   <main class="wrap">
     <nav class="mspa-nav">
@@ -47,18 +77,69 @@ const navItems = [
     <img src="/images/aspects/breath.svg" alt="aspect symbol" class="sprite right" id="aspect-sprite" />
   </main>
 
-  <script define:vars={{ pageConfigs: JSON.stringify(pageConfigs), defaultPageConfig: JSON.stringify(defaultPageConfig), currentPage: page }}>
+  <script define:vars={{ pageConfigs: JSON.stringify(pageConfigs), defaultPageConfig: JSON.stringify(defaultPageConfig), currentPage: page, themeConfig: JSON.stringify(themeConfig) }}>
     const configs = JSON.parse(pageConfigs)[currentPage] || JSON.parse(defaultPageConfig) || {};
+    const pageThemeConfig = themeConfig ? JSON.parse(themeConfig) : null;
+
     console.log('Current page:', currentPage);
     console.log('Loaded configs:', configs);
     console.log('Space config specifically:', configs.space);
 
-    function updateLeftSprite() {
+    // Handle scroll-based transitions (initial theme already set in <head>)
+    const userTheme = localStorage.getItem('mspa:theme');
+
+    if (pageThemeConfig) {
+      const shouldApplyTransition = pageThemeConfig.overrule || !userTheme || userTheme === 'default';
+
+      if (shouldApplyTransition) {
+        const targetTheme = pageThemeConfig.theme;
+        const originalTheme = pageThemeConfig.originalTheme || 'space';
+        const transition = pageThemeConfig.transition || 'smooth';
+
+        // Only set up scroll listeners for scroll-based transitions
+        if (transition === 'crawl' || transition === 'scroll') {
+          function handleScrollTransition() {
+            const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+
+            if (transition === 'scroll') {
+              // Simple scroll: switch at 50%
+              const newTheme = scrollPercent >= 0.5 ? targetTheme : originalTheme;
+              if (document.documentElement.getAttribute('data-theme') !== newTheme) {
+                document.documentElement.setAttribute('data-transition', 'smooth');
+                document.documentElement.setAttribute('data-theme', newTheme);
+              }
+            } else if (transition === 'crawl') {
+              // Crawl: transition happens at 80% scroll
+              if (scrollPercent >= 0.8) {
+                if (document.documentElement.getAttribute('data-theme') !== targetTheme) {
+                  document.documentElement.setAttribute('data-transition', 'smooth');
+                  document.documentElement.setAttribute('data-theme', targetTheme);
+                }
+              } else {
+                if (document.documentElement.getAttribute('data-theme') !== originalTheme) {
+                  document.documentElement.setAttribute('data-transition', 'smooth');
+                  document.documentElement.setAttribute('data-theme', originalTheme);
+                }
+              }
+            }
+          }
+
+          window.addEventListener('scroll', handleScrollTransition, { passive: true });
+          handleScrollTransition(); // Check initial position
+        }
+      }
+    }
+
+    let voidMessageLogged = false;
+
+    async function updateLeftSprite() {
       const theme = document.documentElement.getAttribute('data-theme') || 'space';
       const config = configs[theme];
+      const pov = configs.pov || 'alexis';
       const container = document.getElementById('left-sprite-container');
 
       console.log('Current theme:', theme);
+      console.log('POV character:', pov);
       console.log('Config for theme:', config);
       console.log('Container element:', container);
 
@@ -70,31 +151,69 @@ const navItems = [
         return;
       }
 
+      if (theme === 'void' && configs.void && configs.void.message && !voidMessageLogged) {
+        console.log('%c' + configs.void.message, 'color: #000080; font-style: italic;');
+        voidMessageLogged = true;
+      } else if (theme !== 'void') {
+        voidMessageLogged = false;
+      }
+
       if (config.type === 'clock') {
         container.innerHTML = `
-          <div style="text-align: center; margin-bottom: 4px;">
-            <div id="clock-date" style="font-size: 10px; font-weight: bold; color: #FF2106; font-family: monospace;"></div>
+          <div style="position: relative; width: 72px; height: 72px;">
+            <div id="clock-date" style="position: absolute; top: -16px; left: 0; right: 0; font-size: 10px; font-weight: bold; color: #FF2106; font-family: monospace; text-align: center;"></div>
+            <canvas id="clock-canvas" width="72" height="72" style="display: block;"></canvas>
           </div>
-          <canvas id="clock-canvas" width="72" height="72"></canvas>
         `;
         console.log('Initializing clock with config:', config);
         initClock(config);
       } else if (config.type === 'static') {
         console.log('Rendering static sprite with SVG:', config.svg);
 
-        // Check if the SVG contains an image href (external file reference)
-        const imageHrefMatch = config.svg.match(/href=["']([^"']+)["']/);
-        if (imageHrefMatch) {
-          const imagePath = imageHrefMatch[1];
-          console.log('Using direct image path:', imagePath);
-          container.innerHTML = `
-            <img src="${imagePath}" alt="sprite decoration" style="width: 72px; height: 72px;" />
-          `;
+        // For light theme, use POV character
+        if (theme === 'light') {
+          const { lightCharacterPaths } = await import('../sprites/light.ts');
+          const characterPath = lightCharacterPaths[pov.toLowerCase()];
+
+          if (characterPath && config.tooltip) {
+            container.innerHTML = `
+              <div class="light-tooltip-container">
+                <img src="${characterPath}" alt="${pov}" style="width: 72px; height: 72px;" />
+                <div class="light-tooltip">${config.tooltip}</div>
+              </div>
+            `;
+          } else {
+            container.innerHTML = '';
+          }
+        } else if (theme === 'rage') {
+          // For rage theme, use POV character's weapon
+          const { characterWeapons, rageWeaponPaths } = await import('../sprites/rage.ts');
+          const weaponType = characterWeapons[pov.toLowerCase()] || 'sword';
+          const weaponPath = rageWeaponPaths[weaponType];
+
+          if (weaponPath) {
+            container.innerHTML = `
+              <img src="${weaponPath}" alt="${weaponType}" style="width: 72px; height: 72px;" ${config.weaponName ? `title="${config.weaponName}"` : ''} />
+            `;
+          } else {
+            container.innerHTML = '';
+          }
         } else {
-          // Use inline SVG
-          container.innerHTML = `
-            <img src="data:image/svg+xml;utf8,${encodeURIComponent(config.svg)}" alt="sprite decoration" />
-          `;
+          // Check if the SVG contains an image href (external file reference)
+          const imageHrefMatch = config.svg.match(/href=["']([^"']+)["']/);
+          if (imageHrefMatch) {
+            const imagePath = imageHrefMatch[1];
+            console.log('Using direct image path:', imagePath);
+
+            container.innerHTML = `
+              <img src="${imagePath}" alt="sprite decoration" style="width: 72px; height: 72px;" />
+            `;
+          } else {
+            // Use inline SVG
+            container.innerHTML = `
+              <img src="data:image/svg+xml;utf8,${encodeURIComponent(config.svg)}" alt="sprite decoration" />
+            `;
+          }
         }
       } else if (config.type === 'godtier') {
         console.log('Rendering god tier symbol for:', config);
@@ -119,10 +238,111 @@ const navItems = [
             </svg>
           </div>
         `;
+      } else if (config.type === 'hidden') {
+        container.innerHTML = '';
+      } else if (config.type === 'grist') {
+        console.log('Rendering grist counter:', config);
+
+        // Import grist functions
+        const { getCharacterGristAtPage, gristOrder, gristIconPaths, setPageGrist } = await import('../sprites/blood.ts');
+
+        // Use POV character if not specified in config
+        const character = config.character || pov;
+
+        // Set page grist if deltas are provided
+        if (config.deltas && Object.keys(config.deltas).length > 0) {
+          setPageGrist(character, config.pageNumber, config.deltas);
+        }
+
+        // Get character's current inventory at this page
+        const inventory = getCharacterGristAtPage(character, config.pageNumber);
+
+        // Filter to only grists with non-zero amounts, in order
+        const availableGrists = gristOrder.filter(gristType => inventory[gristType] && inventory[gristType] > 0);
+
+        if (availableGrists.length === 0) {
+          container.innerHTML = '';
+          return;
+        }
+
+        // Create grist counter UI
+        const gristHTML = availableGrists.map((gristType, index) => {
+          const amount = inventory[gristType];
+          const iconPath = gristIconPaths[gristType];
+          return `
+            <div class="grist-item" data-index="${index}" data-grist="${gristType}">
+              <img src="${iconPath}" alt="${gristType}" class="grist-icon" />
+              <span class="grist-amount">${amount}</span>
+            </div>
+          `;
+        }).join('');
+
+        container.innerHTML = `
+          <div class="grist-counter" id="grist-counter">
+            <div class="grist-list" id="grist-list">
+              ${gristHTML}
+            </div>
+          </div>
+        `;
+
+        // Initialize grist counter interactions
+        initGristCounter(availableGrists.length);
       } else {
         console.log('Unknown config type:', config);
         container.innerHTML = '';
       }
+    }
+
+    function initGristCounter(totalGrists) {
+      const counter = document.getElementById('grist-counter');
+      const list = document.getElementById('grist-list');
+      if (!counter || !list) return;
+
+      let currentIndex = 0;
+      let isHovering = false;
+
+      // Show only the current grist initially
+      const updateDisplay = () => {
+        const items = list.querySelectorAll('.grist-item');
+        items.forEach((item, index) => {
+          item.classList.remove('active', 'above', 'below');
+
+          if (index === currentIndex) {
+            item.classList.add('active');
+          } else if (index === currentIndex - 1) {
+            item.classList.add('above');
+          } else if (index === currentIndex + 1) {
+            item.classList.add('below');
+          }
+        });
+      };
+
+      counter.addEventListener('mouseenter', () => {
+        isHovering = true;
+        counter.classList.add('expanded');
+      });
+
+      counter.addEventListener('mouseleave', () => {
+        isHovering = false;
+        counter.classList.remove('expanded');
+      });
+
+      counter.addEventListener('wheel', (e) => {
+        if (!isHovering) return;
+        e.preventDefault();
+
+        if (e.deltaY < 0) {
+          // Scroll up
+          currentIndex = Math.max(0, currentIndex - 1);
+        } else {
+          // Scroll down
+          currentIndex = Math.min(totalGrists - 1, currentIndex + 1);
+        }
+
+        updateDisplay();
+      }, { passive: false });
+
+      updateDisplay();
     }
 
     function initClock(config) {

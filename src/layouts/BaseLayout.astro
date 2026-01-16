@@ -8,6 +8,7 @@ const {
   showHeader = true,
   showFooter = true,
   bodyClass = '',
+  pageThemeConfig = undefined,
 } = Astro.props;
 const links = [
   { href: '/', label: 'Home' },
@@ -38,9 +39,9 @@ const links = [
           var d = document.documentElement;
           // Theme
           var theme = (function(){ try { return localStorage.getItem('mspa:theme') || 'space'; } catch { return 'space'; } })();
-          if (theme && theme !== 'space') d.setAttribute('data-theme', theme); else d.removeAttribute('data-theme');
-          // Transition (default to 'smooth' for all pages unless overridden)
-          if (!d.hasAttribute('data-transition')) d.setAttribute('data-transition', 'smooth');
+          if (theme && theme !== 'space' && theme !== 'default') d.setAttribute('data-theme', theme); else d.removeAttribute('data-theme');
+          // Transition (default to 'instant' to prevent flash)
+          d.setAttribute('data-transition', 'instant');
           // Desktop layout toggle
           var desktop = (function(){ try { return localStorage.getItem('mspa:ui:desktop') === '1'; } catch { return false; } })();
           d.setAttribute('data-desktop', desktop ? '1' : '0');
