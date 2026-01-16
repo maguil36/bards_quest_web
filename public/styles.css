@@ -591,52 +591,66 @@ body.mspa {
 
 .grist-counter {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 48px;
+  height: 48px;
   overflow: visible;
   transition: all 0.3s ease;
+  cursor: pointer;
+  transform-origin: center bottom;
 }
 
 .grist-counter.expanded {
   height: auto;
+  transform: scale(1.1);
+  z-index: 100;
+  transform-origin: center bottom;
 }
 
 .grist-list {
   position: relative;
-  width: 72px;
+  width: 48px;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   align-items: center;
+  gap: 0;
 }
 
 .grist-item {
-  position: relative;
-  width: 72px;
-  height: 72px;
   display: none;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 48px;
+  height: 48px;
   transition: all 0.3s ease;
+  background: rgba(80, 40, 20, 0.4);
+  border-radius: 8px;
+  position: relative;
 }
 
 .grist-item.active {
   display: flex;
+  background: rgba(100, 50, 25, 0.7);
+  box-shadow: 0 0 10px rgba(139, 69, 19, 0.5);
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
 }
 
-.grist-counter.expanded .grist-item {
+.grist-item.above,
+.grist-item.below {
   display: flex;
+  height: 24px;
+  width: 24px;
+  opacity: 0;
+  margin: 2px 0;
+  background: rgba(80, 40, 20, 0.3);
 }
 
-.grist-counter.expanded .grist-item.above {
-  opacity: 0.5;
-  transform: translateY(-10px);
-  clip-path: inset(50% 0 0 0);
-}
-
+.grist-counter.expanded .grist-item.above,
 .grist-counter.expanded .grist-item.below {
-  opacity: 0.5;
-  transform: translateY(10px);
-  clip-path: inset(0 0 50% 0);
+  display: flex;
+  opacity: 0.6;
 }
 
 .grist-icon {
@@ -645,19 +659,25 @@ body.mspa {
   object-fit: contain;
 }
 
+.grist-item.above .grist-icon,
+.grist-item.below .grist-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .grist-amount {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
-  background: rgba(139, 0, 0, 0.9);
-  color: #fff;
+  bottom: 2px;
+  right: 2px;
   font-size: 10px;
   font-weight: bold;
-  font-family: monospace;
-  padding: 2px 4px;
-  border-radius: 2px;
-  min-width: 16px;
-  text-align: center;
+  color: white;
+  text-shadow: 1px 1px 2px black;
+}
+
+.grist-item.above .grist-amount,
+.grist-item.below .grist-amount {
+  display: none;
 }
 
 /* =============================

@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import { pageConfigs, defaultPageConfig } from '../components/SpriteConfig.astro';
 import { getDefaultTheme } from '../components/ThemeConfig.astro';
+import { getCharacterGristAtPage, gristOrder, gristIconPaths, setPageGrist } from '../sprites/blood';
 
 const { title = 'Bards Quest', description = 'Portable archives.', canonical, page = 1 } = Astro.props;
 
@@ -77,13 +78,66 @@ const navItems = [
     <img src="/images/aspects/breath.svg" alt="aspect symbol" class="sprite right" id="aspect-sprite" />
   </main>
 
-  <script define:vars={{ pageConfigs: JSON.stringify(pageConfigs), defaultPageConfig: JSON.stringify(defaultPageConfig), currentPage: page, themeConfig: JSON.stringify(themeConfig) }}>
+  <script define:vars={{ pageConfigs: JSON.stringify(pageConfigs), defaultPageConfig: JSON.stringify(defaultPageConfig), currentPage: page, themeConfig: JSON.stringify(themeConfig), gristOrderData: JSON.stringify(gristOrder), gristIconPathsData: JSON.stringify(gristIconPaths) }}>
     const configs = JSON.parse(pageConfigs)[currentPage] || JSON.parse(defaultPageConfig) || {};
     const pageThemeConfig = themeConfig ? JSON.parse(themeConfig) : null;
+    const gristOrder = JSON.parse(gristOrderData);
+    const gristIconPaths = JSON.parse(gristIconPathsData);
 
     console.log('Current page:', currentPage);
     console.log('Loaded configs:', configs);
     console.log('Space config specifically:', configs.space);
+
+    // Preload all grist data from all pages for all characters
+    function preloadAllGristData() {
+      const allConfigs = JSON.parse(pageConfigs);
+      for (const [page, pageConfig] of Object.entries(allConfigs)) {
+        if (pageConfig.blood && pageConfig.blood.type === 'grist') {
+          const character = pageConfig.blood.character || pageConfig.pov || 'alexis';
+          const pageNum = parseInt(page);
+          const deltas = pageConfig.blood.deltas;
+
+          if (deltas && Object.keys(deltas).length > 0) {
+            setPageGrist(character, pageNum, deltas);
+          }
+        }
+      }
+    }
+
+    // Grist inventory tracking (client-side)
+    const characterGristInventory = new Map();
+
+    // Preload grist data on page load
+    preloadAllGristData();
+
+    function setPageGrist(character, pageNumber, deltas) {
+      if (!characterGristInventory.has(character)) {
+        characterGristInventory.set(character, new Map());
+      }
+      characterGristInventory.get(character).set(pageNumber, deltas);
+    }
+
+    function getCharacterGristAtPage(character, pageNumber) {
+      const inventory = {};
+
+      if (!characterGristInventory.has(character)) {
+        return inventory;
+      }
+
+      const characterPages = characterGristInventory.get(character);
+      const sortedPages = Array.from(characterPages.keys()).sort((a, b) => a - b);
+
+      for (const page of sortedPages) {
+        if (page > pageNumber) break;
+
+        const deltas = characterPages.get(page);
+        for (const [gristType, amount] of Object.entries(deltas)) {
+          inventory[gristType] = (inventory[gristType] || 0) + amount;
+        }
+      }
+
+      return inventory;
+    }
 
     // Handle scroll-based transitions (initial theme already set in <head>)
     const userTheme = localStorage.getItem('mspa:theme');
@@ -243,9 +297,6 @@ const navItems = [
       } else if (config.type === 'grist') {
         console.log('Rendering grist counter:', config);
 
-        // Import grist functions
-        const { getCharacterGristAtPage, gristOrder, gristIconPaths, setPageGrist } = await import('../sprites/blood.ts');
-
         // Use POV character if not specified in config
         const character = config.character || pov;
 
@@ -285,8 +336,10 @@ const navItems = [
           </div>
         `;
 
-        // Initialize grist counter interactions
-        initGristCounter(availableGrists.length);
+        // Initialize grist counter interactions after DOM is ready
+        requestAnimationFrame(() => {
+          initGristCounter(availableGrists.length);
+        });
       } else {
         console.log('Unknown config type:', config);
         container.innerHTML = '';
@@ -296,53 +349,90 @@ const navItems = [
     function initGristCounter(totalGrists) {
       const counter = document.getElementById('grist-counter');
       const list = document.getElementById('grist-list');
-      if (!counter || !list) return;
+
+      console.log('Initializing grist counter with', totalGrists, 'grists');
+      console.log('Counter element:', counter);
+      console.log('List element:', list);
+
+      if (!counter || !list) {
+        console.log('Counter or list not found!');
+        return;
+      }
 
       let currentIndex = 0;
       let isHovering = false;
+      let originalItems = [];
 
-      // Show only the current grist initially
+      // Store original items on first call
+      const storeOriginalItems = () => {
+        if (originalItems.length === 0) {
+          originalItems = Array.from(list.querySelectorAll('.grist-item'));
+        }
+      };
+
+      // Show exactly 3 items: one above, one active center, one below (infinite scroll with wrapping)
       const updateDisplay = () => {
-        const items = list.querySelectorAll('.grist-item');
-        items.forEach((item, index) => {
-          item.classList.remove('active', 'above', 'below');
+        storeOriginalItems();
+        const prevIndex = (currentIndex - 1 + totalGrists) % totalGrists;
+        const nextIndex = (currentIndex + 1) % totalGrists;
 
-          if (index === currentIndex) {
-            item.classList.add('active');
-          } else if (index === currentIndex - 1) {
-            item.classList.add('above');
-          } else if (index === currentIndex + 1) {
-            item.classList.add('below');
-          }
-        });
+        // Clear the list
+        list.innerHTML = '';
+
+        // Add items in the correct visual order: above, active (center), below
+        const aboveItem = originalItems[prevIndex].cloneNode(true);
+        aboveItem.classList.remove('active', 'above', 'below');
+        aboveItem.classList.add('above');
+        aboveItem.style.display = 'flex';
+        list.appendChild(aboveItem);
+
+        const activeItem = originalItems[currentIndex].cloneNode(true);
+        activeItem.classList.remove('active', 'above', 'below');
+        activeItem.classList.add('active');
+        activeItem.style.display = 'flex';
+        list.appendChild(activeItem);
+
+        const belowItem = originalItems[nextIndex].cloneNode(true);
+        belowItem.classList.remove('active', 'above', 'below');
+        belowItem.classList.add('below');
+        belowItem.style.display = 'flex';
+        list.appendChild(belowItem);
       };
 
       counter.addEventListener('mouseenter', () => {
+        console.log('Mouse entered grist counter');
         isHovering = true;
         counter.classList.add('expanded');
+        updateDisplay();
+        console.log('Counter classes after expand:', counter.className);
+        console.log('All grist items:', list.querySelectorAll('.grist-item'));
       });
 
       counter.addEventListener('mouseleave', () => {
+        console.log('Mouse left grist counter');
         isHovering = false;
         counter.classList.remove('expanded');
+        updateDisplay();
       });
 
       counter.addEventListener('wheel', (e) => {
         if (!isHovering) return;
         e.preventDefault();
+        console.log('Wheel event:', e.deltaY);
 
         if (e.deltaY < 0) {
-          // Scroll up
-          currentIndex = Math.max(0, currentIndex - 1);
+          // Scroll up - move to previous item (items move down visually)
+          currentIndex = (currentIndex - 1 + totalGrists) % totalGrists;
         } else {
-          // Scroll down
-          currentIndex = Math.min(totalGrists - 1, currentIndex + 1);
+          // Scroll down - move to next item (items move up visually)
+          currentIndex = (currentIndex + 1) % totalGrists;
         }
 
         updateDisplay();
       }, { passive: false });
 
       updateDisplay();
+      console.log('Grist counter initialized successfully');
     }
 
     function initClock(config) {

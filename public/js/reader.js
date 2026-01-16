@@ -12,9 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const key = 'progress:series-1';
   const cookieName = 'savegame';
 
-  // Apply transition type to document
-  document.documentElement.setAttribute('data-transition', transitionType);
-
   // Apply theme with new logic:
   // 1. If overrule is true: ALWAYS use the default theme (ignores user preference)
   // 2. If user selected "default" or has no preference: use page-specific default theme
@@ -41,12 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
     effectiveTheme = userTheme;
   }
 
-  // Handle theme-to-theme transitions
-  // If originalTheme is specified, temporarily set it before transitioning to the new theme
-  // BUT: Skip transitions if user has selected an optional theme (unless overrule is true)
+  // Check if user has an optional theme selected (not default or space)
   const userHasOptionalTheme = userTheme && userTheme !== 'default' && userTheme !== 'space';
   const shouldSkipTransition = userHasOptionalTheme && !overruleTheme;
 
+  // Apply transition type to document (use 'instant' if skipping transitions)
+  const effectiveTransitionType = shouldSkipTransition ? 'instant' : transitionType;
+  document.documentElement.setAttribute('data-transition', effectiveTransitionType);
+
+  // Handle theme-to-theme transitions
+  // If originalTheme is specified, temporarily set it before transitioning to the new theme
+  // BUT: Skip transitions if user has selected an optional theme (unless overrule is true)
   if (originalTheme && originalTheme !== effectiveTheme && !shouldSkipTransition) {
     // Special handling for scroll transition
     if (transitionType === 'scroll') {

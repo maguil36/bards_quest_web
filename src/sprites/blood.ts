@@ -46,27 +46,27 @@ export const gristOrder: GristType[] = [
 ];
 
 export const gristIconPaths: Record<GristType, string> = {
-  'Build': '/images/blood/build.png',
-  'Amber': '/images/blood/amber.png',
-  'Amethyst': '/images/blood/amethyst.png',
-  'Artifact': '/images/blood/artifact.png',
-  'Caulk': '/images/blood/caulk.png',
-  'Chalk': '/images/blood/chalk.png',
-  'Cobalt': '/images/blood/cobalt.png',
-  'Diamond': '/images/blood/diamond.png',
-  'Garnet': '/images/blood/garnet.png',
-  'Gold': '/images/blood/gold.png',
-  'Iodine': '/images/blood/iodine.png',
-  'Marble': '/images/blood/marble.png',
-  'Mercury': '/images/blood/mercury.png',
-  'Quartz': '/images/blood/quartz.png',
-  'Ruby': '/images/blood/ruby.png',
-  'Rust': '/images/blood/rust.png',
-  'Shale': '/images/blood/shale.png',
-  'Sulfur': '/images/blood/sulfur.png',
-  'Tar': '/images/blood/tar.png',
-  'Uranium': '/images/blood/uranium.png',
-  'Zillium': '/images/blood/zillium.png'
+  'Build': '/images/blood/Build.webp',
+  'Amber': '/images/blood/Amber.webp',
+  'Amethyst': '/images/blood/Amethyst.webp',
+  'Artifact': '/images/blood/Artifact.webp',
+  'Caulk': '/images/blood/Caulk.webp',
+  'Chalk': '/images/blood/Chalk.webp',
+  'Cobalt': '/images/blood/Cobalt.webp',
+  'Diamond': '/images/blood/Diamond.PNG.webp',
+  'Garnet': '/images/blood/Garnet.webp',
+  'Gold': '/images/blood/Gold.webp',
+  'Iodine': '/images/blood/Iodine.webp',
+  'Marble': '/images/blood/Marble.webp',
+  'Mercury': '/images/blood/Mercury.webp',
+  'Quartz': '/images/blood/Quartz.webp',
+  'Ruby': '/images/blood/Ruby.webp',
+  'Rust': '/images/blood/Rust.webp',
+  'Shale': '/images/blood/Shale.webp',
+  'Sulfur': '/images/blood/Sulfur.webp',
+  'Tar': '/images/blood/Tar.webp',
+  'Uranium': '/images/blood/Uranium.webp',
+  'Zillium': '/images/blood/Zillion.webp'
 };
 
 export interface GristDelta {
