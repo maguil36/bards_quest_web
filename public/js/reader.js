@@ -43,7 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle theme-to-theme transitions
   // If originalTheme is specified, temporarily set it before transitioning to the new theme
-  if (originalTheme && originalTheme !== effectiveTheme) {
+  // BUT: Skip transitions if user has selected an optional theme (unless overrule is true)
+  const userHasOptionalTheme = userTheme && userTheme !== 'default' && userTheme !== 'space';
+  const shouldSkipTransition = userHasOptionalTheme && !overruleTheme;
+
+  if (originalTheme && originalTheme !== effectiveTheme && !shouldSkipTransition) {
     // Special handling for scroll transition
     if (transitionType === 'scroll') {
       // Set up scroll-based theme transition
@@ -81,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   } else {
-    // Apply the theme normally (no specific original theme)
+    // Apply the theme normally (no specific original theme or skipping transition)
     if (effectiveTheme === 'space') {
       document.documentElement.removeAttribute('data-theme');
     } else {
