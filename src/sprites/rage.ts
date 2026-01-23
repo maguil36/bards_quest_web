@@ -16,7 +16,7 @@ export const rageWeaponPaths: Record<string, string> = {
 };
 
 export const characterWeapons: Record<string, string> = {
-  'alexis': 'sword',
+  'alexis': 'dagger',
   'austine': 'hammer',
   'chloe': 'spear',
   'isabell': 'bow',

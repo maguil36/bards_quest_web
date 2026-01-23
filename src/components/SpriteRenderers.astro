@@ -1,0 +1,209 @@
+<script is:inline>
+  window.SpriteRenderers = {
+    renderClockSprite(container, config, initClock) {
+      container.innerHTML = `
+        <div style="position: relative; width: 72px; height: 72px;">
+          <div id="clock-date" style="position: absolute; top: -16px; left: 0; right: 0; font-size: 10px; font-weight: bold; color: #FF2106; font-family: monospace; text-align: center;"></div>
+          <canvas id="clock-canvas" width="72" height="72" style="display: block;"></canvas>
+        </div>
+      `;
+      console.log('Initializing clock with config:', config);
+      initClock(config);
+    },
+
+    renderStaticSprite(container, config, theme, pov, lightCharacterPaths) {
+      console.log('Rendering static sprite with SVG:', config.svg);
+
+      if (theme === 'light') {
+        const characterPath = lightCharacterPaths[pov.toLowerCase()];
+
+        if (characterPath && config.tooltip) {
+          container.innerHTML = `
+            <div class="light-tooltip-container">
+              <img src="${characterPath}" alt="${pov}" class="light-character-icon" />
+              <span class="light-tooltip">${config.tooltip}</span>
+            </div>
+          `;
+        } else {
+          container.innerHTML = config.svg;
+        }
+      } else {
+        container.innerHTML = config.svg;
+      }
+    },
+
+    renderBreathSprite(container, config, pov, getLevelName) {
+      const currentLevel = config.level || 1;
+      const character = config.character || pov;
+
+      const totalLevels = 50;
+      const visibleRungs = 3;
+      const rungHeight = 40;
+      const containerHeight = visibleRungs * rungHeight;
+
+      let rungs = '';
+      for (let i = totalLevels; i >= 1; i--) {
+        const levelName = getLevelName(character, i);
+        const isCurrentLevel = i === currentLevel;
+        const isFutureLevel = i > currentLevel;
+
+        rungs += `
+          <div class="echeladder-rung ${isCurrentLevel ? 'current' : ''} ${isFutureLevel ? 'future' : ''}" data-level="${i}">
+            <span class="rung-level">${i}</span>
+            <span class="rung-name">${levelName}</span>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div class="echeladder-container" style="height: ${containerHeight}px; position: relative; overflow: hidden;">
+          <div class="echeladder-content" style="position: absolute; width: 100%;">
+            ${rungs}
+          </div>
+          <div class="custom-scrollbar" style="position: absolute; right: 0; top: 0; bottom: 0; width: 16px;">
+            <button class="scrollbar-button scrollbar-up" aria-label="Scroll up">▲</button>
+            <div class="scrollbar-track">
+              <div class="scrollbar-thumb"></div>
+            </div>
+            <button class="scrollbar-button scrollbar-down" aria-label="Scroll down">▼</button>
+          </div>
+        </div>
+      `;
+
+      const echeladderContent = container.querySelector('.echeladder-content');
+      const scrollbarThumb = container.querySelector('.scrollbar-thumb');
+      const scrollbarTrack = container.querySelector('.scrollbar-track');
+      const scrollUpBtn = container.querySelector('.scrollbar-up');
+      const scrollDownBtn = container.querySelector('.scrollbar-down');
+
+      const contentHeight = totalLevels * rungHeight;
+      const scrollableHeight = contentHeight - containerHeight;
+      const trackHeight = scrollbarTrack.clientHeight;
+      const thumbHeight = Math.max(30, (containerHeight / contentHeight) * trackHeight);
+      scrollbarThumb.style.height = `${thumbHeight}px`;
+
+      const currentRung = container.querySelector(`.echeladder-rung[data-level="${currentLevel}"]`);
+      if (currentRung) {
+        const scrollPosition = (totalLevels - currentLevel) * rungHeight - rungHeight;
+        echeladderContent.style.top = `-${scrollPosition}px`;
+
+        const thumbPosition = (scrollPosition / scrollableHeight) * (trackHeight - thumbHeight);
+        scrollbarThumb.style.top = `${thumbPosition}px`;
+      }
+
+      function updateScroll(scrollTop) {
+        scrollTop = Math.max(0, Math.min(scrollTop, scrollableHeight));
+        echeladderContent.style.top = `-${scrollTop}px`;
+
+        const thumbPosition = (scrollTop / scrollableHeight) * (trackHeight - thumbHeight);
+        scrollbarThumb.style.top = `${thumbPosition}px`;
+      }
+
+      scrollUpBtn.addEventListener('click', () => {
+        const currentScroll = Math.abs(parseInt(echeladderContent.style.top) || 0);
+        updateScroll(currentScroll - rungHeight);
+      });
+
+      scrollDownBtn.addEventListener('click', () => {
+        const currentScroll = Math.abs(parseInt(echeladderContent.style.top) || 0);
+        updateScroll(currentScroll + rungHeight);
+      });
+
+      let isDragging = false;
+      let startY = 0;
+      let startThumbTop = 0;
+
+      scrollbarThumb.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startY = e.clientY;
+        startThumbTop = parseInt(scrollbarThumb.style.top) || 0;
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const deltaY = e.clientY - startY;
+        const newThumbTop = Math.max(0, Math.min(startThumbTop + deltaY, trackHeight - thumbHeight));
+        scrollbarThumb.style.top = `${newThumbTop}px`;
+
+        const scrollRatio = newThumbTop / (trackHeight - thumbHeight);
+        const newScrollTop = scrollRatio * scrollableHeight;
+        echeladderContent.style.top = `-${newScrollTop}px`;
+      });
+
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+    },
+
+    renderGodTierSprite(container, config) {
+      console.log('Rendering god tier symbol for:', config);
+      const aspectName = config.aspect.toLowerCase();
+      container.innerHTML = `
+        <img src="/images/aspects/${aspectName}.svg" alt="${config.aspect} aspect" style="width: 72px; height: 72px;" title="${config.characterName} - ${config.class} of ${config.aspect}" />
+      `;
+    },
+
+    renderHealthBarSprite(container, config) {
+      console.log('Rendering health bar:', config);
+      const percentage = Math.max(0, Math.min(100, (config.currentHealth / config.maxHealth) * 100));
+
+      container.innerHTML = `
+        <div style="width: 72px; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="36" cy="36" r="30" fill="none" stroke="#333" stroke-width="4"/>
+            <circle cx="36" cy="36" r="30" fill="none" stroke="#72EB34" stroke-width="4"
+              stroke-dasharray="${2 * Math.PI * 30}"
+              stroke-dashoffset="${2 * Math.PI * 30 * (1 - percentage / 100)}"
+              transform="rotate(-90 36 36)"
+              stroke-linecap="round"/>
+            ${config.showNumbers !== false ? `<text x="36" y="40" text-anchor="middle" font-size="10" font-weight="bold" fill="#72EB34" font-family="monospace">${config.currentHealth}/${config.maxHealth}</text>` : ''}
+          </svg>
+        </div>
+      `;
+    },
+
+    renderGristSprite(container, config, pov, gristOrder, gristIconPaths, setPageGrist, getCharacterGristAtPage, initGristCounter) {
+      console.log('Rendering grist counter:', config);
+
+      const character = config.character || pov;
+
+      if (config.deltas && Object.keys(config.deltas).length > 0) {
+        setPageGrist(character, config.pageNumber, config.deltas);
+      }
+
+      const inventory = getCharacterGristAtPage(character, config.pageNumber);
+
+      const availableGrists = gristOrder.filter(gristType => inventory[gristType] && inventory[gristType] > 0);
+
+      if (availableGrists.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const gristHTML = availableGrists.map((gristType, index) => {
+        const amount = inventory[gristType];
+        const iconPath = gristIconPaths[gristType];
+        return `
+          <div class="grist-item" data-index="${index}" data-grist="${gristType}">
+            <img src="${iconPath}" alt="${gristType}" class="grist-icon" />
+            <span class="grist-amount">${amount}</span>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="grist-counter" id="grist-counter">
+          <div class="grist-list" id="grist-list">
+            ${gristHTML}
+          </div>
+        </div>
+      `;
+
+      requestAnimationFrame(() => {
+        initGristCounter(availableGrists.length);
+      });
+    }
+  };
+</script>
