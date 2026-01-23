@@ -38,8 +38,8 @@
 
       const totalLevels = 50;
       const visibleRungs = 3;
-      const rungHeight = 40;
-      const containerHeight = visibleRungs * rungHeight;
+      const rungHeight = 24;
+      const containerHeight = 72;
 
       let rungs = '';
       for (let i = totalLevels; i >= 1; i--) {
@@ -48,24 +48,26 @@
         const isFutureLevel = i > currentLevel;
 
         rungs += `
-          <div class="echeladder-rung ${isCurrentLevel ? 'current' : ''} ${isFutureLevel ? 'future' : ''}" data-level="${i}">
-            <span class="rung-level">${i}</span>
-            <span class="rung-name">${levelName}</span>
+          <div class="echeladder-rung ${isCurrentLevel ? 'current' : ''} ${isFutureLevel ? 'future' : ''}" data-level="${i}" style="height: ${rungHeight}px; display: flex; align-items: center; padding: 0 4px; background: #000; color: #fff; font-weight: bold; border-bottom: 2px solid #0066ff;">
+            <span class="rung-level" style="font-size: 10px; margin-right: 4px;">${i}</span>
+            <span class="rung-name" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${levelName}</span>
           </div>
         `;
       }
 
       container.innerHTML = `
-        <div class="echeladder-container" style="height: ${containerHeight}px; position: relative; overflow: hidden;">
-          <div class="echeladder-content" style="position: absolute; width: 100%;">
-            ${rungs}
-          </div>
-          <div class="custom-scrollbar" style="position: absolute; right: 0; top: 0; bottom: 0; width: 16px;">
-            <button class="scrollbar-button scrollbar-up" aria-label="Scroll up">▲</button>
-            <div class="scrollbar-track">
-              <div class="scrollbar-thumb"></div>
+        <div class="echeladder-container" style="height: ${containerHeight}px; width: 72px; position: relative; overflow: visible; background: #000;">
+          <div class="custom-scrollbar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 14px; background: #c0c0c0; border-right: 2px solid #0066ff; z-index: 1;">
+            <button class="scrollbar-button scrollbar-up" style="width: 100%; height: 16px; background: #c0c0c0; border: none; color: #000; cursor: pointer; font-size: 8px; display: flex; align-items: center; justify-content: center; padding: 0;" aria-label="Scroll up">▲</button>
+            <div class="scrollbar-track" style="position: relative; height: calc(100% - 32px); background: #c0c0c0;">
+              <div class="scrollbar-thumb" style="position: absolute; width: 100%; background: #c0c0c0; cursor: grab; border: 1px outset #dfdfdf;"></div>
             </div>
-            <button class="scrollbar-button scrollbar-down" aria-label="Scroll down">▼</button>
+            <button class="scrollbar-button scrollbar-down" style="width: 100%; height: 16px; background: #c0c0c0; border: none; color: #000; cursor: pointer; font-size: 8px; display: flex; align-items: center; justify-content: center; padding: 0;" aria-label="Scroll down">▼</button>
+          </div>
+          <div class="echeladder-content-wrapper" style="position: absolute; width: calc(100% - 16px); left: 16px; top: 0; bottom: 0; overflow: hidden; border: 2px solid #0066ff; border-left: none;">
+            <div class="echeladder-content" style="position: relative; width: 100%;">
+              ${rungs}
+            </div>
           </div>
         </div>
       `;
@@ -75,11 +77,12 @@
       const scrollbarTrack = container.querySelector('.scrollbar-track');
       const scrollUpBtn = container.querySelector('.scrollbar-up');
       const scrollDownBtn = container.querySelector('.scrollbar-down');
+      const echeladderContainer = container.querySelector('.echeladder-container');
 
       const contentHeight = totalLevels * rungHeight;
       const scrollableHeight = contentHeight - containerHeight;
       const trackHeight = scrollbarTrack.clientHeight;
-      const thumbHeight = Math.max(30, (containerHeight / contentHeight) * trackHeight);
+      const thumbHeight = Math.max(20, (containerHeight / contentHeight) * trackHeight);
       scrollbarThumb.style.height = `${thumbHeight}px`;
 
       const currentRung = container.querySelector(`.echeladder-rung[data-level="${currentLevel}"]`);
@@ -109,6 +112,20 @@
         updateScroll(currentScroll + rungHeight);
       });
 
+      scrollUpBtn.addEventListener('mouseenter', () => {
+        scrollUpBtn.style.background = '#d0d0d0';
+      });
+      scrollUpBtn.addEventListener('mouseleave', () => {
+        scrollUpBtn.style.background = '#c0c0c0';
+      });
+
+      scrollDownBtn.addEventListener('mouseenter', () => {
+        scrollDownBtn.style.background = '#d0d0d0';
+      });
+      scrollDownBtn.addEventListener('mouseleave', () => {
+        scrollDownBtn.style.background = '#c0c0c0';
+      });
+
       let isDragging = false;
       let startY = 0;
       let startThumbTop = 0;
@@ -117,7 +134,21 @@
         isDragging = true;
         startY = e.clientY;
         startThumbTop = parseInt(scrollbarThumb.style.top) || 0;
+        scrollbarThumb.style.cursor = 'grabbing';
+        scrollbarThumb.style.border = '1px inset #dfdfdf';
         e.preventDefault();
+      });
+
+      scrollbarThumb.addEventListener('mouseenter', () => {
+        if (!isDragging) {
+          scrollbarThumb.style.background = '#d0d0d0';
+        }
+      });
+
+      scrollbarThumb.addEventListener('mouseleave', () => {
+        if (!isDragging) {
+          scrollbarThumb.style.background = '#c0c0c0';
+        }
       });
 
       document.addEventListener('mousemove', (e) => {
@@ -133,7 +164,18 @@
       });
 
       document.addEventListener('mouseup', () => {
-        isDragging = false;
+        if (isDragging) {
+          isDragging = false;
+          scrollbarThumb.style.cursor = 'grab';
+          scrollbarThumb.style.border = '1px outset #dfdfdf';
+        }
+      });
+
+      echeladderContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const currentScroll = Math.abs(parseInt(echeladderContent.style.top) || 0);
+        const delta = e.deltaY > 0 ? rungHeight : -rungHeight;
+        updateScroll(currentScroll + delta);
       });
     },
 
