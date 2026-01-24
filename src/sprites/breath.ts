@@ -72,12 +72,27 @@ export function getLevelName(character: string, level: number): string {
   return names[level - 1] || `Level ${level}`;
 }
 
-export function createBreathConfig(level: number, pov: string): BreathConfig {
-  setCharacterLevel(pov, level);
+export function createBreathConfig(levelOrPov: number | string, pov?: string): BreathConfig {
+  let actualLevel: number;
+  let actualPov: string;
+
+  if (typeof levelOrPov === 'string') {
+    actualPov = levelOrPov.toLowerCase();
+    actualLevel = getCharacterLevel(actualPov);
+  } else {
+    actualLevel = levelOrPov;
+    if (pov) {
+      actualPov = pov.toLowerCase();
+      setCharacterLevel(actualPov, actualLevel);
+    } else {
+      actualPov = '';
+    }
+  }
+
   return {
     type: 'breath',
-    currentLevel: level,
-    pov: pov.toLowerCase()
+    currentLevel: actualLevel,
+    pov: actualPov
   };
 }
 

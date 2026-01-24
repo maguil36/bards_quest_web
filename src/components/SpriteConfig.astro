@@ -70,12 +70,15 @@
  * Character level/rank progression display (50 levels total)
  * Shows a scrollable ladder with 3 visible rungs at a time
  * Level names are POV-specific and automatically determined
- * If a page doesn't define a level, it uses the last level set for that POV
+ *
+ * The breath aspect automatically uses the page's POV character.
+ * If you don't specify a breath config, it will use the last known level for that POV.
+ * Only specify breath when you want to change the level.
  *
  * Examples:
- *   breath: createBreathConfig(5, 'alexis')  // Alexis at level 5
- *   breath: createBreathConfig(1, 'isabell')  // Isabell at level 1
- *   breath: createBreathConfig(10, 'irene')  // Irene at level 10
+ *   breath: createBreathConfig(5)  // Set POV character to level 5
+ *   // No breath config = use last known level for this POV
+ *   breath: createBreathConfig(10, 'irene')  // Override: set Irene to level 10
  *
  * ===== HEART ASPECT (Quadrant) =====
  * Relationship quadrant indicator from external card suit icons
@@ -140,7 +143,7 @@
 
 import { defaultSprite } from '../sprites/default';
 import { spaceSprite, createSpaceConfig } from '../sprites/space';
-import { breathSprite, createBreathConfig } from '../sprites/breath';
+import { breathSprite, createBreathConfig, setCharacterLevel, getCharacterLevel } from '../sprites/breath';
 import { lightSprite, createLightConfig } from '../sprites/light';
 import { timeSprite, createTimeConfig } from '../sprites/time';
 import { heartSprite, createHeartConfig } from '../sprites/heart';
@@ -182,271 +185,289 @@ export type SpriteConfig = ClockConfig | StaticConfig | any;
  * If an aspect is not defined for a page, it will fall back to the default sprite.
  * You can override specific aspects per page as needed.
  */
-export const pageConfigs: Record<number, Record<string, any>> = await (async () => ({
-  1: {
-    pov: 'alexis',
-    time: createTimeConfig('loop', '12:30:50', '+ 0', {
-      startDate: '2026:01:01',
-      middleTimes: ['+ 5', '= 5', '+ 0', '+ 5']
-    }),
-    space: createSpaceConfig('Earth'),
-    breath: createBreathConfig(1, 'alexis'),
-    light: createLightConfig('Alexis appears'),
-    heart: await createHeartConfig('heart'),
-    mind: createMindConfig('observing'),
-    life: createLifeConfig(50, 100),
-    doom: createDoomConfig([]),
-    blood: createBloodConfig(1, { 'Build': 10 }),
-    void: createVoidConfig({ page: 1 }, '')
-  },
-  2: {
-    pov: 'isabell',
-    time: createTimeConfig('loop', '08:00:00', '08:00:30', { speed: 2 }),
-    space: createSpaceConfig('Prospit'),
-    breath: createBreathConfig(1, 'isabell'),
-    light: createLightConfig('Austine joins'),
-    heart: await createHeartConfig('diamond'),
-    mind: createMindConfig('curious'),
-    life: createLifeConfig(95, 100),
-    doom: createDoomConfig([{ name: 'Apple' }]),
-    blood: createBloodConfig(2, {'Build': 5}),
-    void: createVoidConfig({ page: 2 }, 'Dreams whisper truths the waking mind cannot grasp.')
-  },
-  3: {
-    pov: 'alexis',
-    time: createTimeConfig('default'),
-    space: createSpaceConfig('Derse'),
-    breath: createBreathConfig(2, 'alexis'),
-    light: createLightConfig('Chloe enters'),
-    heart: await createHeartConfig('spade'),
-    mind: createMindConfig('thinking...'),
-    life: createLifeConfig(88, 100),
-    doom: createDoomConfig([{ name: 'Sword' }]),
-    blood: createBloodConfig(3, { 'Chalk': 5 }),
-    void: createVoidConfig({ page: 3 }, 'In darkness, we find what light conceals.')
-  },
-  4: {
-    pov: 'alexis',
-    time: createTimeConfig('loop', '12:00:00', '12:05:00', { speed: 2 }),
-    space: createSpaceConfig('LOXAY1'),
-    breath: createBreathConfig(2, 'alexis'),
-    light: createLightConfig('Isabell arrives'),
-    heart: await createHeartConfig('club'),
-    mind: createMindConfig('focused'),
-    life: createLifeConfig(92, 100),
-    doom: createDoomConfig([{ name: 'Shield' }]),
-    blood: createBloodConfig(4, { 'Build': -3 }),
-    void: createVoidConfig({ page: 4 }, 'The land remembers what we forget.')
-  },
-  5: {
-    pov: 'alexis',
-    time: createTimeConfig('default'),
-    space: createSpaceConfig('LOXAY2'),
-    breath: createBreathConfig(3, 'alexis'),
-    light: createLightConfig('Nicholas appears'),
-    heart: await createHeartConfig('heart'),
-    mind: createMindConfig('planning'),
-    life: createLifeConfig(85, 100),
-    doom: createDoomConfig([{ name: 'Potion' }]),
-    blood: createBloodConfig(5, { 'Garnet': 10 }),
-    void: createVoidConfig({ page: 5 }, 'Every choice echoes in the void.')
-  },
-  6: {
-    pov: 'alexis',
-    time: createTimeConfig('loop', '06:00:00', '06:10:00', { speed: 1.5 }),
-    space: createSpaceConfig('LOXAY3'),
-    breath: createBreathConfig(3, 'alexis'),
-    light: createLightConfig('Opal joins'),
-    heart: await createHeartConfig('diamond'),
-    mind: createMindConfig('analyzing'),
-    life: createLifeConfig(78, 100),
-    doom: createDoomConfig([{ name: 'Key' }]),
-    blood: createBloodConfig(6, { 'Iodine': 8 }),
-    void: createVoidConfig({ page: 6 }, 'Knowledge is a double-edged blade.')
-  },
-  7: {
-    pov: 'alexis',
-    time: createTimeConfig('default'),
-    space: createSpaceConfig('LOXAY4'),
-    breath: createBreathConfig(4, 'alexis'),
-    light: createLightConfig('Tyson shows up'),
-    heart: await createHeartConfig('spade'),
-    mind: createMindConfig('irritated'),
-    life: createLifeConfig(70, 100),
-    doom: createDoomConfig([{ name: 'Book' }]),
-    blood: createBloodConfig(7, { 'Mercury': 7 }),
-    void: createVoidConfig({ page: 7 }, 'Rage burns brightest before it fades.')
-  },
-  8: {
-    pov: 'alexis',
-    time: createTimeConfig('loop', '18:00:00', '18:15:00', { speed: 3 }),
-    space: createSpaceConfig('LOXAY5'),
-    breath: createBreathConfig(4, 'alexis'),
-    light: createLightConfig('Victor arrives'),
-    heart: await createHeartConfig('club'),
-    mind: createMindConfig('melancholy'),
-    life: createLifeConfig(65, 100),
-    doom: createDoomConfig([{ name: 'Map' }]),
-    blood: createBloodConfig(8, { 'Quartz': 12 }),
-    void: createVoidConfig({ page: 8 }, 'Sorrow carves deeper than any blade.')
-  },
-  9: {
-    pov: 'alexis',
-    time: createTimeConfig('default'),
-    space: createSpaceConfig('LOXAY6'),
-    breath: createBreathConfig(5, 'alexis'),
-    light: createLightConfig('Alice appears'),
-    heart: await createHeartConfig('heart'),
-    mind: createMindConfig('energized'),
-    life: createLifeConfig(100, 100),
-    doom: createDoomConfig([{ name: 'Compass' }]),
-    blood: createBloodConfig(9, { 'Ruby': 15 }),
-    void: createVoidConfig({ page: 9 }, 'Life finds a way, even in the void.')
-  },
-  10: {
-    pov: 'alexis',
-    time: createTimeConfig('loop', '00:00:00', '00:05:00', { speed: 1 }),
-    space: createSpaceConfig('LOXAY7'),
-    breath: createBreathConfig(5, 'alexis'),
-    light: createLightConfig('Audrey enters'),
-    heart: await createHeartConfig('diamond'),
-    mind: createMindConfig('peaceful'),
-    life: createLifeConfig(90, 100),
-    doom: createDoomConfig([{ name: 'Scroll' }]),
-    blood: createBloodConfig(10, { 'Rust': 9 }),
-    void: createVoidConfig({ page: 10 }, 'Midnight holds secrets the day will never know.')
-  },
-  11: {
-    pov: 'alexis',
-    time: createTimeConfig('default'),
-    space: createSpaceConfig('LOXAY8'),
-    breath: createBreathConfig(6, 'alexis'),
-    light: createLightConfig('Clayton joins'),
-    heart: await createHeartConfig('spade'),
-    mind: createMindConfig('determined'),
-    life: createLifeConfig(82, 100),
-    doom: createDoomConfig([{ name: 'Lantern' }]),
-    blood: createBloodConfig(11, { 'Shale': 6 }),
-    void: createVoidConfig({ page: 11 }, 'Blood binds us to what we cannot escape.')
-  },
-  12: {
-    pov: 'irene',
-    time: createTimeConfig('loop', '15:30:00', '15:45:00', { speed: 2 }),
-    space: createSpaceConfig('LOXAY9'),
-    breath: createBreathConfig(1, 'irene'),
-    light: createLightConfig('Irene appears'),
-    heart: await createHeartConfig('club'),
-    mind: createMindConfig('resolute'),
-    life: createLifeConfig(75, 100),
-    doom: createDoomConfig([{ name: 'Orb' }]),
-    blood: createBloodConfig(12, { 'Sulfur': 11 }),
-    void: createVoidConfig({ page: 12 }, 'To steal from nothing is to gain everything.')
-  },
-  13: {
-    pov: 'alexis',
-    time: createTimeConfig('default'),
-    space: createSpaceConfig('Skaia'),
-    breath: createBreathConfig(7, 'alexis'),
-    light: createLightConfig('Nix arrives'),
-    heart: await createHeartConfig('heart'),
-    mind: createMindConfig('joyful'),
-    life: createLifeConfig(95, 100),
-    doom: createDoomConfig([{ name: 'Ring' }]),
-    blood: createBloodConfig(13, { 'Tar': 14 }),
-    void: createVoidConfig({ page: 13 }, 'The battlefield reflects all possible futures.')
-  },
-  14: {
-    pov: 'alexis',
-    time: createTimeConfig('loop', '09:00:00', '09:20:00', { speed: 1.5 }),
-    space: createSpaceConfig('Prospit'),
-    breath: createBreathConfig(7, 'alexis'),
-    light: createLightConfig('Nix (alt) appears'),
-    heart: await createHeartConfig('diamond'),
-    mind: createMindConfig('puzzled'),
-    life: createLifeConfig(68, 100),
-    doom: createDoomConfig([{ name: 'Amulet' }]),
-    blood: createBloodConfig(14, { 'Uranium': 20 }),
-    void: createVoidConfig({ page: 14 }, 'Golden towers hide golden lies.')
-  },
-  15: {
-    pov: 'alexis',
-    time: createTimeConfig('default'),
-    space: createSpaceConfig('Derse'),
-    breath: createBreathConfig(8, 'alexis'),
-    light: createLightConfig('Octavian enters'),
-    heart: await createHeartConfig('spade'),
-    mind: createMindConfig('furious'),
-    life: createLifeConfig(60, 100),
-    doom: createDoomConfig([{ name: 'Crown' }]),
-    blood: createBloodConfig(15, { 'Zillium': 25 }),
-    void: createVoidConfig({ page: 15 }, 'Purple spires pierce the veil of reality.')
-  },
-  16: {
-    pov: 'alexis',
-    time: createTimeConfig('loop', '21:00:00', '21:10:00', { speed: 2.5 }),
-    space: createSpaceConfig('LOXAY1'),
-    breath: createBreathConfig(8, 'alexis'),
-    light: createLightConfig('Trenton joins'),
-    heart: await createHeartConfig('club'),
-    mind: createMindConfig('confident'),
-    life: createLifeConfig(88, 100),
-    doom: createDoomConfig([{ name: 'Gem' }]),
-    blood: createBloodConfig(16, { 'Diamond': 18 }),
-    void: createVoidConfig({ page: 16 }, 'Night falls, and with it, hope.')
-  },
-  17: {
-    pov: 'alexis',
-    time: createTimeConfig('default'),
-    space: createSpaceConfig('LOXAY2'),
-    breath: createBreathConfig(9, 'alexis'),
-    light: createLightConfig('Vettia appears'),
-    heart: await createHeartConfig('heart'),
-    mind: createMindConfig('thrilled'),
-    life: createLifeConfig(88, 100),
-    doom: createDoomConfig([{ name: 'Tablet' }]),
-    blood: createBloodConfig(17, { 'Gold': 30 }),
-    void: createVoidConfig({ page: 17 }, 'The heart knows what the mind denies.')
-  },
-  18: {
-    pov: 'alexis',
-    time: createTimeConfig('loop', '03:00:00', '03:30:00', { speed: 1 }),
-    space: createSpaceConfig('LOXAY3'),
-    breath: createBreathConfig(9, 'alexis'),
-    light: createLightConfig('Okwos emerges'),
-    heart: await createHeartConfig('diamond'),
-    mind: createMindConfig('serene'),
-    life: createLifeConfig(72, 100),
-    doom: createDoomConfig([{ name: 'Chalice' }]),
-    blood: createBloodConfig(18, { 'Artifact': 22 }),
-    void: createVoidConfig({ page: 18 }, 'In the witching hour, truth speaks.')
-  },
-  19: {
-    pov: 'alexis',
-    time: createTimeConfig('default'),
-    space: createSpaceConfig('LOXAY4'),
-    breath: createBreathConfig(10, 'alexis'),
-    light: createLightConfig('Gwenhas arrives'),
-    heart: await createHeartConfig('spade'),
-    mind: createMindConfig('focused'),
-    life: createLifeConfig(100, 100),
-    doom: createDoomConfig([{ name: 'Artifact' }]),
-    blood: createBloodConfig(19, { 'Cobalt': 28 }),
-    void: createVoidConfig({ page: 19 }, 'Hope is the last light before the void.')
-  },
-  20: {
-    pov: 'alexis',
-    time: createTimeConfig('loop', '12:30:00', '13:00:00', { speed: 3 }),
-    space: createSpaceConfig('LOXAY5'),
-    breath: createBreathConfig(10, 'alexis'),
-    light: createLightConfig('Dhesas appears'),
-    heart: await createHeartConfig('club'),
-    mind: createMindConfig('triumphant'),
-    life: createLifeConfig(100, 100),
-    doom: createDoomConfig([{ name: 'Trophy' }]),
-    blood: createBloodConfig(20, { 'Build': 50, 'Amethyst': 10 }),
-    void: createVoidConfig({ page: 20 }, 'The end is just another beginning hidden in shadow.')
+
+export const pageConfigs: Record<number, Record<string, any>> = await (async () => {
+  const configs = {
+    1: {
+      pov: 'alexis',
+      time: createTimeConfig('loop', '12:30:50', '+ 0', {
+        startDate: '2026:01:01',
+        middleTimes: ['+ 5', '= 5', '+ 0', '+ 5']
+      }),
+      space: createSpaceConfig('Earth'),
+      breath: createBreathConfig(5),
+      light: createLightConfig('Alexis appears'),
+      heart: await createHeartConfig('heart'),
+      mind: createMindConfig('observing'),
+      life: createLifeConfig(50, 100),
+      doom: createDoomConfig([]),
+      blood: createBloodConfig(1, { 'Build': 10 }),
+      void: createVoidConfig({ page: 1 }, '')
+    },
+    2: {
+      pov: 'isabell',
+      time: createTimeConfig('loop', '08:00:00', '08:00:30', { speed: 2 }),
+      space: createSpaceConfig('Prospit'),
+      breath: createBreathConfig(1),
+      light: createLightConfig('Austine joins'),
+      heart: await createHeartConfig('diamond'),
+      mind: createMindConfig('curious'),
+      life: createLifeConfig(95, 100),
+      doom: createDoomConfig([{ name: 'Apple' }]),
+      blood: createBloodConfig(2, {'Build': 5}),
+      void: createVoidConfig({ page: 2 }, 'Dreams whisper truths the waking mind cannot grasp.')
+    },
+    3: {
+      pov: 'alexis',
+      time: createTimeConfig('default'),
+      space: createSpaceConfig('Derse'),
+      light: createLightConfig('Chloe enters'),
+      heart: await createHeartConfig('spade'),
+      mind: createMindConfig('thinking...'),
+      life: createLifeConfig(88, 100),
+      doom: createDoomConfig([{ name: 'Sword' }]),
+      blood: createBloodConfig(3, { 'Chalk': 5 }),
+      void: createVoidConfig({ page: 3 }, 'In darkness, we find what light conceals.')
+    },
+    4: {
+      pov: 'alexis',
+      time: createTimeConfig('loop', '12:00:00', '12:05:00', { speed: 2 }),
+      space: createSpaceConfig('LOXAY1'),
+      breath: createBreathConfig(2),
+      light: createLightConfig('Isabell arrives'),
+      heart: await createHeartConfig('club'),
+      mind: createMindConfig('focused'),
+      life: createLifeConfig(92, 100),
+      doom: createDoomConfig([{ name: 'Shield' }]),
+      blood: createBloodConfig(4, { 'Build': -3 }),
+      void: createVoidConfig({ page: 4 }, 'The land remembers what we forget.')
+    },
+    5: {
+      pov: 'alexis',
+      time: createTimeConfig('default'),
+      space: createSpaceConfig('LOXAY2'),
+      breath: createBreathConfig(3),
+      light: createLightConfig('Nicholas appears'),
+      heart: await createHeartConfig('heart'),
+      mind: createMindConfig('planning'),
+      life: createLifeConfig(85, 100),
+      doom: createDoomConfig([{ name: 'Potion' }]),
+      blood: createBloodConfig(5, { 'Garnet': 10 }),
+      void: createVoidConfig({ page: 5 }, 'Every choice echoes in the void.')
+    },
+    6: {
+      pov: 'alexis',
+      time: createTimeConfig('loop', '06:00:00', '06:10:00', { speed: 1.5 }),
+      space: createSpaceConfig('LOXAY3'),
+      light: createLightConfig('Opal joins'),
+      heart: await createHeartConfig('diamond'),
+      mind: createMindConfig('analyzing'),
+      life: createLifeConfig(78, 100),
+      doom: createDoomConfig([{ name: 'Key' }]),
+      blood: createBloodConfig(6, { 'Iodine': 8 }),
+      void: createVoidConfig({ page: 6 }, 'Knowledge is a double-edged blade.')
+    },
+    7: {
+      pov: 'alexis',
+      time: createTimeConfig('default'),
+      space: createSpaceConfig('LOXAY4'),
+      breath: createBreathConfig(4),
+      light: createLightConfig('Tyson shows up'),
+      heart: await createHeartConfig('spade'),
+      mind: createMindConfig('irritated'),
+      life: createLifeConfig(70, 100),
+      doom: createDoomConfig([{ name: 'Book' }]),
+      blood: createBloodConfig(7, { 'Mercury': 7 }),
+      void: createVoidConfig({ page: 7 }, 'Rage burns brightest before it fades.')
+    },
+    8: {
+      pov: 'alexis',
+      time: createTimeConfig('loop', '18:00:00', '18:15:00', { speed: 3 }),
+      space: createSpaceConfig('LOXAY5'),
+      light: createLightConfig('Victor arrives'),
+      heart: await createHeartConfig('club'),
+      mind: createMindConfig('melancholy'),
+      life: createLifeConfig(65, 100),
+      doom: createDoomConfig([{ name: 'Map' }]),
+      blood: createBloodConfig(8, { 'Quartz': 12 }),
+      void: createVoidConfig({ page: 8 }, 'Sorrow carves deeper than any blade.')
+    },
+    9: {
+      pov: 'alexis',
+      time: createTimeConfig('default'),
+      space: createSpaceConfig('LOXAY6'),
+      breath: createBreathConfig(5),
+      light: createLightConfig('Alice appears'),
+      heart: await createHeartConfig('heart'),
+      mind: createMindConfig('energized'),
+      life: createLifeConfig(100, 100),
+      doom: createDoomConfig([{ name: 'Compass' }]),
+      blood: createBloodConfig(9, { 'Ruby': 15 }),
+      void: createVoidConfig({ page: 9 }, 'Life finds a way, even in the void.')
+    },
+    10: {
+      pov: 'alexis',
+      time: createTimeConfig('loop', '00:00:00', '00:05:00', { speed: 1 }),
+      space: createSpaceConfig('LOXAY7'),
+      light: createLightConfig('Audrey enters'),
+      heart: await createHeartConfig('diamond'),
+      mind: createMindConfig('peaceful'),
+      life: createLifeConfig(90, 100),
+      doom: createDoomConfig([{ name: 'Scroll' }]),
+      blood: createBloodConfig(10, { 'Rust': 9 }),
+      void: createVoidConfig({ page: 10 }, 'Midnight holds secrets the day will never know.')
+    },
+    11: {
+      pov: 'alexis',
+      time: createTimeConfig('default'),
+      space: createSpaceConfig('LOXAY8'),
+      breath: createBreathConfig(6),
+      light: createLightConfig('Clayton joins'),
+      heart: await createHeartConfig('spade'),
+      mind: createMindConfig('determined'),
+      life: createLifeConfig(82, 100),
+      doom: createDoomConfig([{ name: 'Lantern' }]),
+      blood: createBloodConfig(11, { 'Shale': 6 }),
+      void: createVoidConfig({ page: 11 }, 'Blood binds us to what we cannot escape.')
+    },
+    12: {
+      pov: 'irene',
+      time: createTimeConfig('loop', '15:30:00', '15:45:00', { speed: 2 }),
+      space: createSpaceConfig('LOXAY9'),
+      breath: createBreathConfig(1),
+      light: createLightConfig('Irene appears'),
+      heart: await createHeartConfig('club'),
+      mind: createMindConfig('resolute'),
+      life: createLifeConfig(75, 100),
+      doom: createDoomConfig([{ name: 'Orb' }]),
+      blood: createBloodConfig(12, { 'Sulfur': 11 }),
+      void: createVoidConfig({ page: 12 }, 'To steal from nothing is to gain everything.')
+    },
+    13: {
+      pov: 'alexis',
+      time: createTimeConfig('default'),
+      space: createSpaceConfig('Skaia'),
+      breath: createBreathConfig(7),
+      light: createLightConfig('Nix arrives'),
+      heart: await createHeartConfig('heart'),
+      mind: createMindConfig('joyful'),
+      life: createLifeConfig(95, 100),
+      doom: createDoomConfig([{ name: 'Ring' }]),
+      blood: createBloodConfig(13, { 'Tar': 14 }),
+      void: createVoidConfig({ page: 13 }, 'The battlefield reflects all possible futures.')
+    },
+    14: {
+      pov: 'alexis',
+      time: createTimeConfig('loop', '09:00:00', '09:20:00', { speed: 1.5 }),
+      space: createSpaceConfig('Prospit'),
+      light: createLightConfig('Nix (alt) appears'),
+      heart: await createHeartConfig('diamond'),
+      mind: createMindConfig('puzzled'),
+      life: createLifeConfig(68, 100),
+      doom: createDoomConfig([{ name: 'Amulet' }]),
+      blood: createBloodConfig(14, { 'Uranium': 20 }),
+      void: createVoidConfig({ page: 14 }, 'Golden towers hide golden lies.')
+    },
+    15: {
+      pov: 'alexis',
+      time: createTimeConfig('default'),
+      space: createSpaceConfig('Derse'),
+      breath: createBreathConfig(8),
+      light: createLightConfig('Octavian enters'),
+      heart: await createHeartConfig('spade'),
+      mind: createMindConfig('furious'),
+      life: createLifeConfig(60, 100),
+      doom: createDoomConfig([{ name: 'Crown' }]),
+      blood: createBloodConfig(15, { 'Zillium': 25 }),
+      void: createVoidConfig({ page: 15 }, 'Purple spires pierce the veil of reality.')
+    },
+    16: {
+      pov: 'alexis',
+      time: createTimeConfig('loop', '21:00:00', '21:10:00', { speed: 2.5 }),
+      space: createSpaceConfig('LOXAY1'),
+      light: createLightConfig('Trenton joins'),
+      heart: await createHeartConfig('club'),
+      mind: createMindConfig('confident'),
+      life: createLifeConfig(88, 100),
+      doom: createDoomConfig([{ name: 'Gem' }]),
+      blood: createBloodConfig(16, { 'Diamond': 18 }),
+      void: createVoidConfig({ page: 16 }, 'Night falls, and with it, hope.')
+    },
+    17: {
+      pov: 'alexis',
+      time: createTimeConfig('default'),
+      space: createSpaceConfig('LOXAY2'),
+      breath: createBreathConfig(9),
+      light: createLightConfig('Vettia appears'),
+      heart: await createHeartConfig('heart'),
+      mind: createMindConfig('thrilled'),
+      life: createLifeConfig(88, 100),
+      doom: createDoomConfig([{ name: 'Tablet' }]),
+      blood: createBloodConfig(17, { 'Gold': 30 }),
+      void: createVoidConfig({ page: 17 }, 'The heart knows what the mind denies.')
+    },
+    18: {
+      pov: 'alexis',
+      time: createTimeConfig('loop', '03:00:00', '03:30:00', { speed: 1 }),
+      space: createSpaceConfig('LOXAY3'),
+      light: createLightConfig('Okwos emerges'),
+      heart: await createHeartConfig('diamond'),
+      mind: createMindConfig('serene'),
+      life: createLifeConfig(72, 100),
+      doom: createDoomConfig([{ name: 'Chalice' }]),
+      blood: createBloodConfig(18, { 'Artifact': 22 }),
+      void: createVoidConfig({ page: 18 }, 'In the witching hour, truth speaks.')
+    },
+    19: {
+      pov: 'alexis',
+      time: createTimeConfig('default'),
+      space: createSpaceConfig('LOXAY4'),
+      breath: createBreathConfig(10),
+      light: createLightConfig('Gwenhas arrives'),
+      heart: await createHeartConfig('spade'),
+      mind: createMindConfig('focused'),
+      life: createLifeConfig(100, 100),
+      doom: createDoomConfig([{ name: 'Artifact' }]),
+      blood: createBloodConfig(19, { 'Cobalt': 28 }),
+      void: createVoidConfig({ page: 19 }, 'Hope is the last light before the void.')
+    },
+    20: {
+      pov: 'alexis',
+      time: createTimeConfig('loop', '12:30:00', '13:00:00', { speed: 3 }),
+      space: createSpaceConfig('LOXAY5'),
+      light: createLightConfig('Dhesas appears'),
+      heart: await createHeartConfig('club'),
+      mind: createMindConfig('triumphant'),
+      life: createLifeConfig(100, 100),
+      doom: createDoomConfig([{ name: 'Trophy' }]),
+      blood: createBloodConfig(20, { 'Build': 50, 'Amethyst': 10 }),
+      void: createVoidConfig({ page: 20 }, 'The end is just another beginning hidden in shadow.')
+    }
+  };
+
+  // Post-process breath configs in two passes
+  // Pass 1: Set all explicit levels
+  for (const [pageNum, config] of Object.entries(configs)) {
+    if (config.breath && config.pov) {
+      const pov = config.pov.toLowerCase();
+      if (!config.breath.pov) {
+        config.breath.pov = pov;
+      }
+      setCharacterLevel(config.breath.pov, config.breath.currentLevel);
+    }
   }
-}))();
+
+  // Pass 2: Fill in missing breath configs with last known levels
+  for (const [pageNum, config] of Object.entries(configs)) {
+    if (config.pov && !config.breath) {
+      const pov = config.pov.toLowerCase();
+      const lastLevel = getCharacterLevel(pov);
+      config.breath = createBreathConfig(lastLevel, pov);
+    }
+  }
+
+  return configs;
+})();
 
 /**
  * Default fallback configuration for pages not explicitly defined (e.g., non-webcomic pages)
@@ -455,7 +476,7 @@ export const defaultPageConfig: Record<string, any> = await (async () => ({
   pov: 'redacted',
   time: createTimeConfig('default'),
   space: createSpaceConfig('Earth'),
-  breath: createBreathConfig(1, 'redacted'),
+  breath: createBreathConfig(1),
   light: createLightConfig('Unknown'),
   heart: await createHeartConfig('none'),
   mind: createMindConfig('neutral'),

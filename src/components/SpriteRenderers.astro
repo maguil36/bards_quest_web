@@ -33,12 +33,17 @@
     },
 
     renderBreathSprite(container, config, pov, getLevelName) {
-      const currentLevel = config.level || 1;
-      const character = config.character || pov;
+      const currentLevel = config.currentLevel || config.level || 1;
+      const character = config.pov || config.character || pov;
 
       const totalLevels = 50;
       const visibleRungs = 3;
-      const rungHeight = 24;
+      const rungHeight = 14;
+      const innerHeight = 56;
+      const innerWidth = 56;
+      const borderWidth = 12;
+      const outerHeight = innerHeight + (borderWidth * 3);
+      const outerWidth = innerWidth + (borderWidth * 5);
       const containerHeight = 72;
 
       let rungs = '';
@@ -48,25 +53,87 @@
         const isFutureLevel = i > currentLevel;
 
         rungs += `
-          <div class="echeladder-rung ${isCurrentLevel ? 'current' : ''} ${isFutureLevel ? 'future' : ''}" data-level="${i}" style="height: ${rungHeight}px; display: flex; align-items: center; padding: 0 4px; background: #000; color: #fff; font-weight: bold; border-bottom: 2px solid #0066ff;">
-            <span class="rung-level" style="font-size: 10px; margin-right: 4px;">${i}</span>
+          <div class="echeladder-rung ${isCurrentLevel ? 'current' : ''} ${isFutureLevel ? 'future' : ''}" data-level="${i}" style="height: ${rungHeight}px; display: flex; align-items: center; padding: 0 4px; background: #000; color: #fff; font-weight: bold; font-family: 'Courier New', monospace; border-bottom: 2px solid #4a92f7;">
             <span class="rung-name" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${levelName}</span>
           </div>
         `;
       }
 
       container.innerHTML = `
-        <div class="echeladder-container" style="height: ${containerHeight}px; width: 72px; position: relative; overflow: visible; background: #000;">
-          <div class="custom-scrollbar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 14px; background: #c0c0c0; border-right: 2px solid #0066ff; z-index: 1;">
-            <button class="scrollbar-button scrollbar-up" style="width: 100%; height: 16px; background: #c0c0c0; border: none; color: #000; cursor: pointer; font-size: 8px; display: flex; align-items: center; justify-content: center; padding: 0;" aria-label="Scroll up">▲</button>
-            <div class="scrollbar-track" style="position: relative; height: calc(100% - 32px); background: #c0c0c0;">
-              <div class="scrollbar-thumb" style="position: absolute; width: 100%; background: #c0c0c0; cursor: grab; border: 1px outset #dfdfdf;"></div>
+        <style>
+          .echeladder-outer-frame {
+            position: relative;
+            background: #fff;
+            border: ${borderWidth}px solid #4a92f7;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .echeladder-outer-frame::before {
+            content: 'ECHELADDER';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            font-weight: bold;
+            color: #fff;
+            background: #4a92f7;
+            padding: 0 2px;
+            line-height: ${borderWidth}px;
+          }
+          .echeladder-container::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 8px;
+            width: 90%;
+            height: 5px;
+            background: #c7e6ff;
+            transform: skewX(-40deg);
+            transform-origin: bottom left;
+            z-index: 2;
+          }
+          .custom-scrollbar::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            width: 100%;
+            height: 5px;
+            background: #cfcfcf;
+            transform: skewX(-40deg);
+            transform-origin: bottom left;
+            z-index: 2;
+          }
+          .echeladder-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -6px;
+            width: 6px;
+            height: 100%;
+            background: #93d0ff;
+            transform: skewY(-40deg);
+            transform-origin: top left;
+            z-index: 2;
+          }
+
+        </style>
+        <div class="echeladder-outer-frame" style="width: ${outerWidth}px; height: ${outerHeight}px; position: relative; left: -${(outerWidth - 72) / 2}px; top: -${(outerHeight - 72) / 2}px;">
+          <div class="echeladder-container" style="height: ${innerHeight}px; width: ${innerWidth}px; position: relative; overflow: visible; background: #000; margin-top: 3px;">
+            <div class="custom-scrollbar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 10px; background: #f1f1ec; border-right: 2px solid #4a92f7; z-index: 1;">
+              <button class="scrollbar-button scrollbar-up" style="width: 100%; height: 10px; background: #f1f1ec; border: none; color: #000; cursor: pointer; font-size: 6px; display: flex; align-items: center; justify-content: center; padding: 0;" aria-label="Scroll up">▲</button>
+              <div class="scrollbar-track" style="position: relative; height: calc(100% - 20px); background: #f1f1ec;">
+                <div class="scrollbar-thumb" style="position: absolute; width: 100%; background: #aac9eb; cursor: grab; border: 1px outset #6f89b0;"></div>
+              </div>
+              <button class="scrollbar-button scrollbar-down" style="width: 100%; height: 10px; background: #f1f1ec; border: none; color: #000; cursor: pointer; font-size: 6px; display: flex; align-items: center; justify-content: center; padding: 0;" aria-label="Scroll down">▼</button>
             </div>
-            <button class="scrollbar-button scrollbar-down" style="width: 100%; height: 16px; background: #c0c0c0; border: none; color: #000; cursor: pointer; font-size: 8px; display: flex; align-items: center; justify-content: center; padding: 0;" aria-label="Scroll down">▼</button>
-          </div>
-          <div class="echeladder-content-wrapper" style="position: absolute; width: calc(100% - 16px); left: 16px; top: 0; bottom: 0; overflow: hidden; border: 2px solid #0066ff; border-left: none;">
-            <div class="echeladder-content" style="position: relative; width: 100%;">
-              ${rungs}
+            <div class="echeladder-content-wrapper" style="position: absolute; width: calc(100% - 10px); left: 10px; top: 0; bottom: 0; overflow: hidden; border: 2px solid #4a92f7; border-left: none;">
+              <div class="echeladder-content" style="position: relative; width: 100%;">
+                ${rungs}
+              </div>
             </div>
           </div>
         </div>
@@ -80,9 +147,9 @@
       const echeladderContainer = container.querySelector('.echeladder-container');
 
       const contentHeight = totalLevels * rungHeight;
-      const scrollableHeight = contentHeight - containerHeight;
+      const scrollableHeight = contentHeight - innerHeight;
       const trackHeight = scrollbarTrack.clientHeight;
-      const thumbHeight = Math.max(20, (containerHeight / contentHeight) * trackHeight);
+      const thumbHeight = Math.max(12, (innerHeight / contentHeight) * trackHeight * 0.7);
       scrollbarThumb.style.height = `${thumbHeight}px`;
 
       const currentRung = container.querySelector(`.echeladder-rung[data-level="${currentLevel}"]`);
@@ -113,17 +180,17 @@
       });
 
       scrollUpBtn.addEventListener('mouseenter', () => {
-        scrollUpBtn.style.background = '#d0d0d0';
+        scrollUpBtn.style.background = '#ffffff';
       });
       scrollUpBtn.addEventListener('mouseleave', () => {
-        scrollUpBtn.style.background = '#c0c0c0';
+        scrollUpBtn.style.background = '#f1f1ec';
       });
 
       scrollDownBtn.addEventListener('mouseenter', () => {
-        scrollDownBtn.style.background = '#d0d0d0';
+        scrollDownBtn.style.background = '#ffffff';
       });
       scrollDownBtn.addEventListener('mouseleave', () => {
-        scrollDownBtn.style.background = '#c0c0c0';
+        scrollDownBtn.style.background = '#f1f1ec';
       });
 
       let isDragging = false;
@@ -135,19 +202,19 @@
         startY = e.clientY;
         startThumbTop = parseInt(scrollbarThumb.style.top) || 0;
         scrollbarThumb.style.cursor = 'grabbing';
-        scrollbarThumb.style.border = '1px inset #dfdfdf';
+        scrollbarThumb.style.border = '1px inset #6f89b0';
         e.preventDefault();
       });
 
       scrollbarThumb.addEventListener('mouseenter', () => {
         if (!isDragging) {
-          scrollbarThumb.style.background = '#d0d0d0';
+          scrollbarThumb.style.background = '#c0e0ff';
         }
       });
 
       scrollbarThumb.addEventListener('mouseleave', () => {
         if (!isDragging) {
-          scrollbarThumb.style.background = '#c0c0c0';
+          scrollbarThumb.style.background = '#aac9eb';
         }
       });
 
@@ -167,7 +234,8 @@
         if (isDragging) {
           isDragging = false;
           scrollbarThumb.style.cursor = 'grab';
-          scrollbarThumb.style.border = '1px outset #dfdfdf';
+          scrollbarThumb.style.border = '1px outset #6f89b0';
+          scrollbarThumb.style.background = '#aac9eb';
         }
       });
 

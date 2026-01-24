@@ -5,10 +5,24 @@ import { getDefaultTheme } from '../components/ThemeConfig.astro';
 import { getCharacterGristAtPage, gristOrder, gristIconPaths, setPageGrist } from '../sprites/blood';
 import { characterWeapons, rageWeaponPaths } from '../sprites/rage';
 import { lightCharacterPaths } from '../sprites/light';
-import { getLevelName, getCharacterLevel, characterLevelNames } from '../sprites/breath';
+import { getLevelName, getCharacterLevel, characterLevelNames, setCharacterLevel } from '../sprites/breath';
 import SpriteRenderers from '../components/SpriteRenderers.astro';
 
 const { title = 'Bards Quest', description = 'Portable archives.', canonical, page = 1 } = Astro.props;
+
+// Server-side: Collect all character levels from all pages to initialize state
+const characterLevelStates: Record<string, number> = {};
+for (const [pageNum, pageConfig] of Object.entries(pageConfigs)) {
+  if (pageConfig.breath && pageConfig.breath.currentLevel && pageConfig.breath.pov) {
+    const char = pageConfig.breath.pov.toLowerCase();
+    const level = pageConfig.breath.currentLevel;
+    // Keep the highest level seen for each character
+    if (!characterLevelStates[char] || characterLevelStates[char] < level) {
+      characterLevelStates[char] = level;
+      setCharacterLevel(char, level);
+    }
+  }
+}
 
 // Server-side: Import sprite data to pass to client script
 const characterWeaponsData = characterWeapons;
@@ -112,6 +126,7 @@ const navItems = [
     console.log('Current page:', currentPage);
     console.log('Loaded configs:', configs);
     console.log('Space config specifically:', configs.space);
+    console.log('Breath config specifically:', configs.breath);
 
     // Preload all grist data from all pages for all characters
     function preloadAllGristData() {
@@ -213,7 +228,7 @@ const navItems = [
 
     async function updateLeftSprite() {
       const theme = document.documentElement.getAttribute('data-theme') || 'space';
-      const config = configs[theme];
+      let config = configs[theme];
       const pov = configs.pov || 'alexis';
       const container = document.getElementById('left-sprite-container');
 
@@ -225,9 +240,20 @@ const navItems = [
       if (!container) return;
 
       if (!config) {
-        console.log('No config found for theme:', theme);
-        container.innerHTML = '';
-        return;
+        if (theme === 'breath') {
+          const { getCharacterLevel } = await import('../sprites/breath.ts');
+          const level = getCharacterLevel(pov);
+          config = {
+            type: 'breath',
+            currentLevel: level,
+            pov: pov
+          };
+          console.log('Created default breath config with remembered level:', level);
+        } else {
+          console.log('No config found for theme:', theme);
+          container.innerHTML = '';
+          return;
+        }
       }
 
       if (theme === 'void' && configs.void && configs.void.message && !voidMessageLogged) {
