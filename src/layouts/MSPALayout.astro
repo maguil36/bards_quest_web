@@ -729,17 +729,64 @@ const navItems = [
           let currentIndex = 0;
           const items = list.querySelectorAll('.grist-item');
 
-          function updateDisplay() {
+          function updateDisplay(isExpanded = false) {
             items.forEach((item, index) => {
-              item.style.display = index === currentIndex ? 'flex' : 'none';
+              item.classList.remove('active', 'above', 'below');
+
+              if (isExpanded) {
+                const prevIndex = (currentIndex - 1 + totalItems) % totalItems;
+                const nextIndex = (currentIndex + 1) % totalItems;
+
+                if (index === currentIndex) {
+                  item.classList.add('active');
+                  item.style.display = 'flex';
+                } else if (index === prevIndex) {
+                  item.classList.add('above');
+                  item.style.display = 'flex';
+                } else if (index === nextIndex) {
+                  item.classList.add('below');
+                  item.style.display = 'flex';
+                } else {
+                  item.style.display = 'none';
+                }
+              } else {
+                if (index === currentIndex) {
+                  item.classList.add('active');
+                  item.style.display = 'flex';
+                } else {
+                  item.style.display = 'none';
+                }
+              }
             });
+
+            if (isExpanded) {
+              counter.classList.add('expanded');
+            } else {
+              counter.classList.remove('expanded');
+            }
           }
 
-          updateDisplay();
+          updateDisplay(false);
 
-          counter.addEventListener('click', () => {
-            currentIndex = (currentIndex + 1) % totalItems;
-            updateDisplay();
+          counter.addEventListener('mouseenter', () => {
+            updateDisplay(true);
+          });
+
+          counter.addEventListener('mouseleave', () => {
+            updateDisplay(false);
+          });
+
+          counter.addEventListener('wheel', (e) => {
+            e.preventDefault();
+
+            if (e.deltaY > 0) {
+              currentIndex = (currentIndex + 1) % totalItems;
+            } else {
+              currentIndex = (currentIndex - 1 + totalItems) % totalItems;
+            }
+
+            const isHovering = counter.matches(':hover');
+            updateDisplay(isHovering);
           });
 
           counter.style.cursor = 'pointer';

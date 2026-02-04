@@ -364,7 +364,7 @@ body {
   margin: 0;
   background: var(--bg-color, var(--bg-soft));
   color: var(--text-color, var(--text));
-  font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font: var(--reader-text, 18px)/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
 body[data-font="inter"] {
@@ -596,21 +596,21 @@ body.mspa {
   overflow: visible;
   transition: all 0.3s ease;
   cursor: pointer;
-  transform-origin: center bottom;
+  transform-origin: center center;
 }
 
 .grist-counter.expanded {
   height: auto;
   transform: scale(1.1);
   z-index: 100;
-  transform-origin: center bottom;
+  transform-origin: center center;
 }
 
 .grist-list {
   position: relative;
   width: 48px;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   align-items: center;
   gap: 0;
 }
@@ -645,6 +645,19 @@ body.mspa {
   opacity: 0;
   margin: 2px 0;
   background: rgba(80, 40, 20, 0.3);
+  position: absolute;
+}
+
+.grist-item.above {
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.grist-item.below {
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .grist-counter.expanded .grist-item.above,
@@ -1216,7 +1229,7 @@ body {
   margin: 0;
   background: var(--bg-color, var(--bg-soft));
   color: var(--text-color, var(--text));
-  font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font: var(--reader-text, 18px)/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
 body[data-font="inter"] {
@@ -1952,7 +1965,7 @@ body {
   margin: 0;
   background: var(--bg-color, var(--bg-soft));
   color: var(--text-color, var(--text));
-  font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font: var(--reader-text, 18px)/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
 body[data-font="inter"] {
@@ -2633,4 +2646,13 @@ html[data-contrast="high"] .pesterlog .redacted .msg {
   height: auto;
   aspect-ratio: 3 / 2;
   object-fit: cover;
+}
+
+/* Ensure headings maintain their own font sizes independent of --reader-text */
+h1, h2, h3, h4, h5, h6 {
+  font-size: revert;
+}
+
+.brand-title, .opt-title, .page-title {
+  font-size: revert;
 }

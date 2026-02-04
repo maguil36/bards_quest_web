@@ -40,21 +40,59 @@
       const visibleRungs = 3;
       const rungHeight = 14;
       const innerHeight = 56;
-      const innerWidth = 56;
+      const innerWidth = 72;
       const borderWidth = 12;
       const outerHeight = innerHeight + (borderWidth * 3);
-      const outerWidth = innerWidth + (borderWidth * 5);
+      const outerWidth = innerWidth + (borderWidth * 3);
       const containerHeight = 72;
+
+      // Seeded random number generator
+      function seededRandom(seed) {
+        let x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
+      }
+
+      // Generate seed from character name
+      function getCharacterSeed(name) {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+          hash = ((hash << 5) - hash) + name.charCodeAt(i);
+          hash = hash & hash;
+        }
+        return Math.abs(hash);
+      }
+
+      const characterSeed = getCharacterSeed(character.toLowerCase());
+
+      function getSeededColor(level) {
+        const seed = characterSeed + level * 1000;
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+          const randomValue = seededRandom(seed + i);
+          color += letters[Math.floor(randomValue * 16)];
+        }
+        return color;
+      }
 
       let rungs = '';
       for (let i = totalLevels; i >= 1; i--) {
         const levelName = getLevelName(character, i);
         const isCurrentLevel = i === currentLevel;
         const isFutureLevel = i > currentLevel;
+        const isPastLevel = i <= currentLevel;
+
+        let bgColor = '#000';
+        let textColor = '#fff';
+
+        if (isPastLevel) {
+          bgColor = getSeededColor(i * 2);
+          textColor = getSeededColor(i * 2 + 1);
+        }
 
         rungs += `
-          <div class="echeladder-rung ${isCurrentLevel ? 'current' : ''} ${isFutureLevel ? 'future' : ''}" data-level="${i}" style="height: ${rungHeight}px; display: flex; align-items: center; padding: 0 4px; background: #000; color: #fff; font-weight: bold; font-family: 'Courier New', monospace; border-bottom: 2px solid #4a92f7;">
-            <span class="rung-name" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${levelName}</span>
+          <div class="echeladder-rung ${isCurrentLevel ? 'current' : ''} ${isFutureLevel ? 'future' : ''}" data-level="${i}" title="${levelName}" style="height: ${rungHeight}px; display: flex; align-items: center; padding: 0 4px; background: ${bgColor}; color: ${textColor}; font-weight: bold; font-family: 'Courier New', monospace; border-bottom: 2px solid #4a92f7;">
+            <span class="rung-name" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.5px;">${levelName}</span>
           </div>
         `;
       }
@@ -121,8 +159,8 @@
           }
 
         </style>
-        <div class="echeladder-outer-frame" style="width: ${outerWidth}px; height: ${outerHeight}px; position: relative; left: -${(outerWidth - 72) / 2}px; top: -${(outerHeight - 72) / 2}px;">
-          <div class="echeladder-container" style="height: ${innerHeight}px; width: ${innerWidth}px; position: relative; overflow: visible; background: #000; margin-top: 3px;">
+        <div class="echeladder-outer-frame" style="width: ${outerWidth}px; height: ${outerHeight}px; position: relative; left: -${(outerWidth - 72) / 2 }px; top: -${(outerHeight - 72) / 2 + 4}px;">
+          <div class="echeladder-container" style="height: ${innerHeight}px; width: ${innerWidth}px; position: relative; overflow: visible; background: #000; margin-top: 3px; margin-left: -4px; margin-top: 5px;">
             <div class="custom-scrollbar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 10px; background: #f1f1ec; border-right: 2px solid #4a92f7; z-index: 1;">
               <button class="scrollbar-button scrollbar-up" style="width: 100%; height: 10px; background: #f1f1ec; border: none; color: #000; cursor: pointer; font-size: 6px; display: flex; align-items: center; justify-content: center; padding: 0;" aria-label="Scroll up">▲</button>
               <div class="scrollbar-track" style="position: relative; height: calc(100% - 20px); background: #f1f1ec;">

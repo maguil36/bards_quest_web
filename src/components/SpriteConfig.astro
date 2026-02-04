@@ -187,15 +187,15 @@ export type SpriteConfig = ClockConfig | StaticConfig | any;
  */
 
 export const pageConfigs: Record<number, Record<string, any>> = await (async () => {
-  const configs = {
+  const configs: Record<number, Record<string, any>> = {
     1: {
-      pov: 'alexis',
+      pov: 'victor',
       time: createTimeConfig('loop', '12:30:50', '+ 0', {
         startDate: '2026:01:01',
         middleTimes: ['+ 5', '= 5', '+ 0', '+ 5']
       }),
       space: createSpaceConfig('Earth'),
-      breath: createBreathConfig(5),
+      breath: createBreathConfig(1),
       light: createLightConfig('Alexis appears'),
       heart: await createHeartConfig('heart'),
       mind: createMindConfig('observing'),
@@ -205,10 +205,9 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 1 }, '')
     },
     2: {
-      pov: 'isabell',
+      pov: 'victor',
       time: createTimeConfig('loop', '08:00:00', '08:00:30', { speed: 2 }),
       space: createSpaceConfig('Prospit'),
-      breath: createBreathConfig(1),
       light: createLightConfig('Austine joins'),
       heart: await createHeartConfig('diamond'),
       mind: createMindConfig('curious'),
@@ -218,9 +217,10 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 2 }, 'Dreams whisper truths the waking mind cannot grasp.')
     },
     3: {
-      pov: 'alexis',
+      pov: 'victor',
       time: createTimeConfig('default'),
       space: createSpaceConfig('Derse'),
+      breath: createBreathConfig(6),
       light: createLightConfig('Chloe enters'),
       heart: await createHeartConfig('spade'),
       mind: createMindConfig('thinking...'),
@@ -230,10 +230,9 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 3 }, 'In darkness, we find what light conceals.')
     },
     4: {
-      pov: 'alexis',
+      pov: 'victor',
       time: createTimeConfig('loop', '12:00:00', '12:05:00', { speed: 2 }),
       space: createSpaceConfig('LOXAY1'),
-      breath: createBreathConfig(2),
       light: createLightConfig('Isabell arrives'),
       heart: await createHeartConfig('club'),
       mind: createMindConfig('focused'),
@@ -243,7 +242,7 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 4 }, 'The land remembers what we forget.')
     },
     5: {
-      pov: 'alexis',
+      pov: 'victor',
       time: createTimeConfig('default'),
       space: createSpaceConfig('LOXAY2'),
       breath: createBreathConfig(3),
@@ -256,7 +255,7 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 5 }, 'Every choice echoes in the void.')
     },
     6: {
-      pov: 'alexis',
+      pov: 'victor',
       time: createTimeConfig('loop', '06:00:00', '06:10:00', { speed: 1.5 }),
       space: createSpaceConfig('LOXAY3'),
       light: createLightConfig('Opal joins'),
@@ -268,7 +267,7 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 6 }, 'Knowledge is a double-edged blade.')
     },
     7: {
-      pov: 'alexis',
+      pov: 'victor',
       time: createTimeConfig('default'),
       space: createSpaceConfig('LOXAY4'),
       breath: createBreathConfig(4),
@@ -281,7 +280,7 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 7 }, 'Rage burns brightest before it fades.')
     },
     8: {
-      pov: 'alexis',
+      pov: 'opal',
       time: createTimeConfig('loop', '18:00:00', '18:15:00', { speed: 3 }),
       space: createSpaceConfig('LOXAY5'),
       light: createLightConfig('Victor arrives'),
@@ -293,7 +292,7 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 8 }, 'Sorrow carves deeper than any blade.')
     },
     9: {
-      pov: 'alexis',
+      pov: 'opal',
       time: createTimeConfig('default'),
       space: createSpaceConfig('LOXAY6'),
       breath: createBreathConfig(5),
@@ -306,7 +305,7 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 9 }, 'Life finds a way, even in the void.')
     },
     10: {
-      pov: 'alexis',
+      pov: 'opal',
       time: createTimeConfig('loop', '00:00:00', '00:05:00', { speed: 1 }),
       space: createSpaceConfig('LOXAY7'),
       light: createLightConfig('Audrey enters'),
@@ -318,7 +317,7 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 10 }, 'Midnight holds secrets the day will never know.')
     },
     11: {
-      pov: 'alexis',
+      pov: 'opal',
       time: createTimeConfig('default'),
       space: createSpaceConfig('LOXAY8'),
       breath: createBreathConfig(6),
@@ -331,7 +330,7 @@ export const pageConfigs: Record<number, Record<string, any>> = await (async () 
       void: createVoidConfig({ page: 11 }, 'Blood binds us to what we cannot escape.')
     },
     12: {
-      pov: 'irene',
+      pov: 'opal',
       time: createTimeConfig('loop', '15:30:00', '15:45:00', { speed: 2 }),
       space: createSpaceConfig('LOXAY9'),
       breath: createBreathConfig(1),

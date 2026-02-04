@@ -98,15 +98,14 @@ Each character maps to a theme from `public/styles.css`:
 
 | # | Character | Theme | Primary Color | Hex Code |
 |---|-----------|-------|---------------|----------|
-| 1 | Opal (Starting) | Space | Light Blue | #4da3ff |
-| 2 | Character 2 | Breath | Blue | #007eb4 |
-| 3 | Character 3 | Light | Orange | #ff8000 |
-| 4 | Character 4 | Time | Red | #ff4d4d |
-| 5 | Character 5 | Heart | Pink | #ff4da6 |
-| 6 | Character 6 | Mind | Teal | #00c2a0 |
-| 7 | Character 7 | Hope | Gold | #df9f03 |
-| 8 | Character 8 | Rage | Cyan | #00ffff |
-| 9 | Victor (Final) | ??? | ??? | ??? |
+| 1 | Opal (Starting) | Space | White | #d5ffe6 |
+| 2 | nicholas | Light | Orange | #fa8e00 |
+| 3 | isabell | Blood | Rust | #d85221 |
+| 4 | austine | Mind | Teal | #5db473 |
+| 5 | chloe | Life | Green | #9cff86 |
+| 6 | alexis | Rage | Cyan | #6600ff |
+| 7 | tyson | Doom | Grey | #434c00 |
+| 8 | Victor (Final) | Time | Pink | #ff8eb4 |
 
 ### Character Properties
 
@@ -462,5 +461,43 @@ Each character needs a unique looping background music track. Place audio files 
 Character sprites should be 4-directional (up, down, left, right) with walking animations. Place in `public/games/switch/assets/sprites/`.
 
 ---
+
+# Gameplay features
+## Characters can switch between each other during gameplay, each with unique abilities and quests. 
+
+### Quests
+Quests within the game is to prepare for the final battles. Everyone is getting the last few things ready either right before fighting the black king/queen. Each character needs something to progress, some will require some combination to get ready. Its all non-linear and there are multiple solutions for every problem. At start of the game only Opal will be unlocked. There will be a criteria you need in order to swap, and criteria you need for them to be checked off as successfully being ready to progress. Once you finish everything you'll be ready to go and can talk to victor who ends teh game. 
+
+There are puzzles, small rpg fights, and mini games. RPG Fights should be like pokemon, you bump into a pokemon trainer then they fight you but its only your character and that character. You each have 4 moves that depend on your weapon. Puzzles can be anything from word puzzles to logic puzzles like pokemon strength puzzles that only opal can move, or building puzzles that allow you to cross over things after isabell gets enough build grist to build bridges over holes. Also tyson's inventory storage system will be a puzzle for him holding onto the book he needs and opal and isabell cannot pick up the animal needed to progress with Chloe as their investories are currently full.
+
+Right now after talking to an entire group of people allows you to swap to another character, but we want it to be that in order for you to swap you need to do a spefic action. Each action is obtainable for a different character dependent upon their strong and weak points. 
+
+| # | Character | Theme | Primary Color | Hex Code | Quest |
+|---|-----------|-------|---------------|----------|-------|
+| 1 | Opal (Starting) | Space | White | #d5ffe6 | Starting character, so no quest to swap to. To finish the game she needs to get the coordinates of the black king.
+| 2 | nicholas | Light | Orange | #fa8e00 | Beating him in a game of skill. Mini game of skill is using your mouse cursor to hit 5 targets that are thrown up dead (and then fall down) in the middle of the bulleye. In order for his quest to finish she must level up to his final level.
+| 3 | isabell | Blood | Rust | #d85221 | What we have right now, which is you need to talk to all characters then you can talk to her and she'll swap to you. To finish her quest she needs her weapon upgraded enough to alchemize her weapon to its final state.
+| 4 | austine | Mind | Teal | #5db473 | He needs a puzzle piece item located on map. To finish his quest he needs to locate the location of the black queen.
+| 5 | chloe | Life | Green | #9cff86 | Your character must bring her the lost animal in order to swap. In order for her quest to finish she must have isabell achemize her the healing tool she needs.
+| 6 | alexis | Rage | Cyan | #6600ff | Your character must have defeated 3 derse agents in combat to swap. Will not swap with Opal. In order for her to be ready to go she will want to have collected 10 different strife specium in her strife deck as when she godtiered she lost all her old weapons.
+| 7 | tyson | Doom | Grey | #434c00 | Your character must be opal to swap to him. Opal can only swap after she has completed her own quest. Tyson's quest is to pick up the nicholas' notebook that he gave to tyson, its nicholas has lost it.
+| 8 | Victor (Final) | Time | Pink | #ff8eb4 | You have played as all the other characters. He says he just wants to wait for everyone else to get ready as he just wants some time to think before he is ready. 
+
+### Abilities
+| # | Character | Theme | Primary Color | Hex Code | Abilities |
+|---|-----------|-------|---------------|----------|-----------|
+| 1 | Opal (Starting) | Space | White | #d5ffe6 | Can freely teleport around the map and manipulate spacial objects. 
+| 2 | nicholas | Light | Orange | #fa8e00 | No power. When using his weapon it deals x10 more damage. Luck factor is always on lowest and so no random damage.
+| 3 | isabell | Blood | Rust | #d85221 | Has mini grist creator, and build/repair structures on map that are broken
+| 4 | austine | Mind | Teal | #5db473 | Will auto solve a puzzle on click
+| 5 | chloe | Life | Green | #9cff86 | No power directly, will heal your character if you talk to her. Can heal herself as an option if you click on herself when your playing as her with your cursor. 
+| 6 | alexis | Rage | Cyan | #6600ff | Can use everyone else's weapons if you click on them and "steal weapon." Cannot take damage in combat. 
+| 7 | tyson | Doom | Grey | #434c00 | No abilities other then 
+| 8 | Victor (Final) | Time | Pink | #ff8eb4 | Breaks game at the end when you swap to him.
+
+
+## Story is non-linear but doesn't evolve in a fixed sequence, allowing players to explore freely.
+
+### Ending is fixed though, as last character you can switch to is victory who crashes the game
 
 **End of Switch Game Specifications**
