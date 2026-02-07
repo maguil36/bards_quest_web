@@ -24,50 +24,128 @@
      id: 'alexis',
      name: 'Alexis',
      color: CHAR_COLORS.alexis,
-     position: { x: 200, y: 520 },
+     position: { x: 704, y: 864 },
+     quest: {
+       unlockCriteria: 'defeat3Agents',
+       completionCriteria: 'collect10Weapons',
+       description: 'Collect 10 strife specium to complete.',
+       cannotSwapWith: ['opal']
+     },
+     abilities: ['weaponSteal', 'invincibleInCombat'],
+     abilityDescriptions: {
+       weaponSteal: 'Can steal and use weapons from other characters',
+       invincibleInCombat: 'Cannot take damage in combat'
+     }
    },
    austine: {
      id: 'austine',
      name: 'Austine',
      color: CHAR_COLORS.austine,
-     position: { x: 400, y: 300 },
+     position: { x: 736, y: 864 },
+     quest: {
+       unlockCriteria: 'findPuzzlePiece',
+       completionCriteria: 'locateBlackQueen',
+       description: 'Locate Black Queen coordinates to complete.'
+     },
+     abilities: ['autoSolvePuzzle'],
+     abilityDescriptions: {
+       autoSolvePuzzle: 'Auto-solve any puzzle on click'
+     }
    },
    chloe: {
      id: 'chloe',
      name: 'Chloe',
      color: CHAR_COLORS.chloe,
-     position: { x: 300, y: 230 },
+     position: { x: 864, y: 864 },
+     quest: {
+       unlockCriteria: 'bringLostAnimal',
+       completionCriteria: 'getHealingTool',
+       description: 'Get healing tool from Isabell to complete.'
+     },
+     abilities: ['healOthers', 'healSelf'],
+     abilityDescriptions: {
+       healOthers: 'Heal other characters by talking to her',
+       healSelf: 'Can heal herself by clicking on herself'
+     }
    },
    isabell: {
      id: 'isabell',
      name: 'Isabell',
      color: CHAR_COLORS.isabell,
-     position: { x: 250, y: 250 },
+     position: { x: 896, y: 768 },
+     quest: {
+       unlockCriteria: 'talkToAll',
+       completionCriteria: 'upgradeWeapon',
+       description: 'Upgrade weapon to final state to complete.'
+     },
+     abilities: ['gristCreator', 'buildStructures'],
+     abilityDescriptions: {
+       gristCreator: 'Has mini grist creator for alchemization',
+       buildStructures: 'Can build and repair structures like bridges'
+     }
    },
    nicholas: {
      id: 'nicholas',
      name: 'Nicholas',
      color: CHAR_COLORS.nicholas,
-     position: { x: 700, y: 250 },
+     position: { x: 704, y: 768 },
+     quest: {
+       unlockCriteria: 'beatMiniGame',
+       completionCriteria: 'reachFinalLevel',
+       description: 'Reach final level to complete.'
+     },
+     abilities: ['damageBoost'],
+     abilityDescriptions: {
+       damageBoost: 'Weapon deals 10x damage with no random variance'
+     }
    },
    opal: {
      id: 'opal',
      name: 'Opal',
      color: CHAR_COLORS.opal,
-     position: { x: 400, y: 480 },
+     position: { x: 800, y: 800 },
+     quest: {
+       unlockCriteria: 'startingCharacter',
+       completionCriteria: 'getBlackKingCoordinates',
+       description: 'Find the Opal Map to complete.'
+     },
+     abilities: ['teleport', 'spatialManipulation'],
+     abilityDescriptions: {
+       teleport: 'Can freely teleport around the map',
+       spatialManipulation: 'Can manipulate spatial objects'
+     }
    },
    tyson: {
      id: 'tyson',
      name: 'Tyson',
      color: CHAR_COLORS.tyson,
-     position: { x: 500, y: 500 },
+     position: { x: 896, y: 864 },
+     quest: {
+       unlockCriteria: 'beOpalCompleted',
+       completionCriteria: 'findNotebook',
+       description: 'Find Nicholas\'s notebook to complete.',
+       onlySwappableBy: ['opal']
+     },
+     abilities: ['largeInventory'],
+     abilityDescriptions: {
+       largeInventory: 'Can hold more items than other characters'
+     }
    },
    victor: {
      id: 'victor',
      name: 'Victor',
      color: CHAR_COLORS.victor,
-     position: { x: 450, y: 650 },
-     isFinalCharacter: true, // Triggers the glitch ending
+     position: { x: 800, y: 896 },
+     isFinalCharacter: true,
+     quest: {
+       unlockCriteria: 'playedAllCharacters',
+       completionCriteria: 'triggerEnding',
+       description: 'Triggers ending when swapped to.'
+     },
+     abilities: ['gameBreaker'],
+     abilityDescriptions: {
+       gameBreaker: 'Breaks the game at the end'
+     }
    },
  };
 
@@ -94,49 +172,49 @@ const NPCS = [
   {
     id: 'alexis',
     name: 'Alexis',
-    position: { x: 200, y: 520 },
+    position: { x: 704, y: 864 },
     color: CHAR_COLORS.alexis,
   },
   {
     id: 'austine',
     name: 'Austine',
-    position: { x: 400, y: 300 },
+    position: { x: 736, y: 864 },
     color: CHAR_COLORS.austine,
   },
   {
     id: 'chloe',
     name: 'Chloe',
-    position: { x: 600, y: 200 },
+    position: { x: 864, y: 864 },
     color: CHAR_COLORS.chloe,
   },
   {
     id: 'isabell',
     name: 'Isabell',
-    position: { x: 250, y: 250 },
+    position: { x: 896, y: 768 },
     color: CHAR_COLORS.isabell,
   },
   {
     id: 'nicholas',
     name: 'Nicholas',
-    position: { x: 700, y: 250 },
+    position: { x: 704, y: 768 },
     color: CHAR_COLORS.nicholas,
   },
   {
     id: 'opal',
     name: 'Opal',
-    position: { x: 400, y: 480 },
+    position: { x: 800, y: 800 },
     color: CHAR_COLORS.opal,
   },
   {
     id: 'tyson',
     name: 'Tyson',
-    position: { x: 500, y: 500 },
+    position: { x: 896, y: 864 },
     color: CHAR_COLORS.tyson,
   },
   {
     id: 'victor',
     name: 'Victor',
-    position: { x: 450, y: 650 },
+    position: { x: 800, y: 896 },
     color: CHAR_COLORS.victor,
   },
 ];
@@ -145,16 +223,64 @@ const NPCS = [
 class GameState {
   constructor() {
     this.currentCharacter = 'opal';
-    this.completedDialogues = new Set(); // Format: "characterId:npcId"
+    this.completedDialogues = new Set();
     this.unlockedCharacters = new Set(['opal']);
     this.characterPositions = {};
     this.lastNPCTalkedId = null;
     this.lastNonFinalNPCTalkedId = null;
-    this.formerSwapPartnerByCharacter = {}; // Maps characterId -> the characterId they swapped from most recently
+    this.formerSwapPartnerByCharacter = {};
 
-    // Initialize character positions
+    this.questProgress = {};
+    this.completedQuests = new Set();
+    this.inventory = {
+      global: [],
+      opal: [],
+      nicholas: [],
+      isabell: [],
+      austine: [],
+      chloe: [],
+      alexis: [],
+      tyson: [],
+      victor: []
+    };
+    this.inventoryCapacity = {
+      default: 5,
+      tyson: 10
+    };
+    this.combatStats = {
+      agentsDefeated: 0,
+      weaponsCollected: [],
+      level: 1,
+      health: 100,
+      maxHealth: 100
+    };
+    this.gameItems = {
+      puzzlePiece: { position: { x: 350, y: 180 }, found: false },
+      lostAnimal: { position: { x: 550, y: 620 }, found: false },
+      nicholasNotebook: { position: { x: 800, y: 300 }, found: false },
+      blackKingCoordinates: { found: false },
+      blackQueenLocation: { found: false },
+      healingTool: { found: false },
+      opalMap: { found: false },
+      austineMap: { found: false }
+    };
+    this.playedCharacters = new Set(['opal']);
+    this.miniGameScores = {
+      nicholas: 0
+    };
+    this.buildProgress = {
+      bridgesBuilt: []
+    };
+    this.grist = 50;
+    this.chestStates = [];
+
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };
+      this.questProgress[charId] = {
+        unlocked: charId === 'opal',
+        completed: false,
+        progress: {}
+      };
     });
   }
 
@@ -198,17 +324,153 @@ class GameState {
     const character = CHARACTERS[characterId];
     if (!character) return false;
 
-    // Final character (Victor) unlock rule per design:
-    // Complete all required interactions across non-final characters (42 total)
-    // AND you must have talked to Victor as your current character before switching to him
     if (character.isFinalCharacter) {
-      const done = this.getCompletedInteractionsTowardVictor();
-      const total = this.getTotalInteractionsTowardVictor();
-      const hasSpokenToVictor = this.hasCompletedDialogue(this.currentCharacter, 'victor');
-      return done >= total && hasSpokenToVictor;
+      const hasPlayedAll = Object.keys(CHARACTERS)
+        .filter(id => id !== 'victor')
+        .every(id => this.playedCharacters.has(id));
+      return hasPlayedAll && this.hasCompletedAllDialogues(this.currentCharacter);
     }
 
-    return this.unlockedCharacters.has(characterId);
+    const quest = character.quest;
+    if (!quest) return this.unlockedCharacters.has(characterId);
+
+    switch (quest.unlockCriteria) {
+      case 'startingCharacter':
+        return true;
+
+      case 'defeat3Agents':
+        const cannotSwap = quest.cannotSwapWith || [];
+        if (cannotSwap.includes(this.currentCharacter)) return false;
+        return this.combatStats.agentsDefeated >= 3;
+
+      case 'findPuzzlePiece':
+        return this.gameItems.puzzlePiece.found;
+
+      case 'bringLostAnimal':
+        return this.inventory[this.currentCharacter]?.includes('lostAnimal');
+
+      case 'talkToAll':
+        return this.hasCompletedAllDialogues(this.currentCharacter);
+
+      case 'beatMiniGame':
+        return this.miniGameScores.nicholas >= 5;
+
+      case 'beOpalCompleted':
+        const onlyBy = quest.onlySwappableBy || [];
+        if (onlyBy.length > 0 && !onlyBy.includes(this.currentCharacter)) {
+          return false;
+        }
+        return this.questProgress.opal?.completed === true;
+
+      case 'playedAllCharacters':
+        return Object.keys(CHARACTERS)
+          .filter(id => id !== 'victor')
+          .every(id => this.playedCharacters.has(id));
+
+      default:
+        return this.unlockedCharacters.has(characterId);
+    }
+  }
+
+  addToInventory(characterId, item) {
+    if (!this.inventory[characterId]) {
+      this.inventory[characterId] = [];
+    }
+    const capacity = this.inventoryCapacity[characterId] || this.inventoryCapacity.default;
+    if (this.inventory[characterId].length >= capacity) {
+      return false;
+    }
+    this.inventory[characterId].push(item);
+    return true;
+  }
+
+  removeFromInventory(characterId, item) {
+    if (!this.inventory[characterId]) return false;
+    const index = this.inventory[characterId].indexOf(item);
+    if (index > -1) {
+      this.inventory[characterId].splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  hasInInventory(characterId, item) {
+    return this.inventory[characterId]?.includes(item) || false;
+  }
+
+  pickupItem(itemId) {
+    const item = this.gameItems[itemId];
+    if (!item || item.found) return false;
+
+    const canPickup = this.addToInventory(this.currentCharacter, itemId);
+    if (canPickup) {
+      item.found = true;
+      return true;
+    }
+    return false;
+  }
+
+  completeQuest(characterId) {
+    if (!this.questProgress[characterId]) return false;
+    this.questProgress[characterId].completed = true;
+    this.completedQuests.add(characterId);
+    return true;
+  }
+
+  checkQuestCompletion(characterId) {
+    const character = CHARACTERS[characterId];
+    if (!character || !character.quest) return false;
+
+    switch (character.quest.completionCriteria) {
+      case 'getBlackKingCoordinates':
+        return this.gameItems.opalMap.found;
+
+      case 'reachFinalLevel':
+        return this.combatStats.level >= 10;
+
+      case 'upgradeWeapon':
+        return this.hasInInventory(characterId, 'finalWeapon');
+
+      case 'locateBlackQueen':
+        return this.gameItems.blackQueenLocation.found;
+
+      case 'getHealingTool':
+        return this.gameItems.healingTool.found;
+
+      case 'collect10Weapons':
+        return this.combatStats.weaponsCollected.length >= 10;
+
+      case 'findNotebook':
+        return this.hasInInventory(characterId, 'nicholasNotebook');
+
+      case 'triggerEnding':
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+  defeatAgent() {
+    this.combatStats.agentsDefeated++;
+  }
+
+  addWeapon(weaponId) {
+    if (!this.combatStats.weaponsCollected.includes(weaponId)) {
+      this.combatStats.weaponsCollected.push(weaponId);
+    }
+  }
+
+  levelUp() {
+    this.combatStats.level++;
+  }
+
+  buildBridge(bridgeId) {
+    if (!this.buildProgress.bridgesBuilt.includes(bridgeId)) {
+      this.buildProgress.bridgesBuilt.push(bridgeId);
+      return true;
+    }
+    return false;
   }
 
   // Count total completed interactions across all non-final characters (toward Victor)
@@ -298,6 +560,16 @@ class GameState {
       lastNPCTalkedId: this.lastNPCTalkedId,
       lastNonFinalNPCTalkedId: this.lastNonFinalNPCTalkedId,
       formerSwapPartnerByCharacter: this.formerSwapPartnerByCharacter,
+      questProgress: this.questProgress,
+      completedQuests: Array.from(this.completedQuests),
+      inventory: this.inventory,
+      combatStats: this.combatStats,
+      gameItems: this.gameItems,
+      playedCharacters: Array.from(this.playedCharacters),
+      miniGameScores: this.miniGameScores,
+      buildProgress: this.buildProgress,
+      grist: this.grist,
+      chestStates: this.chestStates
     };
     try {
       localStorage.setItem('switchGameState', JSON.stringify(data));
@@ -317,7 +589,7 @@ class GameState {
       this.unlockedCharacters = new Set(
         Array.isArray(data.unlockedCharacters) && data.unlockedCharacters.length
           ? data.unlockedCharacters
-          : ['alexis'],
+          : ['opal'],
       );
       if (data.characterPositions) {
         this.characterPositions = data.characterPositions;
@@ -325,6 +597,17 @@ class GameState {
       this.lastNPCTalkedId = data.lastNPCTalkedId || null;
       this.lastNonFinalNPCTalkedId = data.lastNonFinalNPCTalkedId || null;
       this.formerSwapPartnerByCharacter = data.formerSwapPartnerByCharacter || {};
+
+      if (data.questProgress) this.questProgress = data.questProgress;
+      this.completedQuests = new Set(data.completedQuests || []);
+      if (data.inventory) this.inventory = data.inventory;
+      if (data.combatStats) this.combatStats = data.combatStats;
+      if (data.gameItems) this.gameItems = data.gameItems;
+      this.playedCharacters = new Set(data.playedCharacters || ['opal']);
+      if (data.miniGameScores) this.miniGameScores = data.miniGameScores;
+      if (data.buildProgress) this.buildProgress = data.buildProgress;
+      this.grist = data.grist || 0;
+      if (data.chestStates) this.chestStates = data.chestStates;
     } catch (e) {
       console.warn('Failed to load game state:', e);
     }
@@ -332,14 +615,58 @@ class GameState {
 
   // Reset game state
   reset() {
-    this.currentCharacter = 'alexis';
+    this.currentCharacter = 'opal';
     this.completedDialogues.clear();
-    this.unlockedCharacters = new Set(['alexis']);
+    this.unlockedCharacters = new Set(['opal']);
     this.lastNPCTalkedId = null;
     this.lastNonFinalNPCTalkedId = null;
     this.formerSwapPartnerByCharacter = {};
+    this.questProgress = {};
+    this.completedQuests = new Set();
+    this.inventory = {
+      global: [],
+      opal: [],
+      nicholas: [],
+      isabell: [],
+      austine: [],
+      chloe: [],
+      alexis: [],
+      tyson: [],
+      victor: []
+    };
+    this.combatStats = {
+      agentsDefeated: 0,
+      weaponsCollected: [],
+      level: 1,
+      health: 100,
+      maxHealth: 100
+    };
+    this.gameItems = {
+      puzzlePiece: { position: { x: 350, y: 180 }, found: false },
+      lostAnimal: { position: { x: 550, y: 620 }, found: false },
+      nicholasNotebook: { position: { x: 800, y: 300 }, found: false },
+      blackKingCoordinates: { found: false },
+      blackQueenLocation: { found: false },
+      healingTool: { found: false },
+      opalMap: { found: false },
+      austineMap: { found: false }
+    };
+    this.playedCharacters = new Set(['opal']);
+    this.miniGameScores = {
+      nicholas: 0
+    };
+    this.buildProgress = {
+      bridgesBuilt: []
+    };
+    this.grist = 50;
+
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };
+      this.questProgress[charId] = {
+        unlocked: charId === 'opal',
+        completed: false,
+        progress: {}
+      };
     });
     try {
       localStorage.removeItem('switchGameState');

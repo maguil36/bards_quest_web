@@ -99,6 +99,35 @@
             opacity: 0.8;
         }
 
+        #miniGamePrompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            display: none;
+            z-index: 101;
+        }
+
+        #miniGamePrompt button {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #miniGamePrompt button:hover {
+            opacity: 0.8;
+        }
+
         #glitchOverlay {
             position: absolute;
             top: 0;
@@ -148,7 +177,7 @@
             padding: 10px;
             border-radius: 4px;
             font-weight: bold;
-            display: none; /* hidden in favor of settings gear */
+            display: none;
         }
 
         /* Restart button */
@@ -156,11 +185,12 @@
             background: var(--accent);
             color: var(--bg);
             border: none;
-            padding: 10px 12px;
+            padding: 8px 10px;
             border-radius: 6px;
             cursor: pointer;
             width: 100%;
             font-weight: 700;
+            font-size: 13px;
         }
         #restartGameBtn:hover { opacity: 0.9; }
 
@@ -192,23 +222,25 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 420px;
+            width: 500px;
+            max-height: 90vh;
             background: var(--card);
             border: 2px solid var(--border);
             border-radius: 10px;
-            padding: 20px;
+            padding: 16px;
             z-index: 120;
             display: none;
             box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            overflow-y: auto;
         }
-        #settingsHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        #settingsTitle { font-size: 18px; font-weight: 700; }
+        #settingsHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        #settingsTitle { font-size: 16px; font-weight: 700; }
         #settingsClose {
-            background: transparent; border: none; color: var(--text); cursor: pointer; font-size: 20px; line-height: 1;
+            background: transparent; border: none; color: var(--text); cursor: pointer; font-size: 18px; line-height: 1;
         }
-        .settingsRow { margin: 12px 0; }
-        .settingsLabel { font-weight: 600; margin-bottom: 6px; }
-        .settingsValue { color: var(--muted); }
+        .settingsRow { margin: 8px 0; }
+        .settingsLabel { font-weight: 600; margin-bottom: 4px; font-size: 13px; }
+        .settingsValue { color: var(--muted); font-size: 12px; line-height: 1.4; }
         .volumeRow { display: flex; align-items: center; gap: 10px; }
         #volumeSlider { flex: 1; }
     </style>
@@ -218,7 +250,7 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
 
         <div id="ui">
-            <div id="currentCharacter">Playing as: <span id="characterName">Alexis</span></div>
+            <div id="currentCharacter">Play as <span id="characterName">Alexis</span></div>
         </div>
 
         <!-- Old instructions hidden; replaced by settings gear -->
@@ -249,6 +281,13 @@
             </div>
 
             <div class="settingsRow">
+                <div class="settingsLabel">Ability</div>
+                <div class="settingsValue">
+                    <span id="settingsAbilityInfo">No abilities</span>
+                </div>
+            </div>
+
+            <div class="settingsRow">
                 <div class="settingsLabel">Controls</div>
                 <div class="settingsValue">
                     WASD or Arrow Keys — Move<br>
@@ -261,8 +300,7 @@
                 <div class="settingsLabel">Progress</div>
                 <div class="settingsValue">
                     Talked to (this character): <span id="settingsCharProgress">0</span>/<span id="settingsCharTotal">0</span><br>
-                    Remaining to progress: <span id="settingsCharRemaining">0</span><br>
-                    Until game complete: <span id="settingsGameRemaining">42</span> remaining
+                    <span id="settingsQuestInfo">No quest</span> — <span id="settingsQuestStatus">Ongoing</span>
                 </div>
             </div>
 
@@ -296,12 +334,64 @@
             <button id="switchNo">Not Yet</button>
         </div>
 
+        <div id="miniGamePrompt">
+            <h3>Target Practice?</h3>
+            <p>Nicholas wants to test your aim.</p>
+            <p>Hit 5 bullseyes out of 5 targets to prove your worth!</p>
+            <button id="miniGameYes">Let's Do This!</button>
+            <button id="miniGameNo">Not Now</button>
+        </div>
+
         <div id="glitchOverlay"></div>
         <div id="errorMessage">
             ERROR: REALITY.EXE HAS STOPPED WORKING<br>
             ATTEMPTING TO RECOVER...<br>
             SWITCHING TO BACKUP REALITY...
         </div>
+
+        <div id="inventoryUI" style="position: absolute; top: 80px; right: 20px; background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: 12px; max-width: 200px; z-index: 60; display: none;">
+            <div style="font-weight: bold; margin-bottom: 8px;">Inventory</div>
+            <div id="inventoryItems" style="font-size: 14px; color: var(--muted);">
+                <div>Empty</div>
+            </div>
+        </div>
+
+        <div id="questUI" style="position: absolute; bottom: 20px; right: 20px; background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: 12px; max-width: 300px; z-index: 60; display: none;">
+            <div style="font-weight: bold; margin-bottom: 8px;">Current Quest</div>
+            <div id="questDescription" style="font-size: 14px; color: var(--muted);">
+                <div>No active quest</div>
+            </div>
+            <div id="questProgress" style="font-size: 12px; color: var(--muted); margin-top: 8px;">
+                <div>Progress: 0/0</div>
+            </div>
+        </div>
+
+        <div id="abilitiesUI" style="position: absolute; bottom: 20px; right: 340px; background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: 12px; max-width: 250px; z-index: 60; display: none;">
+            <div style="font-weight: bold; margin-bottom: 8px;">Abilities</div>
+            <div id="abilitiesDescription" style="font-size: 14px; color: var(--muted);">
+                <div>Click to use ability</div>
+            </div>
+        </div>
+
+        <div id="combatUI" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); border: 2px solid var(--accent); border-radius: 8px; padding: 20px; min-width: 400px; z-index: 110; display: none;">
+            <div style="font-weight: bold; font-size: 18px; margin-bottom: 16px; text-align: center;">Combat</div>
+            <div id="combatEnemy" style="margin-bottom: 12px;">
+                <div style="font-weight: bold;">Enemy: <span id="enemyName">???</span></div>
+                <div>HP: <span id="enemyHP">100</span>/<span id="enemyMaxHP">100</span></div>
+            </div>
+            <div id="combatPlayer" style="margin-bottom: 16px;">
+                <div style="font-weight: bold;">You: <span id="playerName">???</span></div>
+                <div>HP: <span id="playerHP">100</span>/<span id="playerMaxHP">100</span></div>
+            </div>
+            <div id="combatMoves" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="combatMove" data-move="0" style="background: var(--accent); color: var(--bg); border: none; padding: 12px; border-radius: 4px; cursor: pointer;">Move 1</button>
+                <button class="combatMove" data-move="1" style="background: var(--accent); color: var(--bg); border: none; padding: 12px; border-radius: 4px; cursor: pointer;">Move 2</button>
+                <button class="combatMove" data-move="2" style="background: var(--accent); color: var(--bg); border: none; padding: 12px; border-radius: 4px; cursor: pointer;">Move 3</button>
+                <button class="combatMove" data-move="3" style="background: var(--accent); color: var(--bg); border: none; padding: 12px; border-radius: 4px; cursor: pointer;">Move 4</button>
+            </div>
+            <div id="combatLog" style="margin-top: 16px; font-size: 14px; color: var(--muted); max-height: 100px; overflow-y: auto;"></div>
+        </div>
+    </div>
     </div>
 
     <audio id="backgroundMusic" loop preload="auto" crossorigin="anonymous"></audio>
@@ -345,6 +435,7 @@
     </script>
     <script src="characters.js"></script>
     <script src="dialogue.js"></script>
+    <script src="minigames.js"></script>
     <script src="audio.js"></script>
     <script src="game.js"></script>
   </body>

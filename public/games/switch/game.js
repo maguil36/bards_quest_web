@@ -9,9 +9,24 @@ class SwitchGame {
         this.dialogueManager = new DialogueManager(this.gameState, this.npcs);
         this.audioManager = new AudioManager();
 
+        // Mini-game and combat system
+        this.miniGame = new NicholasMiniGame(
+            this.canvas,
+            this.ctx,
+            this.gameState,
+            (success) => this.onMiniGameComplete(success)
+        );
+        this.logicPuzzle = new LogicPuzzleMiniGame(
+            this.canvas,
+            this.ctx,
+            this.gameState,
+            (success) => this.onLogicPuzzleComplete(success)
+        );
+        this.combatSystem = new CombatSystem(this.gameState);
+
         // Game world settings
         this.mapWidth = 1600;
-        this.mapHeight = 1200;
+        this.mapHeight = 1600;
         this.tileSize = 32;
 
         // Camera settings
@@ -24,8 +39,8 @@ class SwitchGame {
 
         // Player settings
         this.player = {
-            x: 400,
-            y: 300,
+            x: 800,
+            y: 800,
             width: 32,
             height: 32,
             speed: 2,
@@ -47,19 +62,29 @@ class SwitchGame {
         this.dialogueBox = document.getElementById('dialogueBox');
         this.dialogueText = document.getElementById('dialogueText');
         this.switchPrompt = document.getElementById('switchPrompt');
+        this.miniGamePrompt = document.getElementById('miniGamePrompt');
         this.glitchOverlay = document.getElementById('glitchOverlay');
         this.errorMessage = document.getElementById('errorMessage');
         this.characterName = document.getElementById('characterName');
+        this.inventoryUI = document.getElementById('inventoryUI');
+        this.questUI = document.getElementById('questUI');
+        this.abilitiesUI = document.getElementById('abilitiesUI');
+        this.combatUI = document.getElementById('combatUI');
 
         // Ensure overlays/prompts are hidden initially
         if (this.glitchOverlay) this.glitchOverlay.style.display = 'none';
         if (this.switchPrompt) this.switchPrompt.style.display = 'none';
+        if (this.miniGamePrompt) this.miniGamePrompt.style.display = 'none';
         if (this.dialogueBox) this.dialogueBox.style.display = 'none';
+        if (this.combatUI) this.combatUI.style.display = 'none';
 
         // Game state
         this.isGameRunning = true;
         this.showingDialogue = false;
         this.showingSwitchPrompt = false;
+        this.inMiniGame = false;
+        this.inCombat = false;
+        this.currentPuzzleChest = null;
 
         // Glitch/ending state
         this.isGlitching = false;
@@ -70,6 +95,23 @@ class SwitchGame {
         this.glitchOverlayIntervalId = null; // cycles flashing images
         this.scrambleActive = false;    // NPC/player jump-around burst
         this._nextScrambleAt = 0;       // timestamp for next scramble start
+
+        // Floating text for ability feedback
+        this.floatingTexts = [];
+
+        // Map tiles
+        this.mapTiles = [];
+        this.mapCols = Math.floor(this.mapWidth / this.tileSize);
+        this.mapRows = Math.floor(this.mapHeight / this.tileSize);
+
+        // Map objects
+        this.chests = [];
+        this.boulders = [];
+        this.obstacles = [];
+        this.fillableChasms = [];
+        this.walls = [];
+
+        this.initializeMap();
 
         this.init();
     }
@@ -82,6 +124,9 @@ class SwitchGame {
 
         // Load game state
         this.gameState.load();
+
+        // Restore chest states after loading game state
+        this.restoreChestStates();
 
         // Set initial player position
         const currentChar = this.gameState.getCurrentCharacter();
@@ -109,6 +154,21 @@ class SwitchGame {
 
         // Set up event listeners
         this.setupEventListeners();
+
+        // Ensure overlays/prompts are hidden initially
+        if (this.glitchOverlay) this.glitchOverlay.style.display = 'none';
+        if (this.switchPrompt) this.switchPrompt.style.display = 'none';
+        if (this.miniGamePrompt) this.miniGamePrompt.style.display = 'none';
+        if (this.dialogueBox) this.dialogueBox.style.display = 'none';
+        if (this.combatUI) this.combatUI.style.display = 'none';
+
+        // Game state
+        this.isGameRunning = true;
+        this.showingDialogue = false;
+        this.showingSwitchPrompt = false;
+        this.inMiniGame = false;
+        this.inCombat = false;
+        this.abilityMode = null;
 
         // Load sprites
         await this.loadSprites();
@@ -163,6 +223,20 @@ class SwitchGame {
         if (switchNo) {
             switchNo.addEventListener('click', () => {
                 this.handleCharacterSwitch(false);
+            });
+        }
+
+        // Mini-game prompt buttons
+        const miniGameYes = document.getElementById('miniGameYes');
+        const miniGameNo = document.getElementById('miniGameNo');
+        if (miniGameYes) {
+            miniGameYes.addEventListener('click', () => {
+                this.handleMiniGamePrompt(true);
+            });
+        }
+        if (miniGameNo) {
+            miniGameNo.addEventListener('click', () => {
+                this.handleMiniGamePrompt(false);
             });
         }
 
@@ -226,6 +300,26 @@ class SwitchGame {
             // If settings already open, the previous listener will close it; don't double-handle
             if (settingsModal && settingsModal.style.display === 'block') return;
 
+            // If a minigame is active, close it
+            if (this.inMiniGame && this.miniGame && this.miniGame.active) {
+                e.preventDefault();
+                this.miniGame.stop();
+                if (this.miniGame.onComplete) {
+                    this.miniGame.onComplete(false);
+                }
+                return;
+            }
+
+            // If logic puzzle is active, close it
+            if (this.logicPuzzle && this.logicPuzzle.active) {
+                e.preventDefault();
+                this.logicPuzzle.stop();
+                if (this.logicPuzzle.onComplete) {
+                    this.logicPuzzle.onComplete(false);
+                }
+                return;
+            }
+
             // If dialogue is currently open, close it without marking completion
             if (this.showingDialogue && this.dialogueManager && typeof this.dialogueManager.cancelDialogue === 'function') {
                 e.preventDefault();
@@ -265,10 +359,368 @@ class SwitchGame {
             });
         }
 
-        // Prevent context menu on canvas
         if (this.canvas) {
             this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
         }
+    }
+
+    handleCanvasClick(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (this.logicPuzzle && this.logicPuzzle.active) {
+            this.logicPuzzle.handleClick(x, y);
+            return;
+        }
+
+        if (this.inMiniGame && this.miniGame) {
+            this.miniGame.handleClick(x, y);
+            return;
+        }
+
+        if (this.inCombat) {
+            return;
+        }
+
+        this.checkItemPickup(x, y);
+        this.checkAbilityUsage(x, y);
+    }
+
+    checkItemPickup(x, y) {
+        const worldX = x + this.camera.x;
+        const worldY = y + this.camera.y;
+
+        for (const itemId in this.gameState.gameItems) {
+            const item = this.gameState.gameItems[itemId];
+            if (item.found || !item.position) continue;
+
+            const dx = worldX - item.position.x;
+            const dy = worldY - item.position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 30) {
+                if (this.gameState.pickupItem(itemId)) {
+                    console.log(`Picked up ${itemId}`);
+                    this.gameState.save();
+                }
+                break;
+            }
+        }
+    }
+
+    checkAbilityUsage(x, y) {
+        const currentChar = this.gameState.getCurrentCharacter();
+        if (!currentChar || !currentChar.abilities) return;
+
+        const worldX = x + this.camera.x;
+        const worldY = y + this.camera.y;
+
+        switch (currentChar.id) {
+            case 'opal':
+                if (currentChar.abilities.includes('teleport')) {
+                    const targetX = Math.max(0, Math.min(this.mapWidth - this.player.width, worldX));
+                    const targetY = Math.max(0, Math.min(this.mapHeight - this.player.height, worldY));
+
+                    if (this.isValidTeleportLocation(targetX, targetY)) {
+                        this.player.x = targetX;
+                        this.player.y = targetY;
+                        this.gameState.save();
+                    } else {
+                        this.showFloatingText(this.player.x, this.player.y - 40, 'Cannot teleport there!', '#ff6666');
+                    }
+                }
+                break;
+
+            case 'chloe':
+                if (currentChar.abilities.includes('heal')) {
+                    const healRadius = 50;
+                    let healed = false;
+
+                    for (const npc of this.npcs) {
+                        const npcCenterX = npc.position.x + 16;
+                        const npcCenterY = npc.position.y + 16;
+                        const distance = Math.hypot(worldX - npcCenterX, worldY - npcCenterY);
+
+                        if (distance < healRadius) {
+                            this.gameState.combatStats.health = Math.min(
+                                this.gameState.combatStats.health + 30,
+                                100
+                            );
+                            healed = true;
+                            this.showFloatingText(npc.position.x, npc.position.y, '+30 HP', '#9cff86');
+                            break;
+                        }
+                    }
+
+                    const playerDistance = Math.hypot(
+                        worldX - (this.player.x + this.player.width / 2),
+                        worldY - (this.player.y + this.player.height / 2)
+                    );
+                    if (playerDistance < healRadius && !healed) {
+                        this.gameState.combatStats.health = Math.min(
+                            this.gameState.combatStats.health + 30,
+                            100
+                        );
+                        this.showFloatingText(this.player.x, this.player.y, '+30 HP', '#9cff86');
+                    }
+                }
+                break;
+
+            case 'isabell':
+                if (currentChar.abilities.includes('gristCreator')) {
+                    this.gameState.buildProgress.grist = Math.min(
+                        (this.gameState.buildProgress.grist || 0) + 10,
+                        100
+                    );
+                    this.showFloatingText(worldX - this.camera.x, worldY - this.camera.y, '+10 Grist', '#d85221');
+                    this.updateQuestUI();
+                }
+                break;
+
+            case 'austine':
+                if (currentChar.abilities.includes('puzzleSolver')) {
+                    this.showFloatingText(worldX - this.camera.x, worldY - this.camera.y, 'Puzzle Auto-Solved!', '#5db473');
+                }
+                break;
+
+            case 'alexis':
+                if (currentChar.abilities.includes('weaponSteal')) {
+                    const stealRadius = 50;
+                    for (const npc of this.npcs) {
+                        const npcCenterX = npc.position.x + 16;
+                        const npcCenterY = npc.position.y + 16;
+                        const distance = Math.hypot(worldX - npcCenterX, worldY - npcCenterY);
+
+                        if (distance < stealRadius) {
+                            const weaponId = `${npc.id}_weapon`;
+                            if (!this.gameState.combatStats.weaponsCollected.includes(weaponId)) {
+                                this.gameState.combatStats.weaponsCollected.push(weaponId);
+                                this.showFloatingText(npc.position.x, npc.position.y, `Stole ${npc.name}'s Weapon!`, '#6600ff');
+                                this.updateQuestUI();
+                            }
+                            break;
+                        }
+                    }
+                }
+                break;
+        }
+    }
+
+    showFloatingText(x, y, text, color) {
+        const floatingText = {
+            x: x,
+            y: y,
+            text: text,
+            color: color,
+            alpha: 1.0,
+            lifetime: 60
+        };
+
+        if (!this.floatingTexts) this.floatingTexts = [];
+        this.floatingTexts.push(floatingText);
+    }
+
+    isValidTeleportLocation(newX, newY) {
+        const playerTileLeft = Math.floor(newX / this.tileSize);
+        const playerTileRight = Math.floor((newX + this.player.width - 1) / this.tileSize);
+        const playerTileTop = Math.floor(newY / this.tileSize);
+        const playerTileBottom = Math.floor((newY + this.player.height - 1) / this.tileSize);
+
+        for (let ty = playerTileTop; ty <= playerTileBottom; ty++) {
+            for (let tx = playerTileLeft; tx <= playerTileRight; tx++) {
+                if (ty >= 0 && ty < this.mapRows && tx >= 0 && tx < this.mapCols) {
+                    const tileType = this.mapTiles[ty][tx];
+                    if (tileType === 1 || tileType === 2) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        for (const boulder of this.boulders) {
+            if (newX < boulder.x + this.tileSize &&
+                newX + this.player.width > boulder.x &&
+                newY < boulder.y + this.tileSize &&
+                newY + this.player.height > boulder.y) {
+                return false;
+            }
+        }
+
+        for (const obstacle of this.obstacles) {
+            if (!obstacle.broken) {
+                if (newX < obstacle.x + this.tileSize &&
+                    newX + this.player.width > obstacle.x &&
+                    newY < obstacle.y + this.tileSize &&
+                    newY + this.player.height > obstacle.y) {
+                    return false;
+                }
+            }
+        }
+
+        for (const chasm of this.fillableChasms) {
+            if (!chasm.filled) {
+                if (newX < chasm.x + this.tileSize &&
+                    newX + this.player.width > chasm.x &&
+                    newY < chasm.y + this.tileSize &&
+                    newY + this.player.height > chasm.y) {
+                    return false;
+                }
+            }
+        }
+
+        if (this.gameState && this.gameState.combatStats.agentsDefeated < 3) {
+            const agents = [
+                { x: 750, y: 750 },
+                { x: 1280, y: 320 },
+                { x: 1280, y: 1280 }
+            ];
+
+            const defeatedCount = this.gameState.combatStats.agentsDefeated || 0;
+            for (let i = defeatedCount; i < agents.length; i++) {
+                const agent = agents[i];
+                const tileSize = 32;
+
+                if (newX < agent.x + tileSize &&
+                    newX + this.player.width > agent.x &&
+                    newY < agent.y + tileSize &&
+                    newY + this.player.height > agent.y) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    onMiniGameComplete(success) {
+        this.inMiniGame = false;
+
+        if (success) {
+            this.gameState.unlockCharacter('nicholas');
+            this.gameState.save();
+            this.showNicholasDialogue(true);
+        } else {
+            this.showNicholasDialogue(false);
+        }
+    }
+
+    saveChestStates() {
+        this.gameState.chestStates = this.chests.map(chest => ({
+            opened: chest.opened || false,
+            puzzleSolved: chest.puzzleSolved || false
+        }));
+    }
+
+    restoreChestStates() {
+        if (this.gameState.chestStates && this.gameState.chestStates.length > 0) {
+            this.gameState.chestStates.forEach((savedState, index) => {
+                if (this.chests[index]) {
+                    this.chests[index].opened = savedState.opened || false;
+                    this.chests[index].puzzleSolved = savedState.puzzleSolved || false;
+                }
+            });
+        }
+    }
+
+    onLogicPuzzleComplete(success) {
+        if (success && this.currentPuzzleChest) {
+            const chest = this.currentPuzzleChest;
+
+            chest.puzzleSolved = true;
+            this.showFloatingText(chest.x + this.tileSize/2, chest.y, 'Puzzle solved!', '#00ff00');
+            this.saveChestStates();
+            this.gameState.save();
+        } else if (!success) {
+            this.showFloatingText(this.player.x, this.player.y - 40, 'Puzzle failed! Try again', '#ff6666');
+        }
+
+        this.currentPuzzleChest = null;
+    }
+
+    showMiniGamePrompt() {
+        this.showingSwitchPrompt = true;
+        if (this.miniGamePrompt) {
+            this.miniGamePrompt.style.display = 'block';
+        }
+    }
+
+    handleMiniGamePrompt(accepted) {
+        if (this.miniGamePrompt) {
+            this.miniGamePrompt.style.display = 'none';
+        }
+        this.showingSwitchPrompt = false;
+
+        if (accepted) {
+            this.inMiniGame = true;
+            this.miniGame.start();
+        } else {
+            this.nextCharacterToSwitch = null;
+        }
+    }
+
+    showNicholasDialogue(success) {
+        this.showingDialogue = true;
+        if (this.dialogueBox) {
+            this.dialogueBox.style.display = 'block';
+        }
+
+        if (success) {
+            if (this.dialogueText) {
+                this.dialogueText.textContent = "Impressive shooting! I didn't expect you to hit all of those. You've proven yourself worthy.";
+                this.dialogueText.style.color = CHARACTERS.nicholas.color;
+            }
+        } else {
+            if (this.dialogueText) {
+                this.dialogueText.textContent = "Not bad, but you'll need to get good if you want to unlock my potential. Try again!";
+                this.dialogueText.style.color = CHARACTERS.nicholas.color;
+            }
+        }
+
+        setTimeout(() => {
+            this.showingDialogue = false;
+            if (this.dialogueBox) {
+                this.dialogueBox.style.display = 'none';
+            }
+
+            if (success && this.nextCharacterToSwitch === 'nicholas') {
+                setTimeout(() => this.showSwitchPrompt(), 400);
+            } else {
+                this.nextCharacterToSwitch = null;
+            }
+        }, 3000);
+    }
+
+    showNicholasDialogue(success) {
+        this.showingDialogue = true;
+        if (this.dialogueBox) {
+            this.dialogueBox.style.display = 'block';
+        }
+
+        if (success) {
+            if (this.dialogueText) {
+                this.dialogueText.textContent = "Impressive shooting! I didn't expect you to hit all of those. You've proven yourself worthy.";
+                this.dialogueText.style.color = CHARACTERS.nicholas.color;
+            }
+        } else {
+            if (this.dialogueText) {
+                this.dialogueText.textContent = "Not bad, but you'll need to get good if you want to unlock my potential. Try again!";
+                this.dialogueText.style.color = CHARACTERS.nicholas.color;
+            }
+        }
+
+        setTimeout(() => {
+            this.showingDialogue = false;
+            if (this.dialogueBox) {
+                this.dialogueBox.style.display = 'none';
+            }
+
+            if (success) {
+                setTimeout(() => this.showSwitchPrompt(), 400);
+            }
+        }, 3000);
     }
 
     updateSettingsPanel() {
@@ -276,20 +728,130 @@ class SwitchGame {
         const nameEl = document.getElementById('settingsCurrentCharacter');
         const charProg = document.getElementById('settingsCharProgress');
         const charTotal = document.getElementById('settingsCharTotal');
-        const charRem = document.getElementById('settingsCharRemaining');
-        const gameRemain = document.getElementById('settingsGameRemaining');
+        const questInfo = document.getElementById('settingsQuestInfo');
+        const questStatus = document.getElementById('settingsQuestStatus');
+        const abilityInfo = document.getElementById('settingsAbilityInfo');
+
         if (nameEl) nameEl.textContent = current.name;
 
         if (this.gameState) {
             const done = this.gameState.getCompletedCountForCharacter(current.id);
             const total = this.gameState.getTotalTargetsPerCharacter(current.id);
-            const rem = this.gameState.getRemainingForCharacterProgress(current.id);
-            const remainingGame = this.gameState.getRemainingInteractionsToFinishGame();
             if (charProg) charProg.textContent = String(done);
             if (charTotal) charTotal.textContent = String(total);
-            if (charRem) charRem.textContent = String(rem);
-            if (gameRemain) gameRemain.textContent = String(remainingGame);
+
+            const charData = CHARACTERS[current.id];
+            if (charData) {
+                if (questInfo && charData.quest) {
+                    questInfo.textContent = charData.quest.description || 'No quest';
+                }
+
+                if (questStatus) {
+                    const isCompleted = this.gameState.completedQuests.has(current.id);
+                    questStatus.textContent = isCompleted ? 'Complete' : 'Ongoing';
+                }
+
+                if (abilityInfo) {
+                    const abilities = charData.abilities || [];
+                    const abilityDescriptions = charData.abilityDescriptions || {};
+                    if (abilities.length > 0) {
+                        const abilityTexts = abilities.map(ability => abilityDescriptions[ability] || ability);
+                        abilityInfo.textContent = abilityTexts.join(', ');
+                    } else {
+                        abilityInfo.textContent = 'No abilities';
+                    }
+                }
+            }
         }
+    }
+
+    updateInventoryUI() {
+        const itemsEl = document.getElementById('inventoryItems');
+        if (!itemsEl) return;
+
+        const currentChar = this.gameState.getCurrentCharacter();
+        const inventory = this.gameState.inventory[currentChar.id] || [];
+        const capacity = this.gameState.inventoryCapacity[currentChar.id] || 5;
+
+        if (inventory.length === 0) {
+            itemsEl.innerHTML = '<div>Empty</div>';
+        } else {
+            itemsEl.innerHTML = inventory.map(item => `<div>• ${item}</div>`).join('');
+        }
+        itemsEl.innerHTML += `<div style="margin-top: 4px; font-size: 12px; color: var(--muted);">${inventory.length}/${capacity} slots</div>`;
+    }
+
+    updateQuestUI() {
+        const questDesc = document.getElementById('questDescription');
+        const questProg = document.getElementById('questProgress');
+        if (!questDesc || !questProg) return;
+
+        const currentChar = this.gameState.getCurrentCharacter();
+        const charData = CHARACTERS[currentChar.id];
+
+        if (!charData || !charData.quest) {
+            questDesc.innerHTML = '<div>No active quest</div>';
+            questProg.innerHTML = '<div>Progress: -</div>';
+            return;
+        }
+
+        const quest = charData.quest;
+        const progress = this.gameState.questProgress[currentChar.id] || 0;
+        const isCompleted = this.gameState.completedQuests.has(currentChar.id);
+
+        questDesc.innerHTML = `<div>${quest.description}</div>`;
+
+        if (isCompleted) {
+            questProg.innerHTML = '<div style="color: var(--accent);">✓ Quest Complete!</div>';
+        } else {
+            const completion = quest.completionCriteria;
+            if (completion.type === 'collect') {
+                const items = this.gameState.inventory[currentChar.id] || [];
+                const hasItem = items.includes(completion.item);
+                questProg.innerHTML = `<div>Collect ${completion.item}: ${hasItem ? '✓' : '✗'}</div>`;
+            } else if (completion.type === 'defeat') {
+                const defeated = this.gameState.combatStats.agentsDefeated || 0;
+                questProg.innerHTML = `<div>Defeat agents: ${defeated}/${completion.count}</div>`;
+            } else if (completion.type === 'minigame') {
+                const score = this.gameState.miniGameScores.nicholas || 0;
+                questProg.innerHTML = `<div>Mini-game score: ${score}/${completion.score}</div>`;
+            } else if (completion.type === 'talkToAll') {
+                const talked = Object.keys(this.gameState.interactions).filter(id =>
+                    this.gameState.interactions[id] > 0 && id !== currentChar.id
+                ).length;
+                const total = Object.keys(CHARACTERS).length - 1;
+                questProg.innerHTML = `<div>Talk to all: ${talked}/${total}</div>`;
+            } else {
+                questProg.innerHTML = `<div>Progress: ${progress}</div>`;
+            }
+        }
+    }
+
+    updateAbilitiesUI() {
+        const abilitiesDesc = document.getElementById('abilitiesDescription');
+        if (!abilitiesDesc) return;
+
+        const currentChar = this.gameState.getCurrentCharacter();
+        if (!currentChar || !currentChar.abilities || currentChar.abilities.length === 0) {
+            abilitiesDesc.innerHTML = '<div>No abilities</div>';
+            return;
+        }
+
+        const abilityDescriptions = {
+            teleport: '🌟 Teleport: Click anywhere to teleport',
+            heal: '💚 Heal: Click on a character to heal (+30 HP)',
+            gristCreator: '⚒️ Grist Creator: Click to create grist (+10)',
+            puzzleSolver: '🧩 Puzzle Solver: Auto-solve puzzles',
+            weaponSteal: '⚔️ Weapon Steal: Click on characters to steal their weapon',
+            invincible: '🛡️ Invincible: Cannot take damage in combat',
+            damageBoost: '💥 Damage x10: Massive damage in combat'
+        };
+
+        const abilityList = currentChar.abilities
+            .map(ability => abilityDescriptions[ability] || ability)
+            .join('<br>');
+
+        abilitiesDesc.innerHTML = abilityList;
     }
 
     handleKeyPress(e) {
@@ -305,7 +867,12 @@ class SwitchGame {
                 if (this.showingDialogue) {
                     this.advanceDialogue();
                 } else if (now - this.lastInteractionTime > 500) {
-                    this.tryInteract();
+                    // Try to interact with NPCs first
+                    const npcInteracted = this.tryInteract();
+                    // If no NPC was nearby, try to interact with objects
+                    if (!npcInteracted) {
+                        this.tryInteractWithObjects();
+                    }
                     this.lastInteractionTime = now;
                 }
                 break;
@@ -314,6 +881,168 @@ class SwitchGame {
                 // Escape handling is centralized in setupEventListeners global listener
                 // to manage closing/opening UI overlays. No action here to avoid duplication.
                 break;
+        }
+    }
+
+    tryInteractWithObjects() {
+        const currentChar = this.gameState.getCurrentCharacter();
+        const interactionRange = this.tileSize * 1.5;
+
+        // Check for nearby chests
+        for (const chest of this.chests) {
+            if (!chest.opened) {
+                const dx = this.player.x - chest.x;
+                const dy = this.player.y - chest.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < interactionRange) {
+                    // Check if this chest requires a logic puzzle
+                    if (chest.requiresPuzzle) {
+                        // Check if character is restricted
+                        if (chest.restrictedTo && !chest.restrictedTo.includes(currentChar.id)) {
+                            this.showFloatingText(chest.x + this.tileSize/2, chest.y, 'Only Opal or Austine can open this', '#ff6666');
+                            return;
+                        }
+                        // Set puzzle type based on chest item
+                        // If puzzle is already solved, just open the chest
+                        if (chest.puzzleSolved) {
+                            // Check if item is character-restricted
+                            if (chest.item === 'opalMap' && currentChar.id !== 'opal') {
+                                this.showFloatingText(chest.x + this.tileSize/2, chest.y, 'Only Opal can pick up this map!', '#ff6666');
+                                return;
+                            }
+                            if (chest.item === 'austineMap' && currentChar.id !== 'austine') {
+                                this.showFloatingText(chest.x + this.tileSize/2, chest.y, 'Only Austine can pick up this map!', '#ff6666');
+                                return;
+                            }
+
+                            chest.opened = true;
+                            this.gameState.addToInventory(currentChar.id, chest.item);
+                            this.showFloatingText(chest.x + this.tileSize/2, chest.y, `Found ${chest.item}!`, '#FFD700');
+
+                            // Update quest items
+                            if (chest.item === 'opalMap' && this.gameState.gameItems && this.gameState.gameItems.opalMap) {
+                                this.gameState.gameItems.opalMap.found = true;
+                                // Complete Opal's quest
+                                if (this.gameState.checkQuestCompletion('opal')) {
+                                    this.gameState.completeQuest('opal');
+                                    this.showFloatingText(chest.x + this.tileSize/2, chest.y - 40, 'Quest Complete!', '#00ff00');
+                                }
+                            } else if (chest.item === 'austineMap' && this.gameState.gameItems && this.gameState.gameItems.austineMap) {
+                                this.gameState.gameItems.austineMap.found = true;
+                            }
+
+                            this.saveChestStates();
+                            this.gameState.save();
+                            return;
+                        }
+
+                        // Set puzzle type based on chest item
+                        this.logicPuzzle.puzzleType = chest.item === 'opalMap' ? 'rowcol' : 'neighbor';
+                        // Start logic puzzle
+                        this.currentPuzzleChest = chest;
+                        this.logicPuzzle.start(currentChar.id);
+                        return;
+                    }
+
+                    // Open chest and add item to inventory
+                    chest.opened = true;
+                    this.gameState.addToInventory(currentChar.id, chest.item);
+                    this.showFloatingText(chest.x + this.tileSize/2, chest.y, `Found ${chest.item}!`, '#FFD700');
+
+                    // Update quest items if needed
+                    if (chest.item === 'puzzlePiece' && this.gameState.gameItems && this.gameState.gameItems.puzzlePiece) {
+                        this.gameState.gameItems.puzzlePiece.found = true;
+                    }
+
+                    this.saveChestStates();
+                    this.gameState.save();
+                    return;
+                }
+            }
+        }
+
+        // Check for nearby boulders (Opal only)
+        if (currentChar.id === 'opal') {
+            for (const boulder of this.boulders) {
+                const dx = this.player.x - boulder.x;
+                const dy = this.player.y - boulder.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < interactionRange) {
+                    // Push boulder in the direction player is facing
+                    let pushX = 0;
+                    let pushY = 0;
+
+                    if (this.player.direction === 'up') pushY = -this.tileSize;
+                    else if (this.player.direction === 'down') pushY = this.tileSize;
+                    else if (this.player.direction === 'left') pushX = -this.tileSize;
+                    else if (this.player.direction === 'right') pushX = this.tileSize;
+
+                    const newBoulderX = boulder.x + pushX;
+                    const newBoulderY = boulder.y + pushY;
+
+                    // Check if new position is valid (not colliding with walls, other boulders, etc.)
+                    const boulderTileX = Math.floor(newBoulderX / this.tileSize);
+                    const boulderTileY = Math.floor(newBoulderY / this.tileSize);
+
+                    if (boulderTileY >= 0 && boulderTileY < this.mapRows &&
+                        boulderTileX >= 0 && boulderTileX < this.mapCols) {
+                        const tileType = this.mapTiles[boulderTileY][boulderTileX];
+                        if (tileType === 0) {
+                            // Move boulder
+                            boulder.x = newBoulderX;
+                            boulder.y = newBoulderY;
+                            this.showFloatingText(boulder.x + this.tileSize/2, boulder.y, 'Pushed!', '#6a5a7a');
+                        } else {
+                            this.showFloatingText(boulder.x + this.tileSize/2, boulder.y, 'Cannot push here', '#ff6666');
+                        }
+                    }
+                    return;
+                }
+            }
+        }
+
+        // Check for nearby obstacles (Opal only)
+        if (currentChar.id === 'opal') {
+            for (const obstacle of this.obstacles) {
+                if (!obstacle.broken) {
+                    const dx = this.player.x - obstacle.x;
+                    const dy = this.player.y - obstacle.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < interactionRange) {
+                        // Break obstacle
+                        obstacle.broken = true;
+                        this.showFloatingText(obstacle.x + this.tileSize/2, obstacle.y, 'Smashed!', '#5a4a6a');
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Check for nearby fillable chasms (Isabella only)
+        if (currentChar.id === 'isabell') {
+            for (const chasm of this.fillableChasms) {
+                if (!chasm.filled) {
+                    const dx = this.player.x - chasm.x;
+                    const dy = this.player.y - chasm.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < interactionRange) {
+                        // Check if Isabella has grist
+                        if (this.gameState.grist >= 10) {
+                            chasm.filled = true;
+                            this.gameState.grist -= 10;
+                            this.showFloatingText(chasm.x + this.tileSize/2, chasm.y, 'Chasm Filled!', '#4a3a5a');
+                            this.gameState.save();
+                        } else {
+                            this.showFloatingText(chasm.x + this.tileSize/2, chasm.y, 'Need 10 grist', '#ff6666');
+                        }
+                        return;
+                    }
+                }
+            }
         }
     }
 
@@ -441,24 +1170,256 @@ class SwitchGame {
         }
     }
 
+    initializeMap() {
+        // Initialize map tiles grid (0 = floor, 1 = wall, 2 = chasm)
+        for (let y = 0; y < this.mapRows; y++) {
+            this.mapTiles[y] = [];
+            for (let x = 0; x < this.mapCols; x++) {
+                this.mapTiles[y][x] = 0;
+            }
+        }
+
+        // Create outer walls
+        for (let x = 0; x < this.mapCols; x++) {
+            this.mapTiles[0][x] = 1;
+            this.mapTiles[this.mapRows - 1][x] = 1;
+        }
+        for (let y = 0; y < this.mapRows; y++) {
+            this.mapTiles[y][0] = 1;
+            this.mapTiles[y][this.mapCols - 1] = 1;
+        }
+
+        // === CENTRAL HUB (Open area where all characters start) ===
+        // Area from tiles (20,20) to (30,30) - completely open, no obstacles
+
+        // === NORTH ROOM - Boulder Puzzle Room ===
+        // Create walls for north room (tiles 20-30 horizontal, 5-15 vertical)
+        for (let x = 20; x <= 30; x++) {
+            this.mapTiles[15][x] = 1; // Bottom wall of north room
+        }
+        for (let y = 5; y <= 15; y++) {
+            this.mapTiles[y][20] = 1; // Left wall
+            this.mapTiles[y][30] = 1; // Right wall
+        }
+        // Entrance corridor from hub to north room
+        for (let y = 16; y < 20; y++) {
+            this.mapTiles[y][24] = 1; // Left side of corridor
+            this.mapTiles[y][26] = 1; // Right side of corridor
+        }
+
+        // === SOUTH ROOM - Obstacle Puzzle Room ===
+        // Walls for south room (tiles 20-30 horizontal, 35-45 vertical)
+        for (let x = 20; x <= 30; x++) {
+            this.mapTiles[35][x] = 1; // Top wall of south room
+        }
+        for (let y = 35; y <= 45; y++) {
+            this.mapTiles[y][20] = 1; // Left wall
+            this.mapTiles[y][30] = 1; // Right wall
+        }
+        // Entrance corridor from hub to south room
+        for (let y = 30; y < 35; y++) {
+            this.mapTiles[y][24] = 1; // Left side of corridor
+            this.mapTiles[y][26] = 1; // Right side of corridor
+        }
+
+        // === EAST ROOM - Chasm Puzzle Room ===
+        // Walls for east room (tiles 35-45 horizontal, 20-30 vertical)
+        for (let y = 20; y <= 30; y++) {
+            this.mapTiles[y][35] = 1; // Left wall of east room
+        }
+        for (let x = 35; x <= 45; x++) {
+            this.mapTiles[20][x] = 1; // Top wall
+            this.mapTiles[30][x] = 1; // Bottom wall
+        }
+        // Entrance corridor from hub to east room
+        for (let x = 30; x < 35; x++) {
+            this.mapTiles[24][x] = 1; // Top side of corridor
+            this.mapTiles[26][x] = 1; // Bottom side of corridor
+        }
+
+        // === WEST ROOM - Mixed Puzzle Room ===
+        // Walls for west room (tiles 5-15 horizontal, 20-30 vertical)
+        for (let y = 20; y <= 30; y++) {
+            this.mapTiles[y][15] = 1; // Right wall of west room
+        }
+        for (let x = 5; x <= 15; x++) {
+            this.mapTiles[20][x] = 1; // Top wall
+            this.mapTiles[30][x] = 1; // Bottom wall
+        }
+        // Entrance corridor from hub to west room
+        for (let x = 15; x < 20; x++) {
+            this.mapTiles[24][x] = 1; // Top side of corridor
+            this.mapTiles[26][x] = 1; // Bottom side of corridor
+        }
+
+        // === NORTHEAST CORNER - Boulder Maze ===
+        // Walls creating maze structure
+        for (let x = 35; x <= 45; x++) {
+            this.mapTiles[15][x] = 1;
+        }
+        for (let y = 5; y <= 15; y++) {
+            this.mapTiles[y][35] = 1;
+        }
+        // Entrance from north room
+        this.mapTiles[10][30] = 0; // Opening
+        this.mapTiles[10][31] = 0;
+        this.mapTiles[10][32] = 0;
+
+        // === SOUTHEAST CORNER - Agent Combat Area ===
+        // Walls for SE corner
+        for (let x = 35; x <= 45; x++) {
+            this.mapTiles[35][x] = 1;
+        }
+        for (let y = 35; y <= 45; y++) {
+            this.mapTiles[y][35] = 1;
+        }
+        // Entrance from east room
+        this.mapTiles[30][40] = 0;
+        this.mapTiles[31][40] = 0;
+        this.mapTiles[32][40] = 0;
+
+        // === SOUTHWEST CORNER - Chasm Bridge Puzzle ===
+        // Walls for SW corner
+        for (let x = 5; x <= 15; x++) {
+            this.mapTiles[35][x] = 1;
+        }
+        for (let y = 35; y <= 45; y++) {
+            this.mapTiles[y][15] = 1;
+        }
+        // Entrance from west room
+        this.mapTiles[30][10] = 0;
+        this.mapTiles[31][10] = 0;
+        this.mapTiles[32][10] = 0;
+
+        // === NORTHWEST CORNER - Secret Mixed Puzzle Area ===
+        // Walls for NW corner
+        for (let x = 5; x <= 15; x++) {
+            this.mapTiles[15][x] = 1;
+        }
+        for (let y = 5; y <= 15; y++) {
+            this.mapTiles[y][15] = 1;
+        }
+        // Entrance from west room
+        this.mapTiles[20][10] = 0;
+        this.mapTiles[19][10] = 0;
+        this.mapTiles[18][10] = 0;
+
+        // === BOULDERS - Opal can push these ===
+        this.boulders = [
+            // North room entrance - blocking access
+            { x: 25 * this.tileSize, y: 17 * this.tileSize },
+            { x: 25 * this.tileSize, y: 18 * this.tileSize },
+
+            // North room interior - puzzle
+            { x: 22 * this.tileSize, y: 10 * this.tileSize },
+            { x: 25 * this.tileSize, y: 10 * this.tileSize },
+            { x: 28 * this.tileSize, y: 10 * this.tileSize },
+            { x: 25 * this.tileSize, y: 8 * this.tileSize },
+
+            // NE maze - complex puzzle
+            { x: 37 * this.tileSize, y: 10 * this.tileSize },
+            { x: 39 * this.tileSize, y: 10 * this.tileSize },
+            { x: 41 * this.tileSize, y: 10 * this.tileSize },
+            { x: 38 * this.tileSize, y: 12 * this.tileSize },
+            { x: 40 * this.tileSize, y: 12 * this.tileSize },
+        ];
+
+        // === OBSTACLES - Opal can break these ===
+        this.obstacles = [
+            // South room entrance - blocking access
+            { x: 25 * this.tileSize, y: 32 * this.tileSize, broken: false },
+            { x: 25 * this.tileSize, y: 33 * this.tileSize, broken: false },
+
+            // South room interior - multiple obstacles
+            { x: 23 * this.tileSize, y: 38 * this.tileSize, broken: false },
+            { x: 25 * this.tileSize, y: 40 * this.tileSize, broken: false },
+            { x: 27 * this.tileSize, y: 38 * this.tileSize, broken: false },
+
+            // SE corner - agent area obstacles
+            { x: 38 * this.tileSize, y: 38 * this.tileSize, broken: false },
+            { x: 40 * this.tileSize, y: 40 * this.tileSize, broken: false },
+            { x: 42 * this.tileSize, y: 38 * this.tileSize, broken: false },
+
+            // NW corner - mixed puzzle
+            { x: 8 * this.tileSize, y: 8 * this.tileSize, broken: false },
+            { x: 12 * this.tileSize, y: 10 * this.tileSize, broken: false },
+        ];
+
+        // === FILLABLE CHASMS - Isabella can fill these ===
+        this.fillableChasms = [
+            // East room entrance - blocking access
+            { x: 32 * this.tileSize, y: 25 * this.tileSize, filled: false },
+            { x: 33 * this.tileSize, y: 25 * this.tileSize, filled: false },
+
+            // East room interior - bridge puzzle
+            { x: 38 * this.tileSize, y: 23 * this.tileSize, filled: false },
+            { x: 39 * this.tileSize, y: 23 * this.tileSize, filled: false },
+            { x: 40 * this.tileSize, y: 23 * this.tileSize, filled: false },
+            { x: 38 * this.tileSize, y: 27 * this.tileSize, filled: false },
+            { x: 39 * this.tileSize, y: 27 * this.tileSize, filled: false },
+            { x: 40 * this.tileSize, y: 27 * this.tileSize, filled: false },
+
+            // SW corner - long bridge to cross
+            { x: 8 * this.tileSize, y: 40 * this.tileSize, filled: false },
+            { x: 9 * this.tileSize, y: 40 * this.tileSize, filled: false },
+            { x: 10 * this.tileSize, y: 40 * this.tileSize, filled: false },
+            { x: 11 * this.tileSize, y: 40 * this.tileSize, filled: false },
+            { x: 12 * this.tileSize, y: 40 * this.tileSize, filled: false },
+
+            // West room - mixed with obstacles
+            { x: 10 * this.tileSize, y: 25 * this.tileSize, filled: false },
+            { x: 12 * this.tileSize, y: 25 * this.tileSize, filled: false },
+        ];
+
+        // === CHESTS WITH QUEST ITEMS - Strategically placed in puzzle rooms ===
+        this.chests = [
+            // Puzzle Piece - In north boulder room (need to solve boulder puzzle)
+            { x: 25 * this.tileSize, y: 7 * this.tileSize, opened: false, item: 'puzzlePiece' },
+
+            // Lost Animal - In east chasm room (need Isabella to fill chasms)
+            { x: 42 * this.tileSize, y: 25 * this.tileSize, opened: false, item: 'lostAnimal' },
+
+            // Notebook - In south obstacle room (need Opal to break obstacles)
+            { x: 25 * this.tileSize, y: 42 * this.tileSize, opened: false, item: 'notebook' },
+
+            // Opal's Map - In NW corner (logic puzzle required, only Opal/Austine can take)
+            { x: 7 * this.tileSize, y: 7 * this.tileSize, opened: false, item: 'opalMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
+
+            // Austine's Map - In NE corner (logic puzzle required, only Opal/Austine can take)
+            { x: 43 * this.tileSize, y: 7 * this.tileSize, opened: false, item: 'austineMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
+        ];
+    }
+
     createBackgroundSprite() {
         const canvas = document.createElement('canvas');
         canvas.width = this.mapWidth;
         canvas.height = this.mapHeight;
         const ctx = canvas.getContext('2d');
 
-        // Create a simple tiled background (checker of two greens)
+        // Create purple Derse-themed tiled background with patterns
         const tileSize = 64;
         for (let x = 0; x < this.mapWidth; x += tileSize) {
             for (let y = 0; y < this.mapHeight; y += tileSize) {
                 const isEven = ((x / tileSize) + (y / tileSize)) % 2 === 0;
-                ctx.fillStyle = isEven ? '#2a4a2a' : '#1a3a1a';
+                // Purple color palette
+                ctx.fillStyle = isEven ? '#2a1a3a' : '#1a0a2a';
                 ctx.fillRect(x, y, tileSize, tileSize);
+
+                // Add Derse-like checkerboard pattern
+                ctx.fillStyle = isEven ? '#3a2a4a' : '#2a1a3a';
+                const patternSize = 8;
+                for (let px = 0; px < tileSize; px += patternSize * 2) {
+                    for (let py = 0; py < tileSize; py += patternSize * 2) {
+                        if ((px / patternSize + py / patternSize) % 2 === 0) {
+                            ctx.fillRect(x + px, y + py, patternSize, patternSize);
+                        }
+                    }
+                }
             }
         }
 
-        // Add some decorative patches
-        ctx.fillStyle = '#4a6a4a';
+        // Add decorative purple patches
+        ctx.fillStyle = '#4a3a5a';
         for (let i = 0; i < 20; i++) {
             const x = Math.random() * this.mapWidth;
             const y = Math.random() * this.mapHeight;
@@ -472,13 +1433,155 @@ class SwitchGame {
     update() {
         if (!this.isGameRunning || this.showingDialogue || this.showingSwitchPrompt) return;
 
+        // Update logic puzzle if active
+        if (this.logicPuzzle && this.logicPuzzle.active) {
+            this.logicPuzzle.update();
+            return;
+        }
+
+        // Update mini-game if active
+        if (this.inMiniGame && this.miniGame) {
+            this.miniGame.update();
+            return;
+        }
+
         this.updatePlayerMovement();
         this.updateCamera();
         this.updateAnimations();
         this.checkForInteractions();
+        this.checkForItemPickups();
+        this.checkForCombatEncounters();
+        this.updateFloatingTexts();
+
+        // Update UI
+        this.updateInventoryUI();
+        this.updateQuestUI();
+        this.updateAbilitiesUI();
+    }
+
+    updateFloatingTexts() {
+        if (!this.floatingTexts) return;
+
+        this.floatingTexts = this.floatingTexts.filter(text => {
+            text.y -= 1;
+            text.alpha -= 0.016;
+            text.lifetime--;
+            return text.lifetime > 0 && text.alpha > 0;
+        });
+    }
+
+    checkForItemPickups() {
+        if (!this.gameState || !this.gameState.gameItems) return;
+
+        const playerCenterX = this.player.x + this.player.width / 2;
+        const playerCenterY = this.player.y + this.player.height / 2;
+        const pickupDistance = 40;
+
+        for (const [itemId, itemData] of Object.entries(this.gameState.gameItems)) {
+            if (!itemData.collected) {
+                const dx = playerCenterX - (itemData.x + 16);
+                const dy = playerCenterY - (itemData.y + 16);
+                const distance = Math.hypot(dx, dy);
+
+                if (distance < pickupDistance) {
+                    this.gameState.pickupItem(itemId);
+                    this.updateInventoryUI();
+                    this.updateQuestUI();
+                }
+            }
+        }
+    }
+
+    checkForCombatEncounters() {
+        if (this.inCombat || !this.gameState) return;
+
+        const playerCenterX = this.player.x + this.player.width / 2;
+        const playerCenterY = this.player.y + this.player.height / 2;
+        const encounterDistance = 40;
+
+        if (this.gameState.combatStats.agentsDefeated < 3) {
+            const agents = [
+                { x: 750, y: 750 },
+                { x: 1280, y: 320 },
+                { x: 1280, y: 1280 }
+            ];
+
+            const defeatedCount = this.gameState.combatStats.agentsDefeated || 0;
+            for (let i = defeatedCount; i < agents.length; i++) {
+                const agent = agents[i];
+                const dx = playerCenterX - (agent.x + 16);
+                const dy = playerCenterY - (agent.y + 16);
+                const distance = Math.hypot(dx, dy);
+
+                if (distance < encounterDistance) {
+                    this.startCombat();
+                    break;
+                }
+            }
+        }
+    }
+
+    startCombat() {
+        this.inCombat = true;
+        const combatUI = document.getElementById('combatUI');
+        if (combatUI) combatUI.style.display = 'block';
+
+        const currentChar = this.gameState.getCurrentCharacter();
+        this.combatSystem.startCombat('derseAgent');
+
+        document.getElementById('playerName').textContent = currentChar.name;
+        document.getElementById('playerHP').textContent = this.combatSystem.playerHP;
+        document.getElementById('playerMaxHP').textContent = this.combatSystem.playerMaxHP;
+        document.getElementById('enemyName').textContent = 'Derse Agent';
+        document.getElementById('enemyHP').textContent = this.combatSystem.enemyHP;
+        document.getElementById('enemyMaxHP').textContent = this.combatSystem.enemyMaxHP;
+
+        const moves = this.combatSystem.getMoves(currentChar.id);
+        const moveButtons = document.querySelectorAll('.combatMove');
+        moveButtons.forEach((btn, index) => {
+            if (moves[index]) {
+                btn.textContent = `${moves[index].name} (${moves[index].damage})`;
+                btn.onclick = () => this.useCombatMove(index);
+            }
+        });
+    }
+
+    useCombatMove(moveIndex) {
+        const result = this.combatSystem.playerAttack(moveIndex);
+
+        document.getElementById('playerHP').textContent = this.combatSystem.playerHP;
+        document.getElementById('enemyHP').textContent = this.combatSystem.enemyHP;
+
+        const logEl = document.getElementById('combatLog');
+        if (logEl && result) {
+            logEl.innerHTML += `<div>${result.message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        if (!this.combatSystem.inCombat && result) {
+            setTimeout(() => this.endCombat(result.playerWon), 1500);
+        }
+    }
+
+
+
+    endCombat(playerWon) {
+        this.inCombat = false;
+        const combatUI = document.getElementById('combatUI');
+        if (combatUI) combatUI.style.display = 'none';
+
+        const logEl = document.getElementById('combatLog');
+        if (logEl) logEl.innerHTML = '';
+
+        if (playerWon) {
+            this.updateQuestUI();
+        }
     }
 
     updatePlayerMovement() {
+        // Prevent movement during combat
+        if (this.inCombat) return;
+
         let dx = 0;
         let dy = 0;
 
@@ -508,10 +1611,90 @@ class SwitchGame {
 
         this.player.isMoving = dx !== 0 || dy !== 0;
 
-        // Apply movement with bounds checking
-        const newX = Math.max(0, Math.min(this.mapWidth - this.player.width, this.player.x + dx));
-        const newY = Math.max(0, Math.min(this.mapHeight - this.player.height, this.player.y + dy));
+        // Calculate new position with bounds checking
+        let newX = Math.max(0, Math.min(this.mapWidth - this.player.width, this.player.x + dx));
+        let newY = Math.max(0, Math.min(this.mapHeight - this.player.height, this.player.y + dy));
 
+        // Check collision with map tiles (walls and chasms)
+        const playerTileLeft = Math.floor(newX / this.tileSize);
+        const playerTileRight = Math.floor((newX + this.player.width - 1) / this.tileSize);
+        const playerTileTop = Math.floor(newY / this.tileSize);
+        const playerTileBottom = Math.floor((newY + this.player.height - 1) / this.tileSize);
+
+        for (let ty = playerTileTop; ty <= playerTileBottom; ty++) {
+            for (let tx = playerTileLeft; tx <= playerTileRight; tx++) {
+                if (ty >= 0 && ty < this.mapRows && tx >= 0 && tx < this.mapCols) {
+                    const tileType = this.mapTiles[ty][tx];
+                    if (tileType === 1 || tileType === 2) {
+                        // Wall or chasm - block movement
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Check collision with boulders
+        for (const boulder of this.boulders) {
+            if (newX < boulder.x + this.tileSize &&
+                newX + this.player.width > boulder.x &&
+                newY < boulder.y + this.tileSize &&
+                newY + this.player.height > boulder.y) {
+                // Collision with boulder - block movement
+                return;
+            }
+        }
+
+        // Check collision with obstacles
+        for (const obstacle of this.obstacles) {
+            if (!obstacle.broken) {
+                if (newX < obstacle.x + this.tileSize &&
+                    newX + this.player.width > obstacle.x &&
+                    newY < obstacle.y + this.tileSize &&
+                    newY + this.player.height > obstacle.y) {
+                    // Collision with unbroken obstacle - block movement
+                    return;
+                }
+            }
+        }
+
+        // Check collision with fillable chasms (unfilled)
+        for (const chasm of this.fillableChasms) {
+            if (!chasm.filled) {
+                if (newX < chasm.x + this.tileSize &&
+                    newX + this.player.width > chasm.x &&
+                    newY < chasm.y + this.tileSize &&
+                    newY + this.player.height > chasm.y) {
+                    // Collision with unfilled chasm - block movement
+                    return;
+                }
+            }
+        }
+
+        // Check collision with agents
+        if (this.gameState && this.gameState.combatStats.agentsDefeated < 3) {
+            const agents = [
+                { x: 750, y: 750 },
+                { x: 1280, y: 320 },
+                { x: 1280, y: 1280 }
+            ];
+
+            const defeatedCount = this.gameState.combatStats.agentsDefeated || 0;
+            for (let i = defeatedCount; i < agents.length; i++) {
+                const agent = agents[i];
+                const tileSize = 32;
+
+                // Check if new position would collide with agent
+                if (newX < agent.x + tileSize &&
+                    newX + this.player.width > agent.x &&
+                    newY < agent.y + tileSize &&
+                    newY + this.player.height > agent.y) {
+                    // Collision detected, don't move
+                    return;
+                }
+            }
+        }
+
+        // Apply movement
         this.player.x = newX;
         this.player.y = newY;
 
@@ -621,7 +1804,10 @@ class SwitchGame {
 
         if (closestNPC) {
             this.startDialogue(closestNPC.id);
+            return true;
         }
+
+        return false;
     }
 
     startDialogue(npcId) {
@@ -643,9 +1829,6 @@ class SwitchGame {
         if (!this.dialogueManager.nextLine()) {
             // Dialogue completed
             this.closeDialogue();
-
-            // Always evaluate whether a switch prompt should be shown based on strict rules
-            setTimeout(() => this.showSwitchPrompt(), 400);
         } else {
             // Update dialogue UI using structured current line object (text/speaker)
             const current = this.dialogueManager.getCurrentLine();
@@ -685,6 +1868,14 @@ class SwitchGame {
             }
         }
 
+        // Trigger Nicholas mini-game prompt after talking to him
+        if (lastId === 'nicholas' && !this.inMiniGame && this.gameState.miniGameScores.nicholas < 5) {
+            setTimeout(() => {
+                this.showMiniGamePrompt();
+            }, 500);
+            return;
+        }
+
         // Check if all interactions are complete (remaining === 0)
         // If so, and we're not Victor, fade out the music
         const remaining = (this.gameState && typeof this.gameState.getRemainingInteractionsToFinishGame === 'function')
@@ -699,6 +1890,11 @@ class SwitchGame {
             }
         }
 
+        // Show switch prompt after dialogue closes (with a short delay)
+        setTimeout(() => {
+            this.showSwitchPrompt();
+        }, 400);
+
         // Refresh settings panel progress if open
         const settingsModal = document.getElementById('settingsModal');
         if (settingsModal && settingsModal.style.display === 'block' && typeof this.updateSettingsPanel === 'function') {
@@ -708,16 +1904,6 @@ class SwitchGame {
 
     showSwitchPrompt() {
         const currentChar = this.gameState.getCurrentCharacter();
-
-        // Check if current character has completed all required dialogues (Remaining to progress: 0)
-        const remainingForCharacter = (this.gameState && typeof this.gameState.getRemainingForCharacterProgress === 'function')
-            ? this.gameState.getRemainingForCharacterProgress(currentChar.id)
-            : 1;
-
-        // Only allow switching if the current character has talked to everyone they need to (remaining = 0)
-        if (remainingForCharacter > 0) {
-            return; // Don't show switch prompt if character hasn't completed all dialogues
-        }
 
         // Determine who we are allowed to propose as a switch target under strict rules
         // Rule 1: If Until game complete > 0, Victor must NEVER be proposed.
@@ -789,28 +1975,70 @@ class SwitchGame {
         if (confirmed && this.nextCharacterToSwitch) {
             const targetChar = CHARACTERS[this.nextCharacterToSwitch];
 
+            // Special check for Nicholas - require mini-game completion
+            if (this.nextCharacterToSwitch === 'nicholas' && this.gameState.miniGameScores.nicholas < 5) {
+                this.showingDialogue = true;
+                if (this.dialogueBox) {
+                    this.dialogueBox.style.display = 'block';
+                }
+                if (this.dialogueText) {
+                    this.dialogueText.textContent = "Hold on there. Before we switch, I need to know you can handle my abilities. Let me test your aim.";
+                    this.dialogueText.style.color = CHARACTERS.nicholas.color;
+                }
+
+                setTimeout(() => {
+                    this.showingDialogue = false;
+                    if (this.dialogueBox) {
+                        this.dialogueBox.style.display = 'none';
+                    }
+                    setTimeout(() => {
+                        this.showMiniGamePrompt();
+                    }, 300);
+                }, 2500);
+                return;
+            }
+
             // If target is the final character (Victor), only allow when remaining == 0 and we just interacted with Victor
             const remaining = (this.gameState && typeof this.gameState.getRemainingInteractionsToFinishGame === 'function')
                 ? this.gameState.getRemainingInteractionsToFinishGame()
                 : 1;
             const lastTalked = this.gameState && this.gameState.lastNPCTalkedId;
             if (targetChar && targetChar.isFinalCharacter) {
-                if (!(remaining === 0 && lastTalked === 'victor' && this.gameState.canSwitchToCharacter && this.gameState.canSwitchToCharacter('victor'))) {
-                    // Guard: do not allow switching to Victor unless strict conditions met
+                if (remaining === 0 && lastTalked === 'victor' && this.gameState.canSwitchToCharacter && this.gameState.canSwitchToCharacter('victor')) {
+                    if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+                        this.audioManager.playCharacterMusic('victor');
+                    }
+                    this.triggerGlitchEnding();
+                    return;
+                } else {
                     return;
                 }
+            }
 
-                // Begin glitch ending while playing Victor's music
-                if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
-                    try { this.audioManager.playCharacterMusic('victor'); } catch(_) {}
+            // Check if we can actually switch to this character (verify unlock criteria)
+            if (!this.gameState.canSwitchToCharacter(this.nextCharacterToSwitch)) {
+                // Show a message indicating why the switch is not allowed
+                this.showingDialogue = true;
+                if (this.dialogueBox) {
+                    this.dialogueBox.style.display = 'block';
                 }
-                this.triggerGlitchEnding();
-                // Begin glitch ending while playing Victor's music
-                if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
-                    this.audioManager.playCharacterMusic('victor');
+                if (this.dialogueText) {
+                    const reqMessage = this.getUnlockRequirementMessage(this.nextCharacterToSwitch);
+                    this.dialogueText.textContent = reqMessage || "You cannot switch to this character yet. Complete their unlock requirements first.";
+                    this.dialogueText.style.color = targetChar.color || '#ffffff';
                 }
-                this.triggerGlitchEnding();
+                setTimeout(() => {
+                    this.showingDialogue = false;
+                    if (this.dialogueBox) {
+                        this.dialogueBox.style.display = 'none';
+                    }
+                }, 3000);
                 return;
+            }
+
+            // Track which characters have been played for unlock conditions
+            if (this.gameState.playedCharacters) {
+                this.gameState.playedCharacters.add(this.nextCharacterToSwitch);
             }
 
             // Perform normal character switch with NPC swap logic
@@ -877,6 +2105,54 @@ class SwitchGame {
 
         this.nextCharacterToSwitch = null;
     }
+
+    getUnlockRequirementMessage(characterId) {
+        const character = CHARACTERS[characterId];
+        if (!character || !character.quest) {
+            return "You cannot switch to this character yet.";
+        }
+
+        const quest = character.quest;
+        const unlockCriteria = quest.unlockCriteria;
+
+        switch (unlockCriteria) {
+            case 'startingCharacter':
+                return `${character.name} is always available to switch to.`;
+
+            case 'defeat3Agents':
+                const defeated = this.gameState.combatStats.agentsDefeated || 0;
+                return `You need to defeat 3 Derse agents to unlock ${character.name}. Currently defeated: ${defeated}/3`;
+
+            case 'findPuzzlePiece':
+                return `You need to find the puzzle piece to unlock ${character.name}. Look around the map!`;
+
+            case 'bringLostAnimal':
+                const hasAnimal = this.gameState.inventory[this.gameState.currentCharacter]?.includes('lostAnimal');
+                return hasAnimal
+                    ? `Bring the lost animal to ${character.name} to unlock them.`
+                    : `You need to find and bring the lost animal to unlock ${character.name}.`;
+
+            case 'talkToAll':
+                const currentCharName = this.gameState.getCurrentCharacter().name;
+                return `${currentCharName} needs to talk to all characters to unlock ${character.name}.`;
+
+            case 'beatMiniGame':
+                const score = this.gameState.miniGameScores.nicholas || 0;
+                return `You need to beat Nicholas's mini-game (score 5+) to unlock him. Current score: ${score}/5`;
+
+            case 'beOpalCompleted':
+                return `Complete Opal's quest first to unlock ${character.name}.`;
+
+            case 'playedAllCharacters':
+                const playedCount = this.gameState.playedCharacters ? this.gameState.playedCharacters.size : 0;
+                const totalNeeded = Object.keys(CHARACTERS).length - 1;
+                return `Play as all other characters first to unlock ${character.name}. Played: ${playedCount}/${totalNeeded}`;
+
+            default:
+                return `You cannot switch to ${character.name} yet. Complete their unlock requirements first.`;
+        }
+    }
+
     switchToCharacter(characterId) {
         if (this.gameState.switchCharacter(characterId)) {
             const newChar = this.gameState.getCurrentCharacter();
@@ -1334,6 +2610,11 @@ class SwitchGame {
         const currentChar = this.gameState.getCurrentCharacter();
         if (this.characterName) this.characterName.textContent = currentChar.name;
 
+        // Update all UI elements to reflect new character
+        this.updateInventoryUI();
+        this.updateQuestUI();
+        this.updateAbilitiesUI();
+
         // Also refresh settings panel values if open
         const settingsModal = document.getElementById('settingsModal');
         if (settingsModal && settingsModal.style.display === 'block') {
@@ -1442,6 +2723,223 @@ class SwitchGame {
 
         const tile = 32;
 
+        // Draw map tiles (walls and chasms)
+        const startCol = Math.max(0, Math.floor(this.camera.x / this.tileSize));
+        const endCol = Math.min(this.mapCols, Math.ceil((this.camera.x + this.canvas.width) / this.tileSize));
+        const startRow = Math.max(0, Math.floor(this.camera.y / this.tileSize));
+        const endRow = Math.min(this.mapRows, Math.ceil((this.camera.y + this.canvas.height) / this.tileSize));
+
+        for (let row = startRow; row < endRow; row++) {
+            for (let col = startCol; col < endCol; col++) {
+                const tileType = this.mapTiles[row][col];
+                const x = col * this.tileSize - this.camera.x;
+                const y = row * this.tileSize - this.camera.y;
+
+                if (tileType === 1) {
+                    // Wall
+                    this.ctx.fillStyle = '#9f01ff';
+                    this.ctx.fillRect(x, y, this.tileSize, this.tileSize);
+
+                    // Derse pattern on walls
+                    this.ctx.fillStyle = '#6c01fd';
+                    for (let py = 0; py < this.tileSize; py += 8) {
+                        for (let px = 0; px < this.tileSize; px += 8) {
+                            if ((px / 8 + py / 8) % 2 === 0) {
+                                this.ctx.fillRect(x + px, y + py, 4, 4);
+                            }
+                        }
+                    }
+
+                    // Border
+                    this.ctx.strokeStyle = '#6200b5';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(x, y, this.tileSize, this.tileSize);
+                } else if (tileType === 2) {
+                    // Chasm
+                    this.ctx.fillStyle = '#0a0010';
+                    this.ctx.fillRect(x, y, this.tileSize, this.tileSize);
+
+                    // Shadow effect
+                    const gradient = this.ctx.createRadialGradient(
+                        x + this.tileSize / 2, y + this.tileSize / 2, 0,
+                        x + this.tileSize / 2, y + this.tileSize / 2, this.tileSize / 2
+                    );
+                    gradient.addColorStop(0, '#1a1020');
+                    gradient.addColorStop(1, '#0a0010');
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(x, y, this.tileSize, this.tileSize);
+                }
+            }
+        }
+
+        // Draw fillable chasms
+        for (const chasm of this.fillableChasms) {
+            const screenX = chasm.x - this.camera.x;
+            const screenY = chasm.y - this.camera.y;
+
+            if (screenX > -tile && screenX < this.canvas.width &&
+                screenY > -tile && screenY < this.canvas.height) {
+
+                if (chasm.filled) {
+                    // Filled chasm (looks like floor)
+                    this.ctx.fillStyle = '#000000ff';
+                    this.ctx.fillRect(screenX, screenY, tile, tile);
+                } else {
+                    // Unfilled chasm
+                    this.ctx.fillStyle = '#000000ff';
+                    this.ctx.fillRect(screenX, screenY, tile, tile);
+
+                    // Pulsing effect
+                    const pulse = Math.sin(Date.now() / 500) * 0.2 + 0.8;
+                    this.ctx.fillStyle = `rgba(90, 50, 110, ${pulse * 0.3})`;
+                    this.ctx.fillRect(screenX + 4, screenY + 4, tile - 8, tile - 8);
+                }
+            }
+        }
+
+        // Draw boulders
+        for (const boulder of this.boulders) {
+            const screenX = boulder.x - this.camera.x;
+            const screenY = boulder.y - this.camera.y;
+
+            if (screenX > -tile && screenX < this.canvas.width &&
+                screenY > -tile && screenY < this.canvas.height) {
+
+                // Boulder
+                this.ctx.fillStyle = '#6a5a7a';
+                this.ctx.fillRect(screenX, screenY, tile, tile);
+
+                // Highlights
+                this.ctx.fillStyle = '#7a6a8a';
+                this.ctx.fillRect(screenX + 4, screenY + 4, 8, 8);
+                this.ctx.fillRect(screenX + tile - 12, screenY + 4, 8, 8);
+
+                // Shadow
+                this.ctx.fillStyle = '#4a3a5a';
+                this.ctx.fillRect(screenX + 4, screenY + tile - 12, tile - 8, 8);
+            }
+        }
+
+        // Draw breakable obstacles
+        for (const obstacle of this.obstacles) {
+            if (!obstacle.broken) {
+                const screenX = obstacle.x - this.camera.x;
+                const screenY = obstacle.y - this.camera.y;
+
+                if (screenX > -tile && screenX < this.canvas.width &&
+                    screenY > -tile && screenY < this.canvas.height) {
+
+                    // Rock-like obstacle
+                    this.ctx.fillStyle = '#5a4a6a';
+                    this.ctx.fillRect(screenX + 4, screenY + 8, tile - 8, tile - 12);
+                    this.ctx.fillRect(screenX + 8, screenY + 4, tile - 16, tile - 8);
+
+                    // Cracks
+                    this.ctx.strokeStyle = '#3a2a4a';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(screenX + 12, screenY + 8);
+                    this.ctx.lineTo(screenX + tile / 2, screenY + tile / 2);
+                    this.ctx.lineTo(screenX + tile - 12, screenY + tile - 8);
+                    this.ctx.stroke();
+                }
+            }
+        }
+
+        // Draw chests
+        for (const chest of this.chests) {
+            if (!chest.opened) {
+                const screenX = chest.x - this.camera.x;
+                const screenY = chest.y - this.camera.y;
+
+                if (screenX > -tile && screenX < this.canvas.width &&
+                    screenY > -tile && screenY < this.canvas.height) {
+
+                    // Chest body
+                    this.ctx.fillStyle = '#8B4513';
+                    this.ctx.fillRect(screenX + 6, screenY + 12, tile - 12, tile - 14);
+
+                    // Chest lid
+                    this.ctx.fillStyle = '#A0522D';
+                    this.ctx.fillRect(screenX + 4, screenY + 8, tile - 8, 8);
+
+                    // Lock
+                    this.ctx.fillStyle = '#FFD700';
+                    this.ctx.fillRect(screenX + tile / 2 - 2, screenY + 14, 4, 6);
+
+                    // Glow effect
+                    this.ctx.shadowColor = '#FFD700';
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.fillStyle = '#FFD700';
+                    this.ctx.beginPath();
+                    this.ctx.arc(screenX + tile / 2, screenY + 17, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        // Draw items on map
+        if (this.gameState && this.gameState.gameItems) {
+            for (const [itemId, itemData] of Object.entries(this.gameState.gameItems)) {
+                if (!itemData.collected) {
+                    const screenX = itemData.x - this.camera.x;
+                    const screenY = itemData.y - this.camera.y;
+
+                    if (screenX > -tile && screenX < this.canvas.width &&
+                        screenY > -tile && screenY < this.canvas.height) {
+
+                        this.ctx.fillStyle = '#FFD700';
+                        this.ctx.shadowColor = '#FFD700';
+                        this.ctx.shadowBlur = 10;
+
+                        this.ctx.beginPath();
+                        this.ctx.arc(screenX + tile/2, screenY + tile/2, 12, 0, Math.PI * 2);
+                        this.ctx.fill();
+
+                        this.ctx.shadowBlur = 0;
+
+                        this.ctx.fillStyle = '#fff';
+                        this.ctx.font = 'bold 10px Arial';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText(itemId, screenX + tile/2, screenY - 8);
+                    }
+                }
+            }
+        }
+
+        // Draw Derse agents (enemies)
+        if (this.gameState && this.gameState.combatStats && this.gameState.combatStats.agentsDefeated < 3) {
+            const agents = [
+                { x: 750, y: 750 },
+                { x: 1280, y: 320 },
+                { x: 1280, y: 1280 }
+            ];
+
+            const defeatedCount = this.gameState.combatStats.agentsDefeated || 0;
+            for (let i = defeatedCount; i < agents.length; i++) {
+                const agent = agents[i];
+                const screenX = agent.x - this.camera.x;
+                const screenY = agent.y - this.camera.y;
+
+                if (screenX > -tile && screenX < this.canvas.width &&
+                    screenY > -tile && screenY < this.canvas.height) {
+
+                    this.ctx.fillStyle = '#8B0000';
+                    this.ctx.shadowColor = '#8B0000';
+                    this.ctx.shadowBlur = 8;
+                    this.ctx.fillRect(screenX, screenY, tile, tile);
+                    this.ctx.shadowBlur = 0;
+
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = 'bold 10px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('AGENT', screenX + tile/2, screenY - 8);
+                }
+            }
+        }
+
+
         // Draw NPCs
         if (Array.isArray(this.npcs)) {
             for (const npc of this.npcs) {
@@ -1502,6 +3000,34 @@ class SwitchGame {
         this.ctx.font = 'bold 14px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.fillText(currentChar.name, playerScreenX + (tile / 2), playerScreenY - 5);
+
+        // Render floating texts
+        if (this.floatingTexts && this.floatingTexts.length > 0) {
+            this.ctx.save();
+            for (const text of this.floatingTexts) {
+                this.ctx.globalAlpha = text.alpha;
+                this.ctx.fillStyle = text.color;
+                this.ctx.font = 'bold 16px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                this.ctx.shadowBlur = 4;
+                const screenX = text.x - this.camera.x;
+                const screenY = text.y - this.camera.y;
+                this.ctx.fillText(text.text, screenX, screenY);
+            }
+            this.ctx.shadowBlur = 0;
+            this.ctx.restore();
+        }
+
+        // Render mini-game if active
+        if (this.inMiniGame && this.miniGame) {
+            this.miniGame.render(this.ctx);
+        }
+
+        // Render logic puzzle if active
+        if (this.logicPuzzle && this.logicPuzzle.active) {
+            this.logicPuzzle.render();
+        }
     }
 
     gameLoop() {
