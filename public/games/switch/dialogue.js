@@ -286,15 +286,143 @@ const DIALOGUES = {
 
 };
 
+// Switch dialogue data - for character switching mechanic
+const SWITCH_DIALOGUES = {
+    opal: {
+        alexis: {
+            firstTime: [
+                { speaker: 'player', text: "Hey Alexis, mind if I take over for a bit?" },
+                { speaker: 'npc', text: "Take over? You mean switch bodies?" },
+                { speaker: 'player', text: "Yeah, if you're cool with it, see." },
+                { speaker: 'npc', text: "Whatever. Just don't screw anything up." }
+            ],
+            success: [
+                { speaker: 'npc', text: "Alright, switching to you now." }
+            ],
+            failure: [
+                { speaker: 'npc', text: "I don't work with weaklings. Prove yourself in combat first." },
+                { speaker: 'player', text: "How many fights, see?" },
+                { speaker: 'npc', text: "Take down at least 3 agents. Then we'll talk." }
+            ]
+        },
+        austine: {
+            firstTime: [
+                { speaker: 'player', text: "Austine, I need to become you for this, see." },
+                { speaker: 'npc', text: "Fascinating. The spatial transference required..." },
+                { speaker: 'player', text: "Can we do it?" },
+                { speaker: 'npc', text: "Yes, but only after we've established proper rapport." }
+            ],
+            success: [
+                { speaker: 'npc', text: "Switching consciousness now. Prepare for sensory transfer." }
+            ],
+            failure: [
+                { speaker: 'npc', text: "I need proof of your cognitive capacity first." },
+                { speaker: 'player', text: "What kind of proof?" },
+                { speaker: 'npc', text: "There's a puzzle piece hidden somewhere. Find it, and I'll know you can handle my abilities." }
+            ]
+        },
+        chloe: {
+            firstTime: [
+                { speaker: 'player', text: "Chloe, can I switch with you?" },
+                { speaker: 'npc', text: "Switch? Like... become me?" },
+                { speaker: 'player', text: "Yeah, temporarily, see." },
+                { speaker: 'npc', text: "That's intense. Let's talk more first." }
+            ],
+            success: [
+                { speaker: 'npc', text: "Okay, let's do this." }
+            ],
+            failure: [
+                { speaker: 'npc', text: "I'm worried about someone right now. A lost animal..." },
+                { speaker: 'player', text: "You need me to find it?" },
+                { speaker: 'npc', text: "If you can bring them to me, I'll know I can trust you with this connection." }
+            ]
+        },
+        isabell: {
+            firstTime: [
+                { speaker: 'player', text: "Isabell, I need to switch perspectives with you." },
+                { speaker: 'npc', text: "That's a deep connection to ask for." },
+                { speaker: 'player', text: "I know. But it's necessary, see." },
+                { speaker: 'npc', text: "Then let's build that connection first. Talk to me." }
+            ],
+            success: [
+                { speaker: 'npc', text: "Our bond is strong enough. Let's switch." }
+            ],
+            failure: [
+                { speaker: 'npc', text: "I need to know you've connected with everyone here." },
+                { speaker: 'player', text: "So I should talk to everyone?" },
+                { speaker: 'npc', text: "Yes. Build those bonds first, then come back to me." }
+            ]
+        },
+        nicholas: {
+            firstTime: [
+                { speaker: 'player', text: "Nicholas, I need to switch to you." },
+                { speaker: 'npc', text: "Direct request. I appreciate that." },
+                { speaker: 'player', text: "Will it work, see?" },
+                { speaker: 'npc', text: "Only if we understand each other first. Let's talk." }
+            ],
+            preMinigame: [
+                { speaker: 'npc', text: "Let's test your aim. Hit the bullseye and we'll switch." }
+            ],
+            success: [
+                { speaker: 'npc', text: "Impressive. We're aligned. Switching now." }
+            ],
+            failure: [
+                { speaker: 'npc', text: "Not quite. Try again when you're ready." }
+            ]
+        },
+        tyson: {
+            firstTime: [
+                { speaker: 'player', text: "Tyson, can we switch, see?" },
+                { speaker: 'npc', text: "You want to experience doom firsthand?" },
+                { speaker: 'player', text: "If that's what it takes." },
+                { speaker: 'npc', text: "Heavy burden. Talk to me more first." }
+            ],
+            success: [
+                { speaker: 'npc', text: "You're ready. Let's switch." }
+            ],
+            failure: [
+                { speaker: 'npc', text: "I can only switch with someone who's proven themselves." },
+                { speaker: 'player', text: "What do I need to do?" },
+                { speaker: 'npc', text: "Complete your own quest first. Show me you can handle responsibility." }
+            ]
+        },
+        victor: {
+            firstTime: [
+                { speaker: 'player', text: "Victor, I need to become you." },
+                { speaker: 'npc', text: "Embrace entropy? Bold choice." },
+                { speaker: 'player', text: "Can we do it, see?" },
+                { speaker: 'npc', text: "Eventually. All things decay toward it. But talk to me first." }
+            ],
+            success: [
+                { speaker: 'npc', text: "Time to switch. Let decay take its course." }
+            ],
+            failure: [
+                { speaker: 'npc', text: "Not yet. The time hasn't come." },
+                { speaker: 'player', text: "When will it be time?" },
+                { speaker: 'npc', text: "After you've walked in everyone else's shoes. Experience all perspectives first." }
+            ]
+        }
+    }
+};
+
 // Dialogue management class
 class DialogueManager {
-    constructor(gameState, npcs = null) {
+    constructor(gameState, npcs = null, game = null) {
         this.gameState = gameState;
+        this.game = game;
         this.npcs = npcs || (typeof NPCS !== 'undefined' ? NPCS : []);
         this.currentDialogue = null;
         this.currentLineIndex = 0;
         this.isActive = false;
         this.currentNPC = null;
+
+        this.showingMenu = false;
+        this.menuOptions = [];
+        this.selectedMenuOption = 0;
+        this.switchDialogueShown = {};
+        this.isSwitchDialogue = false;
+        this.pendingSwitch = null;
+        this.pendingMiniGame = null;
     }
 
     // Start a dialogue with an NPC
@@ -370,33 +498,54 @@ class DialogueManager {
         if (!this.isActive || !this.currentDialogue) return false;
         this.currentLineIndex++;
         if (this.currentLineIndex >= this.currentDialogue.length) {
-            this.completeDialogue();
-            return false;
+            return this.completeDialogue();
         }
         return true;
     }
 
     // Complete the current dialogue
     completeDialogue() {
-        if (this.currentNPC) {
+        if (this.currentNPC && !this.isSwitchDialogue) {
             const currentCharacter = this.gameState.getCurrentCharacter();
             this.gameState.completeDialogue(currentCharacter.id, this.currentNPC.id);
             this.gameState.save();
         }
+
+        if (this.pendingMiniGame) {
+            const targetNpcId = this.pendingMiniGame;
+            this.pendingMiniGame = null;
+            this.currentDialogue = null;
+            this.currentLineIndex = 0;
+            this.isActive = false;
+            this.currentNPC = null;
+            this.isSwitchDialogue = false;
+            return { action: 'minigame', target: targetNpcId };
+        }
+
+        if (this.pendingSwitch) {
+            this.performSwitch(this.pendingSwitch);
+            this.pendingSwitch = null;
+        }
+
         this.currentDialogue = null;
         this.currentLineIndex = 0;
         this.isActive = false;
         this.currentNPC = null;
+        this.isSwitchDialogue = false;
+
+        return null;
     }
 
     // Cancel dialogue without recording completion (used when user closes the window)
     cancelDialogue() {
-        // Do not mark the dialogue as complete in the game state.
-        // Just reset local dialogue state so it can be resumed or retried later.
         this.currentDialogue = null;
         this.currentLineIndex = 0;
         this.isActive = false;
         this.currentNPC = null;
+        this.showingMenu = false;
+        this.isSwitchDialogue = false;
+        this.pendingSwitch = null;
+        this.pendingMiniGame = null;
     }
 
     // Check if dialogue is active
@@ -416,6 +565,242 @@ class DialogueManager {
             current: this.currentLineIndex + 1,
             total: this.currentDialogue.length
         };
+    }
+
+    // Show interaction menu for an NPC
+    showInteractionMenu(npcId) {
+        let npc = this.npcs.find(n => n.id === npcId);
+        if (!npc) {
+            if (typeof CHARACTERS !== 'undefined' && CHARACTERS[npcId]) {
+                const c = CHARACTERS[npcId];
+                npc = {
+                    id: c.id,
+                    name: c.name,
+                    color: c.color,
+                    position: c.position || { x: 0, y: 0 }
+                };
+            } else {
+                console.error(`No NPC or character found with id: ${npcId}`);
+                return false;
+            }
+        }
+
+        const currentCharacter = this.gameState.getCurrentCharacter();
+        const hasTalkedTo = this.gameState.hasCompletedDialogue(currentCharacter.id, npcId);
+
+        this.currentNPC = npc;
+        this.showingMenu = true;
+        this.isActive = true;
+        this.selectedMenuOption = 0;
+
+        this.menuOptions = [
+            { id: 'talk', label: 'Talk to them', enabled: true },
+            { id: 'switch', label: 'Switch character', enabled: hasTalkedTo },
+            { id: 'cancel', label: 'Stop talking to them', enabled: true }
+        ];
+
+        return true;
+    }
+
+    // Select a menu option
+    selectMenuOption(optionId) {
+        if (!this.showingMenu || !this.currentNPC) return false;
+
+        const option = this.menuOptions.find(opt => opt.id === optionId);
+        if (!option || !option.enabled) return false;
+
+        this.showingMenu = false;
+
+        if (optionId === 'talk') {
+            return this.startDialogue(this.currentNPC.id);
+        } else if (optionId === 'switch') {
+            return this.startSwitchDialogue(this.currentNPC.id);
+        } else if (optionId === 'cancel') {
+            this.cancelDialogue();
+            return false;
+        }
+
+        return false;
+    }
+
+    // Navigate menu up or down
+    navigateMenu(direction) {
+        if (!this.showingMenu) return;
+
+        const enabledIndices = this.menuOptions
+            .map((opt, idx) => opt.enabled ? idx : -1)
+            .filter(idx => idx !== -1);
+
+        if (enabledIndices.length === 0) return;
+
+        const currentIdx = enabledIndices.indexOf(this.selectedMenuOption);
+        let nextIdx;
+
+        if (direction === 'up') {
+            nextIdx = currentIdx > 0 ? currentIdx - 1 : enabledIndices.length - 1;
+        } else {
+            nextIdx = currentIdx < enabledIndices.length - 1 ? currentIdx + 1 : 0;
+        }
+
+        this.selectedMenuOption = enabledIndices[nextIdx];
+    }
+
+    // Confirm the currently selected menu option
+    confirmMenuSelection() {
+        if (!this.showingMenu) return false;
+        const selectedOption = this.menuOptions[this.selectedMenuOption];
+        if (!selectedOption) return false;
+        return this.selectMenuOption(selectedOption.id);
+    }
+
+    startSwitchDialogue(targetNpcId) {
+        const currentCharacter = this.gameState.getCurrentCharacter();
+        const switchKey = `${currentCharacter.id}->${targetNpcId}`;
+        const hasShownFirst = this.switchDialogueShown[switchKey];
+
+        const switchData = SWITCH_DIALOGUES[currentCharacter.id]?.[targetNpcId];
+
+        if (!switchData) {
+            const canSwitch = this.gameState.canSwitchToCharacter(targetNpcId);
+            if (canSwitch) {
+                this.performSwitch(targetNpcId);
+                return false;
+            } else {
+                console.log('Cannot switch to this character yet');
+                return false;
+            }
+        }
+
+        let dialogueToShow;
+
+        if (!hasShownFirst) {
+            dialogueToShow = switchData.firstTime;
+            this.switchDialogueShown[switchKey] = true;
+        } else {
+            const targetChar = typeof CHARACTERS !== 'undefined' ? CHARACTERS[targetNpcId] : null;
+            const unlockCriteria = targetChar?.quest?.unlockCriteria;
+            let criteriaMetNow = false;
+
+            switch(unlockCriteria) {
+                case 'startingCharacter':
+                    criteriaMetNow = true;
+                    break;
+
+                case 'defeat3Agents':
+                    const cannotSwapWith = targetChar.quest.cannotSwapWith || [];
+                    if (cannotSwapWith.includes(currentCharacter.id)) {
+                        criteriaMetNow = false;
+                    } else {
+                        criteriaMetNow = this.gameState.combatStats?.agentsDefeated >= 3;
+                    }
+                    break;
+
+                case 'findPuzzlePiece':
+                    criteriaMetNow = this.gameState.gameItems?.puzzlePiece?.found === true;
+                    break;
+
+                case 'bringLostAnimal':
+                    criteriaMetNow = this.gameState.inventory?.[currentCharacter.id]?.includes('lostAnimal') === true;
+                    break;
+
+                case 'talkToAll':
+                    criteriaMetNow = this.gameState.hasCompletedAllDialogues(currentCharacter.id);
+                    break;
+
+                case 'beatMiniGame':
+                    criteriaMetNow = this.gameState.miniGameScores?.nicholas >= 5;
+                    if (!criteriaMetNow && switchData.preMinigame) {
+                        dialogueToShow = switchData.preMinigame;
+                        this.pendingMiniGame = targetNpcId;
+                    }
+                    break;
+
+                case 'beOpalCompleted':
+                    const onlySwappableBy = targetChar.quest.onlySwappableBy || [];
+                    if (onlySwappableBy.length > 0 && !onlySwappableBy.includes(currentCharacter.id)) {
+                        criteriaMetNow = false;
+                    } else {
+                        criteriaMetNow = this.gameState.questProgress?.opal?.completed === true;
+                    }
+                    break;
+
+                case 'playedAllCharacters':
+                    if (targetChar.isFinalCharacter) {
+                        const hasPlayedAll = typeof CHARACTERS !== 'undefined' ?
+                            Object.keys(CHARACTERS)
+                                .filter(id => id !== 'victor')
+                                .every(id => this.gameState.playedCharacters?.has(id)) : false;
+                        criteriaMetNow = hasPlayedAll && this.gameState.hasCompletedAllDialogues(currentCharacter.id);
+                    }
+                    break;
+
+                default:
+                    criteriaMetNow = this.gameState.unlockedCharacters?.has(targetNpcId) === true;
+                    break;
+            }
+
+            if (!dialogueToShow) {
+                if (criteriaMetNow) {
+                    dialogueToShow = switchData.success;
+                    this.pendingSwitch = targetNpcId;
+                } else {
+                    dialogueToShow = switchData.failure;
+                }
+            }
+        }
+
+        if (!dialogueToShow || dialogueToShow.length === 0) {
+            const canSwitch = this.gameState.canSwitchToCharacter(targetNpcId);
+            if (canSwitch) {
+                this.performSwitch(targetNpcId);
+            }
+            return false;
+        }
+
+        this.currentDialogue = normalizeDialogue(dialogueToShow);
+        this.currentLineIndex = 0;
+        this.isActive = true;
+        this.isSwitchDialogue = true;
+
+        return true;
+    }
+
+    performSwitch(targetNpcId) {
+        if (this.game && this.game.switchToCharacter) {
+            this.game.switchToCharacter(targetNpcId);
+        } else if (this.gameState.switchCharacter) {
+            this.gameState.switchCharacter(targetNpcId);
+        }
+    }
+
+    handleMiniGameComplete(success, targetNpcId) {
+        this.requiresMiniGame = false;
+        const currentCharacter = this.gameState.getCurrentCharacter();
+        const switchData = SWITCH_DIALOGUES[currentCharacter.id]?.[targetNpcId];
+
+        if (!switchData) {
+            if (success) {
+                this.performSwitch(targetNpcId);
+            }
+            return false;
+        }
+
+        const dialogueToShow = success ? switchData.success : switchData.failure;
+
+        if (!dialogueToShow || dialogueToShow.length === 0) {
+            if (success) {
+                this.performSwitch(targetNpcId);
+            }
+            return false;
+        }
+
+        this.currentDialogue = normalizeDialogue(dialogueToShow);
+        this.currentLineIndex = 0;
+        this.isActive = true;
+        this.isSwitchDialogue = true;
+        this.pendingSwitch = success ? targetNpcId : null;
+
+        return true;
     }
 }
 

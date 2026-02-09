@@ -122,10 +122,10 @@ class NicholasMiniGame {
 
     this.ctx.save();
 
-    this.ctx.fillStyle = '#000';
+    this.ctx.fillStyle = '#fff';
     this.ctx.font = '24px monospace';
-    this.ctx.fillText(`Bullseye Hits: ${this.bullseyeHits}/${this.requiredHits}`, 20, 40);
-    this.ctx.fillText(`Score: ${this.score}`, 20, 70);
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(`Bullseye Hits: ${this.bullseyeHits}/${this.requiredHits}`, this.canvas.width / 2, 40);
 
     for (const target of this.targets) {
       if (target.hit) continue;
@@ -304,8 +304,8 @@ class LogicPuzzleMiniGame {
 
     this.active = false;
     this.gridSize = 4;
-    this.cellSize = 80;
-    this.padding = 20;
+    this.cellSize = this.canvas.width * 0.09;
+    this.padding = this.canvas.width * 0.025;
     this.grid = [];
     this.targetGrid = [];
     this.moves = 0;
@@ -315,9 +315,9 @@ class LogicPuzzleMiniGame {
     this.currentCharacterId = null;
     this.autoSolveButton = null;
     this.closeButton = {
-      x: this.canvas.width - 50,
-      y: 10,
-      size: 30
+      x: this.canvas.width * 0.93,
+      y: this.canvas.height * 0.03,
+      size: this.canvas.width * 0.035
     };
   }
 
@@ -337,8 +337,8 @@ class LogicPuzzleMiniGame {
     if (this.currentCharacterId === 'austine') {
       const buttonWidth = 180;
       const buttonHeight = 50;
-      const buttonX = this.canvas.width - buttonWidth - 20;
-      const buttonY = this.canvas.height - buttonHeight - 30;
+      const buttonX = this.canvas.width - buttonWidth - 30;
+      const buttonY = this.canvas.height - buttonHeight - 40;
 
       this.autoSolveButton = {
         x: buttonX,
@@ -373,8 +373,11 @@ class LogicPuzzleMiniGame {
       }
     }
 
-    this.offsetX = (this.canvas.width - (this.gridSize * this.cellSize + (this.gridSize + 1) * this.padding)) / 2;
-    this.offsetY = 120;
+    const totalGridWidth = this.gridSize * (this.canvas.width * 0.09) + (this.gridSize + 1) * (this.canvas.width * 0.025);
+    this.offsetX = this.canvas.width * 0.10;
+    this.offsetY = this.canvas.height * 0.25;
+    this.cellSize = this.canvas.width * 0.09;
+    this.padding = this.canvas.width * 0.025;
   }
 
   toggleCell(row, col) {
@@ -402,8 +405,12 @@ class LogicPuzzleMiniGame {
   handleClick(mouseX, mouseY) {
     if (!this.active) return false;
 
-    if (mouseX >= this.closeButton.x && mouseX <= this.closeButton.x + this.closeButton.size &&
-        mouseY >= this.closeButton.y && mouseY <= this.closeButton.y + this.closeButton.size) {
+    const closeButtonSize = this.canvas.width * 0.04;
+    const closeButtonX = this.canvas.width * 0.94;
+    const closeButtonY = this.canvas.height * 0.03;
+
+    if (mouseX >= closeButtonX && mouseX <= closeButtonX + closeButtonSize &&
+        mouseY >= closeButtonY && mouseY <= closeButtonY + closeButtonSize) {
       this.stop();
       if (this.onComplete) {
         this.onComplete(false);
@@ -479,37 +486,38 @@ class LogicPuzzleMiniGame {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.ctx.fillStyle = '#fff';
-    this.ctx.font = 'bold 24px monospace';
+    this.ctx.font = `bold ${this.canvas.width * 0.028}px monospace`;
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('Match the Target Pattern', this.canvas.width / 2, 40);
+    this.ctx.fillText('Match the Target Pattern', this.canvas.width / 2, this.canvas.height * 0.08);
 
-    this.ctx.font = '18px monospace';
-    this.ctx.fillText(`Moves: ${this.moves}/${this.maxMoves}`, this.canvas.width / 2, 70);
+    this.ctx.font = `${this.canvas.width * 0.02}px monospace`;
+    this.ctx.fillText(`Moves: ${this.moves}/${this.maxMoves}`, this.canvas.width / 2, this.canvas.height * 0.14);
 
     const instruction = this.puzzleType === 'neighbor'
       ? 'Click to toggle (affects neighbors)'
       : 'Click to toggle (affects row & column)';
-    this.ctx.fillText(instruction, this.canvas.width / 2, 95);
+    this.ctx.fillText(instruction, this.canvas.width / 2, this.canvas.height * 0.19);
 
-    const targetSize = this.gridSize * 25;
-    const targetX = this.canvas.width - targetSize - 40;
-    const targetY = this.canvas.height / 2 - targetSize / 2;
+    const targetCellSize = this.canvas.width * 0.035;
+    const targetSize = this.gridSize * targetCellSize;
+    const targetX = this.canvas.width * 0.70;
+    const targetY = this.canvas.height * 0.30;
 
     this.ctx.fillStyle = '#fff';
-    this.ctx.font = '16px monospace';
+    this.ctx.font = `bold ${this.canvas.width * 0.018}px monospace`;
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('Target:', targetX + targetSize / 2, targetY - 10);
+    this.ctx.fillText('Target:', targetX + targetSize / 2, targetY - this.canvas.height * 0.02);
 
     for (let i = 0; i < this.gridSize; i++) {
       for (let j = 0; j < this.gridSize; j++) {
-        const x = targetX + j * 25;
-        const y = targetY + i * 25;
+        const x = targetX + j * targetCellSize;
+        const y = targetY + i * targetCellSize;
 
         this.ctx.fillStyle = this.targetGrid[i][j] ? '#9b4dca' : '#1a0530';
-        this.ctx.fillRect(x, y, 20, 20);
+        this.ctx.fillRect(x, y, targetCellSize * 0.85, targetCellSize * 0.85);
         this.ctx.strokeStyle = '#6a2ba8';
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeRect(x, y, 20, 20);
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x, y, targetCellSize * 0.85, targetCellSize * 0.85);
       }
     }
 
@@ -538,7 +546,7 @@ class LogicPuzzleMiniGame {
       this.ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
 
       this.ctx.fillStyle = '#fff';
-      this.ctx.font = 'bold 18px monospace';
+      this.ctx.font = `bold ${this.canvas.width * 0.018}px monospace`;
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
       this.ctx.fillText('🔮 Auto-Solve', btn.x + btn.width / 2, btn.y + btn.height / 2);
@@ -546,20 +554,23 @@ class LogicPuzzleMiniGame {
       this.ctx.textBaseline = 'alphabetic';
     }
 
-    const close = this.closeButton;
+    const closeButtonSize = this.canvas.width * 0.04;
+    const closeButtonX = this.canvas.width * 0.94;
+    const closeButtonY = this.canvas.height * 0.03;
+
     this.ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
-    this.ctx.fillRect(close.x, close.y, close.size, close.size);
+    this.ctx.fillRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
     this.ctx.strokeStyle = '#fff';
     this.ctx.lineWidth = 2;
-    this.ctx.strokeRect(close.x, close.y, close.size, close.size);
+    this.ctx.strokeRect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize);
 
     this.ctx.strokeStyle = '#fff';
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
-    this.ctx.moveTo(close.x + 8, close.y + 8);
-    this.ctx.lineTo(close.x + close.size - 8, close.y + close.size - 8);
-    this.ctx.moveTo(close.x + close.size - 8, close.y + 8);
-    this.ctx.lineTo(close.x + 8, close.y + close.size - 8);
+    this.ctx.moveTo(closeButtonX + closeButtonSize * 0.25, closeButtonY + closeButtonSize * 0.25);
+    this.ctx.lineTo(closeButtonX + closeButtonSize * 0.75, closeButtonY + closeButtonSize * 0.75);
+    this.ctx.moveTo(closeButtonX + closeButtonSize * 0.75, closeButtonY + closeButtonSize * 0.25);
+    this.ctx.lineTo(closeButtonX + closeButtonSize * 0.25, closeButtonY + closeButtonSize * 0.75);
     this.ctx.stroke();
 
     this.ctx.restore();

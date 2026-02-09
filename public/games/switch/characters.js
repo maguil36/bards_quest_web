@@ -31,10 +31,11 @@
        description: 'Collect 10 strife specium to complete.',
        cannotSwapWith: ['opal']
      },
-     abilities: ['weaponSteal', 'invincibleInCombat'],
+     abilities: ['weaponSteal', 'invincibleInCombat', 'smashRocks'],
      abilityDescriptions: {
        weaponSteal: 'Can steal and use weapons from other characters',
-       invincibleInCombat: 'Cannot take damage in combat'
+       invincibleInCombat: 'Cannot take damage in combat',
+       smashRocks: 'Can smash rocks and obstacles'
      }
    },
    austine: {
@@ -323,6 +324,9 @@ class GameState {
 
     const character = CHARACTERS[characterId];
     if (!character) return false;
+
+    // If character is already unlocked, allow switching to them
+    if (this.unlockedCharacters.has(characterId)) return true;
 
     if (character.isFinalCharacter) {
       const hasPlayedAll = Object.keys(CHARACTERS)

@@ -12,16 +12,18 @@
             background: var(--bg);
             color: var(--text);
             font-family: system-ui, -apple-system, sans-serif;
-            overflow: hidden;
+            overflow: auto;
         }
 
         #gameContainer {
             position: relative;
-            width: 100vw;
-            height: 100vh;
+            min-width: 100vw;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         #gameCanvas {
@@ -30,6 +32,14 @@
             image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
+            max-width: 100%;
+            max-height: calc(100vh - 40px);
+            width: auto;
+            height: auto;
+        }
+
+        #instructions {
+            display: none;
         }
 
         #dialogueBox {
@@ -247,7 +257,7 @@
 </head>
 <body>
     <div id="gameContainer">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <canvas id="gameCanvas" width="640" height="480"></canvas>
 
         <div id="ui">
             <div id="currentCharacter">Play as <span id="characterName">Alexis</span></div>
@@ -278,13 +288,6 @@
             <div class="settingsRow">
                 <div class="settingsLabel">Playing as</div>
                 <div class="settingsValue"><span id="settingsCurrentCharacter">Alexis</span></div>
-            </div>
-
-            <div class="settingsRow">
-                <div class="settingsLabel">Ability</div>
-                <div class="settingsValue">
-                    <span id="settingsAbilityInfo">No abilities</span>
-                </div>
             </div>
 
             <div class="settingsRow">

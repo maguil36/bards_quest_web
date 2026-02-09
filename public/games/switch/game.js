@@ -6,7 +6,7 @@ class SwitchGame {
         this.gameState = new GameState();
         this.npcs = []; // will be built dynamically in init()
         this.characters = CHARACTERS;
-        this.dialogueManager = new DialogueManager(this.gameState, this.npcs);
+        this.dialogueManager = new DialogueManager(this.gameState, this.npcs, this);
         this.audioManager = new AudioManager();
 
         // Mini-game and combat system
@@ -83,6 +83,7 @@ class SwitchGame {
         this.showingDialogue = false;
         this.showingSwitchPrompt = false;
         this.inMiniGame = false;
+        this.miniGameForSwitch = false;
         this.inCombat = false;
         this.currentPuzzleChest = null;
 
@@ -167,6 +168,7 @@ class SwitchGame {
         this.showingDialogue = false;
         this.showingSwitchPrompt = false;
         this.inMiniGame = false;
+        this.miniGameForSwitch = false;
         this.inCombat = false;
         this.abilityMode = null;
 
@@ -368,8 +370,10 @@ class SwitchGame {
 
     handleCanvasClick(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
 
         if (this.logicPuzzle && this.logicPuzzle.active) {
             this.logicPuzzle.handleClick(x, y);
@@ -598,13 +602,29 @@ class SwitchGame {
     onMiniGameComplete(success) {
         this.inMiniGame = false;
 
-        if (success) {
-            this.gameState.unlockCharacter('nicholas');
-            this.gameState.save();
-            this.showNicholasDialogue(true);
+        if (this.miniGameForSwitch) {
+            this.miniGameForSwitch = false;
+            const targetNpcId = this.dialogueManager.pendingSwitch;
+
+            if (this.dialogueManager.handleMiniGameComplete(success, targetNpcId)) {
+                this.showingDialogue = true;
+                this.showDialogueUI();
+            }
         } else {
-            this.showNicholasDialogue(false);
+            if (success) {
+                this.gameState.unlockCharacter('nicholas');
+                this.gameState.save();
+                this.showNicholasDialogue(true);
+            } else {
+                this.showNicholasDialogue(false);
+            }
         }
+    }
+
+    startSwitchMiniGame() {
+        this.miniGameForSwitch = true;
+        this.inMiniGame = true;
+        this.miniGame.start();
     }
 
     saveChestStates() {
@@ -730,7 +750,6 @@ class SwitchGame {
         const charTotal = document.getElementById('settingsCharTotal');
         const questInfo = document.getElementById('settingsQuestInfo');
         const questStatus = document.getElementById('settingsQuestStatus');
-        const abilityInfo = document.getElementById('settingsAbilityInfo');
 
         if (nameEl) nameEl.textContent = current.name;
 
@@ -749,17 +768,6 @@ class SwitchGame {
                 if (questStatus) {
                     const isCompleted = this.gameState.completedQuests.has(current.id);
                     questStatus.textContent = isCompleted ? 'Complete' : 'Ongoing';
-                }
-
-                if (abilityInfo) {
-                    const abilities = charData.abilities || [];
-                    const abilityDescriptions = charData.abilityDescriptions || {};
-                    if (abilities.length > 0) {
-                        const abilityTexts = abilities.map(ability => abilityDescriptions[ability] || ability);
-                        abilityInfo.textContent = abilityTexts.join(', ');
-                    } else {
-                        abilityInfo.textContent = 'No abilities';
-                    }
                 }
             }
         }
@@ -865,15 +873,34 @@ class SwitchGame {
             case 'Space':
                 e.preventDefault();
                 if (this.showingDialogue) {
-                    this.advanceDialogue();
+                    if (this.dialogueManager.showingMenu) {
+                        this.dialogueManager.confirmMenuSelection();
+                        if (!this.dialogueManager.showingMenu && !this.dialogueManager.isActive) {
+                            this.closeDialogue();
+                        } else if (this.dialogueManager.isActive && !this.dialogueManager.showingMenu) {
+                            this.showDialogueUI();
+                        }
+                    } else {
+                        this.advanceDialogue();
+                    }
                 } else if (now - this.lastInteractionTime > 500) {
-                    // Try to interact with NPCs first
                     const npcInteracted = this.tryInteract();
-                    // If no NPC was nearby, try to interact with objects
                     if (!npcInteracted) {
                         this.tryInteractWithObjects();
                     }
                     this.lastInteractionTime = now;
+                }
+                break;
+
+            case 'ArrowUp':
+            case 'ArrowDown':
+            case 'KeyW':
+            case 'KeyS':
+                if (this.dialogueManager.showingMenu) {
+                    e.preventDefault();
+                    const direction = (e.code === 'ArrowUp' || e.code === 'KeyW') ? 'up' : 'down';
+                    this.dialogueManager.navigateMenu(direction);
+                    this.renderMenu();
                 }
                 break;
 
@@ -1003,8 +1030,8 @@ class SwitchGame {
             }
         }
 
-        // Check for nearby obstacles (Opal only)
-        if (currentChar.id === 'opal') {
+        // Check for nearby obstacles (Alexis only)
+        if (currentChar.id === 'alexis') {
             for (const obstacle of this.obstacles) {
                 if (!obstacle.broken) {
                     const dx = this.player.x - obstacle.x;
@@ -1324,7 +1351,7 @@ class SwitchGame {
             { x: 40 * this.tileSize, y: 12 * this.tileSize },
         ];
 
-        // === OBSTACLES - Opal can break these ===
+        // === OBSTACLES - Alexis can break these ===
         this.obstacles = [
             // South room entrance - blocking access
             { x: 25 * this.tileSize, y: 32 * this.tileSize, broken: false },
@@ -1379,7 +1406,7 @@ class SwitchGame {
             // Lost Animal - In east chasm room (need Isabella to fill chasms)
             { x: 42 * this.tileSize, y: 25 * this.tileSize, opened: false, item: 'lostAnimal' },
 
-            // Notebook - In south obstacle room (need Opal to break obstacles)
+            // Notebook - In south obstacle room (need Alexis to break obstacles)
             { x: 25 * this.tileSize, y: 42 * this.tileSize, opened: false, item: 'notebook' },
 
             // Opal's Map - In NW corner (logic puzzle required, only Opal/Austine can take)
@@ -1581,6 +1608,7 @@ class SwitchGame {
     updatePlayerMovement() {
         // Prevent movement during combat
         if (this.inCombat) return;
+        if (this.dialogueManager.showingMenu) return;
 
         let dx = 0;
         let dy = 0;
@@ -1706,6 +1734,11 @@ class SwitchGame {
     }
 
     showDialogueUI() {
+        if (this.dialogueManager.showingMenu) {
+            this.renderMenu();
+            return;
+        }
+
         const current = this.dialogueManager.getCurrentLine();
         const npc = this.dialogueManager.getCurrentNPC();
         const currentChar = this.gameState.getCurrentCharacter();
@@ -1729,6 +1762,70 @@ class SwitchGame {
                 this.dialogueBox.style.display = 'block';
             }
         }
+    }
+
+    renderMenu() {
+        const npc = this.dialogueManager.getCurrentNPC();
+        const options = this.dialogueManager.menuOptions;
+        const selectedIdx = this.dialogueManager.selectedMenuOption;
+
+        if (!npc || !options || !this.dialogueBox || !this.dialogueText) {
+            return;
+        }
+
+        let menuHTML = `<div style="text-align: center; color: ${npc.color || '#888'}; margin-bottom: 15px;"><strong>${npc.name}</strong></div>`;
+        menuHTML += '<div style="display: flex; flex-direction: column; gap: 10px;" id="menuOptionsContainer">';
+
+        options.forEach((option, idx) => {
+            const isSelected = idx === selectedIdx;
+            const isEnabled = option.enabled;
+            const cursor = isSelected ? '> ' : '  ';
+            const color = !isEnabled ? '#555' : (isSelected ? '#fff' : '#aaa');
+            const weight = isSelected ? 'bold' : 'normal';
+            const cursorStyle = isEnabled ? 'pointer' : 'default';
+            const hoverStyle = isEnabled ? 'transition: transform 0.1s;' : '';
+
+            menuHTML += `<div
+                data-option-idx="${idx}"
+                data-option-id="${option.id}"
+                data-enabled="${isEnabled}"
+                style="color: ${color}; font-weight: ${weight}; opacity: ${isEnabled ? 1 : 0.5}; cursor: ${cursorStyle}; ${hoverStyle}"
+                class="menu-option">${cursor}${option.label}</div>`;
+        });
+
+        menuHTML += '</div>';
+        menuHTML += '<div style="text-align: center; margin-top: 15px; font-size: 12px; color: #888;">↑↓/WS to navigate, SPACE/Click to select</div>';
+
+        this.dialogueText.innerHTML = menuHTML;
+        this.dialogueBox.style.display = 'block';
+        this.dialogueBox.classList.remove('speaker-player', 'speaker-npc');
+
+        this.attachMenuEventListeners();
+    }
+
+    attachMenuEventListeners() {
+        const menuOptions = this.dialogueText.querySelectorAll('.menu-option');
+
+        menuOptions.forEach((optionElement, idx) => {
+            const isEnabled = optionElement.getAttribute('data-enabled') === 'true';
+
+            if (isEnabled) {
+                optionElement.addEventListener('mouseenter', () => {
+                    this.dialogueManager.selectedMenuOption = idx;
+                    this.renderMenu();
+                });
+
+                optionElement.addEventListener('click', () => {
+                    const optionId = optionElement.getAttribute('data-option-id');
+                    this.dialogueManager.selectMenuOption(optionId);
+                    if (!this.dialogueManager.showingMenu && !this.dialogueManager.isActive) {
+                        this.closeDialogue();
+                    } else if (this.dialogueManager.isActive && !this.dialogueManager.showingMenu) {
+                        this.showDialogueUI();
+                    }
+                });
+            }
+        });
     }
 
     updateCamera() {
@@ -1784,12 +1881,10 @@ class SwitchGame {
         const playerCenterY = this.player.y + this.player.height / 2;
         const interactionDistance = 50;
 
-        // Find closest NPC (playable character avatars in the world)
         let closestNPC = null;
         let closestDistance = interactionDistance;
 
         for (const npc of this.npcs) {
-            // Do not allow interacting with your own avatar
             if (npc.id === this.gameState.currentCharacter) continue;
 
             const dx = playerCenterX - (npc.position.x + 16);
@@ -1803,11 +1898,18 @@ class SwitchGame {
         }
 
         if (closestNPC) {
-            this.startDialogue(closestNPC.id);
+            this.showInteractionMenu(closestNPC.id);
             return true;
         }
 
         return false;
+    }
+
+    showInteractionMenu(npcId) {
+        if (this.dialogueManager.showInteractionMenu(npcId)) {
+            this.showingDialogue = true;
+            this.showDialogueUI();
+        }
     }
 
     startDialogue(npcId) {
@@ -1826,11 +1928,15 @@ class SwitchGame {
     }
 
     advanceDialogue() {
-        if (!this.dialogueManager.nextLine()) {
-            // Dialogue completed
+        const result = this.dialogueManager.nextLine();
+
+        if (result && typeof result === 'object' && result.action === 'minigame') {
+            this.closeDialogue();
+            this.dialogueManager.pendingSwitch = result.target;
+            this.startSwitchMiniGame();
+        } else if (!result) {
             this.closeDialogue();
         } else {
-            // Update dialogue UI using structured current line object (text/speaker)
             const current = this.dialogueManager.getCurrentLine();
             const npc = this.dialogueManager.getCurrentNPC();
             const currentChar = this.gameState.getCurrentCharacter();
@@ -1846,7 +1952,6 @@ class SwitchGame {
                     this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
                     this.dialogueBox.style.display = 'block';
                 }
-                this.showingDialogue = true;
             }
         }
     }
@@ -2154,10 +2259,42 @@ class SwitchGame {
     }
 
     switchToCharacter(characterId) {
+        if (!this.gameState.canSwitchToCharacter(characterId)) return false;
+        if (!CHARACTERS[characterId]) return false;
+
+        const oldCharId = this.gameState.currentCharacter;
+        const oldChar = CHARACTERS[oldCharId];
+
+        // Save current player position before switching
+        this.gameState.characterPositions[oldCharId] = {
+            x: this.player.x,
+            y: this.player.y
+        };
+
+        // Switch the character in game state
         if (this.gameState.switchCharacter(characterId)) {
             const newChar = this.gameState.getCurrentCharacter();
 
-            // Update player position
+            // Rebuild NPCs list: remove new character, add old character
+            this.npcs = NPCS.filter(npc => npc.id !== characterId).map(npc => ({ ...npc }));
+
+            // Update NPC positions from saved state
+            for (const npc of this.npcs) {
+                const saved = this.gameState.characterPositions[npc.id];
+                if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') {
+                    npc.position = { x: saved.x, y: saved.y };
+                }
+            }
+
+            // Create sprite for old character as NPC if it doesn't exist
+            if (this.sprites && this.sprites.npcs && !this.sprites.npcs[oldCharId]) {
+                this.sprites.npcs[oldCharId] = this.createHumanSpriteSheet(oldChar.color);
+            }
+
+            // Update dialogue manager NPCs reference
+            if (this.dialogueManager) this.dialogueManager.npcs = this.npcs;
+
+            // Update player position to new character's saved position
             const savedPos = this.gameState.characterPositions[characterId];
             if (savedPos) {
                 this.player.x = savedPos.x;
@@ -2174,7 +2311,11 @@ class SwitchGame {
             // Unlock the character for future switches
             this.gameState.unlockCharacter(characterId);
             this.gameState.save();
+
+            return true;
         }
+
+        return false;
     }
 
     triggerGlitchEnding() {
