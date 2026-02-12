@@ -3,6 +3,7 @@ class SwitchGame {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
+        this.ctx.imageSmoothingEnabled = false;
         this.gameState = new GameState();
         this.npcs = []; // will be built dynamically in init()
         this.characters = CHARACTERS;
@@ -25,8 +26,8 @@ class SwitchGame {
         this.combatSystem = new CombatSystem(this.gameState);
 
         // Game world settings
-        this.mapWidth = 1600;
-        this.mapHeight = 1600;
+        this.mapWidth = 5120;
+        this.mapHeight = 5120;
         this.tileSize = 32;
 
         // Camera settings
@@ -39,8 +40,8 @@ class SwitchGame {
 
         // Player settings
         this.player = {
-            x: 800,
-            y: 800,
+            x: 2560,
+            y: 4480,
             width: 32,
             height: 32,
             speed: 2,
@@ -1030,8 +1031,8 @@ class SwitchGame {
             }
         }
 
-        // Check for nearby obstacles (Alexis only)
-        if (currentChar.id === 'alexis') {
+        // Check for nearby obstacles (Opal only)
+        if (currentChar.id === 'opal') {
             for (const obstacle of this.obstacles) {
                 if (!obstacle.broken) {
                     const dx = this.player.x - obstacle.x;
@@ -1198,222 +1199,174 @@ class SwitchGame {
     }
 
     initializeMap() {
-        // Initialize map tiles grid (0 = floor, 1 = wall, 2 = chasm)
         for (let y = 0; y < this.mapRows; y++) {
             this.mapTiles[y] = [];
             for (let x = 0; x < this.mapCols; x++) {
-                this.mapTiles[y][x] = 0;
+                this.mapTiles[y][x] = 1;
             }
         }
 
-        // Create outer walls
-        for (let x = 0; x < this.mapCols; x++) {
-            this.mapTiles[0][x] = 1;
-            this.mapTiles[this.mapRows - 1][x] = 1;
-        }
-        for (let y = 0; y < this.mapRows; y++) {
-            this.mapTiles[y][0] = 1;
-            this.mapTiles[y][this.mapCols - 1] = 1;
-        }
+        const createRoom = (startX, startY, width, height, walled = 0) => {
+            for (let y = startY; y < startY + height; y++) {
+                for (let x = startX; x < startX + width; x++) {
+                    if (x >= 0 && x < this.mapCols && y >= 0 && y < this.mapRows) {
+                        this.mapTiles[y][x] = 0;
+                    }
+                }
+            }
 
-        // === CENTRAL HUB (Open area where all characters start) ===
-        // Area from tiles (20,20) to (30,30) - completely open, no obstacles
+            if (walled === 1) {
+                for (let x = startX; x < startX + width; x++) {
+                    if (x >= 0 && x < this.mapCols) {
+                        if (startY >= 0 && startY < this.mapRows) {
+                            this.mapTiles[startY][x] = 1;
+                        }
+                        if (startY + height - 1 >= 0 && startY + height - 1 < this.mapRows) {
+                            this.mapTiles[startY + height - 1][x] = 1;
+                        }
+                    }
+                }
+                for (let y = startY; y < startY + height; y++) {
+                    if (y >= 0 && y < this.mapRows) {
+                        if (startX >= 0 && startX < this.mapCols) {
+                            this.mapTiles[y][startX] = 1;
+                        }
+                        if (startX + width - 1 >= 0 && startX + width - 1 < this.mapCols) {
+                            this.mapTiles[y][startX + width - 1] = 1;
+                        }
+                    }
+                }
+            }
+        };
 
-        // === NORTH ROOM - Boulder Puzzle Room ===
-        // Create walls for north room (tiles 20-30 horizontal, 5-15 vertical)
-        for (let x = 20; x <= 30; x++) {
-            this.mapTiles[15][x] = 1; // Bottom wall of north room
-        }
-        for (let y = 5; y <= 15; y++) {
-            this.mapTiles[y][20] = 1; // Left wall
-            this.mapTiles[y][30] = 1; // Right wall
-        }
-        // Entrance corridor from hub to north room
-        for (let y = 16; y < 20; y++) {
-            this.mapTiles[y][24] = 1; // Left side of corridor
-            this.mapTiles[y][26] = 1; // Right side of corridor
-        }
+        const createGap = (startX, startY, width, height) => {
+            for (let y = startY; y < startY + height; y++) {
+                for (let x = startX; x < startX + width; x++) {
+                    if (x >= 0 && x < this.mapCols && y >= 0 && y < this.mapRows) {
+                        this.mapTiles[y][x] = 2;
+                    }
+                }
+            }
+        };
 
-        // === SOUTH ROOM - Obstacle Puzzle Room ===
-        // Walls for south room (tiles 20-30 horizontal, 35-45 vertical)
-        for (let x = 20; x <= 30; x++) {
-            this.mapTiles[35][x] = 1; // Top wall of south room
-        }
-        for (let y = 35; y <= 45; y++) {
-            this.mapTiles[y][20] = 1; // Left wall
-            this.mapTiles[y][30] = 1; // Right wall
-        }
-        // Entrance corridor from hub to south room
-        for (let y = 30; y < 35; y++) {
-            this.mapTiles[y][24] = 1; // Left side of corridor
-            this.mapTiles[y][26] = 1; // Right side of corridor
-        }
+        
+        createGap(0, 0, 160, 160,1);
+        createRoom(65, 65, 30, 30,1);
+        createRoom(5, 65, 30, 30,1);
+        createRoom(5, 5, 30, 30,1);
+        createRoom(65, 5, 30, 30,1);
+        createRoom(125, 65, 30, 30,1);
+        createRoom(65, 125, 30, 30,1);
+        createRoom(125, 125, 30, 30,1);
+        createRoom(125, 5, 30, 30,1);
+        createRoom(5, 125, 30, 30,1);
 
-        // === EAST ROOM - Chasm Puzzle Room ===
-        // Walls for east room (tiles 35-45 horizontal, 20-30 vertical)
-        for (let y = 20; y <= 30; y++) {
-            this.mapTiles[y][35] = 1; // Left wall of east room
-        }
-        for (let x = 35; x <= 45; x++) {
-            this.mapTiles[20][x] = 1; // Top wall
-            this.mapTiles[30][x] = 1; // Bottom wall
-        }
-        // Entrance corridor from hub to east room
-        for (let x = 30; x < 35; x++) {
-            this.mapTiles[24][x] = 1; // Top side of corridor
-            this.mapTiles[26][x] = 1; // Bottom side of corridor
-        }
+        createRoom(17, 35, 6, 30,1);
+        createRoom(17, 95, 6, 30,1);
+        createRoom(137, 35, 6, 30,1);
+        createRoom(137, 95, 6, 30,1);
+        createRoom(35, 17, 30, 6,1);
+        createRoom(35, 137, 30, 6,1);
+        createRoom(95, 137, 30, 6,1);
+        createRoom(77, 95, 6, 30,1);
 
-        // === WEST ROOM - Mixed Puzzle Room ===
-        // Walls for west room (tiles 5-15 horizontal, 20-30 vertical)
-        for (let y = 20; y <= 30; y++) {
-            this.mapTiles[y][15] = 1; // Right wall of west room
-        }
-        for (let x = 5; x <= 15; x++) {
-            this.mapTiles[20][x] = 1; // Top wall
-            this.mapTiles[30][x] = 1; // Bottom wall
-        }
-        // Entrance corridor from hub to west room
-        for (let x = 15; x < 20; x++) {
-            this.mapTiles[24][x] = 1; // Top side of corridor
-            this.mapTiles[26][x] = 1; // Bottom side of corridor
-        }
+        createRoom(18, 34, 4, 32);
+        createRoom(18, 94, 4, 32);
+        createRoom(138, 34, 4, 32);
+        createRoom(138, 94, 4, 32);
+        createRoom(34, 18, 32, 4);
+        createRoom(34, 138, 32, 4);
+        createRoom(94, 138, 32, 4);
+        createRoom(78, 94, 4, 32);
 
-        // === NORTHEAST CORNER - Boulder Maze ===
-        // Walls creating maze structure
-        for (let x = 35; x <= 45; x++) {
-            this.mapTiles[15][x] = 1;
-        }
-        for (let y = 5; y <= 15; y++) {
-            this.mapTiles[y][35] = 1;
-        }
-        // Entrance from north room
-        this.mapTiles[10][30] = 0; // Opening
-        this.mapTiles[10][31] = 0;
-        this.mapTiles[10][32] = 0;
-
-        // === SOUTHEAST CORNER - Agent Combat Area ===
-        // Walls for SE corner
-        for (let x = 35; x <= 45; x++) {
-            this.mapTiles[35][x] = 1;
-        }
-        for (let y = 35; y <= 45; y++) {
-            this.mapTiles[y][35] = 1;
-        }
-        // Entrance from east room
-        this.mapTiles[30][40] = 0;
-        this.mapTiles[31][40] = 0;
-        this.mapTiles[32][40] = 0;
-
-        // === SOUTHWEST CORNER - Chasm Bridge Puzzle ===
-        // Walls for SW corner
-        for (let x = 5; x <= 15; x++) {
-            this.mapTiles[35][x] = 1;
-        }
-        for (let y = 35; y <= 45; y++) {
-            this.mapTiles[y][15] = 1;
-        }
-        // Entrance from west room
-        this.mapTiles[30][10] = 0;
-        this.mapTiles[31][10] = 0;
-        this.mapTiles[32][10] = 0;
-
-        // === NORTHWEST CORNER - Secret Mixed Puzzle Area ===
-        // Walls for NW corner
-        for (let x = 5; x <= 15; x++) {
-            this.mapTiles[15][x] = 1;
-        }
-        for (let y = 5; y <= 15; y++) {
-            this.mapTiles[y][15] = 1;
-        }
-        // Entrance from west room
-        this.mapTiles[20][10] = 0;
-        this.mapTiles[19][10] = 0;
-        this.mapTiles[18][10] = 0;
-
-        // === BOULDERS - Opal can push these ===
         this.boulders = [
-            // North room entrance - blocking access
-            { x: 25 * this.tileSize, y: 17 * this.tileSize },
-            { x: 25 * this.tileSize, y: 18 * this.tileSize },
+            { x: 78 * this.tileSize, y: 83 * this.tileSize },
+            { x: 82 * this.tileSize, y: 85 * this.tileSize },
+            { x: 86 * this.tileSize, y: 87 * this.tileSize },
+            { x: 80 * this.tileSize, y: 91 * this.tileSize },
+            { x: 84 * this.tileSize, y: 93 * this.tileSize },
 
-            // North room interior - puzzle
-            { x: 22 * this.tileSize, y: 10 * this.tileSize },
-            { x: 25 * this.tileSize, y: 10 * this.tileSize },
-            { x: 28 * this.tileSize, y: 10 * this.tileSize },
-            { x: 25 * this.tileSize, y: 8 * this.tileSize },
+            { x: 15 * this.tileSize, y: 83 * this.tileSize },
+            { x: 18 * this.tileSize, y: 86 * this.tileSize },
+            { x: 22 * this.tileSize, y: 89 * this.tileSize },
+            { x: 25 * this.tileSize, y: 92 * this.tileSize },
 
-            // NE maze - complex puzzle
-            { x: 37 * this.tileSize, y: 10 * this.tileSize },
-            { x: 39 * this.tileSize, y: 10 * this.tileSize },
-            { x: 41 * this.tileSize, y: 10 * this.tileSize },
-            { x: 38 * this.tileSize, y: 12 * this.tileSize },
-            { x: 40 * this.tileSize, y: 12 * this.tileSize },
+            { x: 75 * this.tileSize, y: 23 * this.tileSize },
+            { x: 78 * this.tileSize, y: 26 * this.tileSize },
+            { x: 82 * this.tileSize, y: 29 * this.tileSize },
+            { x: 86 * this.tileSize, y: 32 * this.tileSize },
+            { x: 90 * this.tileSize, y: 35 * this.tileSize },
         ];
 
-        // === OBSTACLES - Alexis can break these ===
         this.obstacles = [
-            // South room entrance - blocking access
-            { x: 25 * this.tileSize, y: 32 * this.tileSize, broken: false },
-            { x: 25 * this.tileSize, y: 33 * this.tileSize, broken: false },
+            { x: 76 * this.tileSize, y: 83 * this.tileSize, broken: false },
+            { x: 80 * this.tileSize, y: 85 * this.tileSize, broken: false },
+            { x: 84 * this.tileSize, y: 87 * this.tileSize, broken: false },
+            { x: 88 * this.tileSize, y: 89 * this.tileSize, broken: false },
+            { x: 82 * this.tileSize, y: 92 * this.tileSize, broken: false },
 
-            // South room interior - multiple obstacles
-            { x: 23 * this.tileSize, y: 38 * this.tileSize, broken: false },
-            { x: 25 * this.tileSize, y: 40 * this.tileSize, broken: false },
-            { x: 27 * this.tileSize, y: 38 * this.tileSize, broken: false },
+            { x: 115 * this.tileSize, y: 83 * this.tileSize, broken: false },
+            { x: 118 * this.tileSize, y: 85 * this.tileSize, broken: false },
+            { x: 122 * this.tileSize, y: 87 * this.tileSize, broken: false },
+            { x: 126 * this.tileSize, y: 89 * this.tileSize, broken: false },
+            { x: 130 * this.tileSize, y: 91 * this.tileSize, broken: false },
 
-            // SE corner - agent area obstacles
-            { x: 38 * this.tileSize, y: 38 * this.tileSize, broken: false },
-            { x: 40 * this.tileSize, y: 40 * this.tileSize, broken: false },
-            { x: 42 * this.tileSize, y: 38 * this.tileSize, broken: false },
+            { x: 12 * this.tileSize, y: 133 * this.tileSize, broken: false },
+            { x: 15 * this.tileSize, y: 135 * this.tileSize, broken: false },
+            { x: 18 * this.tileSize, y: 137 * this.tileSize, broken: false },
+            { x: 22 * this.tileSize, y: 139 * this.tileSize, broken: false },
 
-            // NW corner - mixed puzzle
-            { x: 8 * this.tileSize, y: 8 * this.tileSize, broken: false },
-            { x: 12 * this.tileSize, y: 10 * this.tileSize, broken: false },
+            { x: 142 * this.tileSize, y: 138 * this.tileSize, broken: false },
+            { x: 145 * this.tileSize, y: 140 * this.tileSize, broken: false },
+            { x: 148 * this.tileSize, y: 142 * this.tileSize, broken: false },
+            { x: 152 * this.tileSize, y: 144 * this.tileSize, broken: false },
+            { x: 156 * this.tileSize, y: 146 * this.tileSize, broken: false },
         ];
 
-        // === FILLABLE CHASMS - Isabella can fill these ===
         this.fillableChasms = [
-            // East room entrance - blocking access
-            { x: 32 * this.tileSize, y: 25 * this.tileSize, filled: false },
-            { x: 33 * this.tileSize, y: 25 * this.tileSize, filled: false },
+            { x: 145 * this.tileSize, y: 33 * this.tileSize, filled: false },
+            { x: 146 * this.tileSize, y: 33 * this.tileSize, filled: false },
+            { x: 147 * this.tileSize, y: 33 * this.tileSize, filled: false },
+            { x: 148 * this.tileSize, y: 33 * this.tileSize, filled: false },
+            { x: 149 * this.tileSize, y: 33 * this.tileSize, filled: false },
+            { x: 150 * this.tileSize, y: 33 * this.tileSize, filled: false },
+            { x: 151 * this.tileSize, y: 37 * this.tileSize, filled: false },
+            { x: 152 * this.tileSize, y: 37 * this.tileSize, filled: false },
+            { x: 153 * this.tileSize, y: 37 * this.tileSize, filled: false },
+            { x: 154 * this.tileSize, y: 37 * this.tileSize, filled: false },
 
-            // East room interior - bridge puzzle
-            { x: 38 * this.tileSize, y: 23 * this.tileSize, filled: false },
-            { x: 39 * this.tileSize, y: 23 * this.tileSize, filled: false },
-            { x: 40 * this.tileSize, y: 23 * this.tileSize, filled: false },
-            { x: 38 * this.tileSize, y: 27 * this.tileSize, filled: false },
-            { x: 39 * this.tileSize, y: 27 * this.tileSize, filled: false },
-            { x: 40 * this.tileSize, y: 27 * this.tileSize, filled: false },
-
-            // SW corner - long bridge to cross
-            { x: 8 * this.tileSize, y: 40 * this.tileSize, filled: false },
-            { x: 9 * this.tileSize, y: 40 * this.tileSize, filled: false },
-            { x: 10 * this.tileSize, y: 40 * this.tileSize, filled: false },
-            { x: 11 * this.tileSize, y: 40 * this.tileSize, filled: false },
-            { x: 12 * this.tileSize, y: 40 * this.tileSize, filled: false },
-
-            // West room - mixed with obstacles
-            { x: 10 * this.tileSize, y: 25 * this.tileSize, filled: false },
-            { x: 12 * this.tileSize, y: 25 * this.tileSize, filled: false },
+            { x: 15 * this.tileSize, y: 38 * this.tileSize, filled: false },
+            { x: 16 * this.tileSize, y: 38 * this.tileSize, filled: false },
+            { x: 17 * this.tileSize, y: 38 * this.tileSize, filled: false },
+            { x: 18 * this.tileSize, y: 38 * this.tileSize, filled: false },
+            { x: 19 * this.tileSize, y: 38 * this.tileSize, filled: false },
+            { x: 20 * this.tileSize, y: 38 * this.tileSize, filled: false },
+            { x: 18 * this.tileSize, y: 45 * this.tileSize, filled: false },
+            { x: 19 * this.tileSize, y: 45 * this.tileSize, filled: false },
+            { x: 20 * this.tileSize, y: 45 * this.tileSize, filled: false },
+            { x: 21 * this.tileSize, y: 45 * this.tileSize, filled: false },
         ];
 
-        // === CHESTS WITH QUEST ITEMS - Strategically placed in puzzle rooms ===
         this.chests = [
-            // Puzzle Piece - In north boulder room (need to solve boulder puzzle)
-            { x: 25 * this.tileSize, y: 7 * this.tileSize, opened: false, item: 'puzzlePiece' },
+            { x: 82 * this.tileSize, y: 87 * this.tileSize, opened: false, item: 'puzzlePiece' },
 
-            // Lost Animal - In east chasm room (need Isabella to fill chasms)
-            { x: 42 * this.tileSize, y: 25 * this.tileSize, opened: false, item: 'lostAnimal' },
+            { x: 22 * this.tileSize, y: 87 * this.tileSize, opened: false, item: 'lostAnimal' },
 
-            // Notebook - In south obstacle room (need Alexis to break obstacles)
-            { x: 25 * this.tileSize, y: 42 * this.tileSize, opened: false, item: 'notebook' },
+            { x: 82 * this.tileSize, y: 142 * this.tileSize, opened: false, item: 'notebook' },
 
-            // Opal's Map - In NW corner (logic puzzle required, only Opal/Austine can take)
-            { x: 7 * this.tileSize, y: 7 * this.tileSize, opened: false, item: 'opalMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
+            { x: 82 * this.tileSize, y: 27 * this.tileSize, opened: false, item: 'opalMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
 
-            // Austine's Map - In NE corner (logic puzzle required, only Opal/Austine can take)
-            { x: 43 * this.tileSize, y: 7 * this.tileSize, opened: false, item: 'austineMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
+            { x: 152 * this.tileSize, y: 37 * this.tileSize, opened: false, item: 'austineMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
+
+            { x: 122 * this.tileSize, y: 87 * this.tileSize, opened: false, item: 'ancientArtifact' },
+
+            { x: 20 * this.tileSize, y: 42 * this.tileSize, opened: false, item: 'magicalCrystal' },
+
+            { x: 147 * this.tileSize, y: 142 * this.tileSize, opened: false, item: 'heroicSword' },
+
+            { x: 17 * this.tileSize, y: 135 * this.tileSize, opened: false, item: 'shieldOfValor' },
+
+            { x: 122 * this.tileSize, y: 42 * this.tileSize, opened: false, item: 'mysticalOrb' },
         ];
     }
 
@@ -2263,7 +2216,6 @@ class SwitchGame {
         if (!CHARACTERS[characterId]) return false;
 
         const oldCharId = this.gameState.currentCharacter;
-        const oldChar = CHARACTERS[oldCharId];
 
         // Save current player position before switching
         this.gameState.characterPositions[oldCharId] = {
@@ -2284,11 +2236,6 @@ class SwitchGame {
                 if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') {
                     npc.position = { x: saved.x, y: saved.y };
                 }
-            }
-
-            // Create sprite for old character as NPC if it doesn't exist
-            if (this.sprites && this.sprites.npcs && !this.sprites.npcs[oldCharId]) {
-                this.sprites.npcs[oldCharId] = this.createHumanSpriteSheet(oldChar.color);
             }
 
             // Update dialogue manager NPCs reference
@@ -2896,19 +2843,11 @@ class SwitchGame {
                     this.ctx.lineWidth = 2;
                     this.ctx.strokeRect(x, y, this.tileSize, this.tileSize);
                 } else if (tileType === 2) {
-                    // Chasm
-                    this.ctx.fillStyle = '#0a0010';
-                    this.ctx.fillRect(x, y, this.tileSize, this.tileSize);
-
-                    // Shadow effect
-                    const gradient = this.ctx.createRadialGradient(
-                        x + this.tileSize / 2, y + this.tileSize / 2, 0,
-                        x + this.tileSize / 2, y + this.tileSize / 2, this.tileSize / 2
-                    );
-                    gradient.addColorStop(0, '#1a1020');
-                    gradient.addColorStop(1, '#0a0010');
-                    this.ctx.fillStyle = gradient;
-                    this.ctx.fillRect(x, y, this.tileSize, this.tileSize);
+                    // Chasm - completely pitch black
+                    const drawX = Math.floor(x);
+                    const drawY = Math.floor(y);
+                    this.ctx.fillStyle = '#000000';
+                    this.ctx.fillRect(drawX, drawY, this.tileSize + 1, this.tileSize + 1);
                 }
             }
         }

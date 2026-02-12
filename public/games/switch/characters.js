@@ -31,11 +31,10 @@
        description: 'Collect 10 strife specium to complete.',
        cannotSwapWith: ['opal']
      },
-     abilities: ['weaponSteal', 'invincibleInCombat', 'smashRocks'],
+     abilities: ['weaponSteal', 'invincibleInCombat'],
      abilityDescriptions: {
        weaponSteal: 'Can steal and use weapons from other characters',
-       invincibleInCombat: 'Cannot take damage in combat',
-       smashRocks: 'Can smash rocks and obstacles'
+       invincibleInCombat: 'Cannot take damage in combat'
      }
    },
    austine: {
@@ -173,49 +172,49 @@ const NPCS = [
   {
     id: 'alexis',
     name: 'Alexis',
-    position: { x: 704, y: 864 },
+    position: { x: 2496, y: 4384 },
     color: CHAR_COLORS.alexis,
   },
   {
     id: 'austine',
     name: 'Austine',
-    position: { x: 736, y: 864 },
+    position: { x: 2752, y: 4384 },
     color: CHAR_COLORS.austine,
   },
   {
     id: 'chloe',
     name: 'Chloe',
-    position: { x: 864, y: 864 },
+    position: { x: 2624, y: 4576 },
     color: CHAR_COLORS.chloe,
   },
   {
     id: 'isabell',
     name: 'Isabell',
-    position: { x: 896, y: 768 },
+    position: { x: 2816, y: 4512 },
     color: CHAR_COLORS.isabell,
   },
   {
     id: 'nicholas',
     name: 'Nicholas',
-    position: { x: 704, y: 768 },
+    position: { x: 2432, y: 4512 },
     color: CHAR_COLORS.nicholas,
   },
   {
     id: 'opal',
     name: 'Opal',
-    position: { x: 800, y: 800 },
+    position: { x: 2624, y: 4480 },
     color: CHAR_COLORS.opal,
   },
   {
     id: 'tyson',
     name: 'Tyson',
-    position: { x: 896, y: 864 },
+    position: { x: 2496, y: 4640 },
     color: CHAR_COLORS.tyson,
   },
   {
     id: 'victor',
     name: 'Victor',
-    position: { x: 800, y: 896 },
+    position: { x: 2752, y: 4640 },
     color: CHAR_COLORS.victor,
   },
 ];
@@ -324,9 +323,6 @@ class GameState {
 
     const character = CHARACTERS[characterId];
     if (!character) return false;
-
-    // If character is already unlocked, allow switching to them
-    if (this.unlockedCharacters.has(characterId)) return true;
 
     if (character.isFinalCharacter) {
       const hasPlayedAll = Object.keys(CHARACTERS)

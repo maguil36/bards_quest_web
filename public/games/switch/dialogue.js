@@ -23,6 +23,8 @@ const DIALOGUES = {
         name: 'Opal',
         dialogues: {
             alexis: [
+                { speaker: 'npc', text: "" },
+                { speaker: 'player', text: "Someone has to protect what matters. Not all of us solve problems with theft, Alexis." },
                 { speaker: 'npc', text: "Opal. Still playing space cop for the frogs, see?" },
                 { speaker: 'player', text: "Someone has to protect what matters. Not all of us solve problems with theft, Alexis." }
             ],
@@ -56,8 +58,21 @@ const DIALOGUES = {
         name: 'Alexis',
         dialogues: {
             opal: [
-                { speaker: 'npc', text: "You're way too uptight about those frogs. Learn to take what you need." },
-                { speaker: 'player', text: "That's rich coming from the Thief of Rage. Not everything's about stealing, Opal." }
+                { speaker: 'npc', text: "Well well well, looks like its the coward of my team who wants to run from the big fight instead of being useful and lending a hand." },
+                { speaker: 'npc', text: "First you degrade yourself to licking Austine's boots but this is just another level of pathetic. Next time try to at least pretend to have some dignity." },
+                { speaker: 'player', text: "Alexis, it has to be done this way and Austine's right, if a large enough metoer hits skia or any of the other planets it could end the entire session." },
+                { speaker: 'player', text: "As it stands the planets are in a delicate balance. If we allow that to be disrupted, it could lead to catastrophic consequences." },
+                { speaker: 'player', text: "The entire session could be at risk and we have no margin for error." },
+                { speaker: 'npc', text: "Right, last I checked though you can throw a couple large objects accross a room but can't chuck a metoer, good luck with that." },
+                { speaker: 'npc', text: "You could at least be useful and baby sit Victor and Tyson, that is basically what you were doing on your world with a bunch of gay frogs." },
+                { speaker: 'player', text: "I really don't want to get dragged into another one of your endless arguements Alexis." },
+                { speaker: 'npc', text: "Why? Because I always win them? Because your arguments are as weak as your resolve. Well I'm not going to solo the final boss while having to babysit 2 idiots while you go play some stupid side quest in the sky that no one cares about and you probably can't even do right." },
+                { speaker: 'player', text: "Listen I know Tyson isn't the most successful in combat and Austine wants Victor not to use any of his powers but its still a 3 v 1 and all 3 of you are godtier." },
+                { speaker: 'npc', text: "Oh yah just leave out the part that Victor is being told by everyone to not get invovled and Tyson's basically useless. Not that your much more useful either. But I'm sure you can take the king on just great by yourselves."},
+                { speaker: 'player', text: "Fine what do you want?"},
+                { speaker: 'npc', text: "Oh yah just leave out the part that Victor is being told by everyone to not get invovled and Tyson's basically useless. Not that your much more useful either. But I'm sure you can take the king on just great by yourselves." }
+                
+
             ],
             austine: [
                 { speaker: 'npc', text: "Do you ever just... act without analyzing everything to death?" },
