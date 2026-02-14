@@ -582,6 +582,36 @@ class DialogueManager {
         };
     }
 
+    showHealingDialogue() {
+        const currentChar = this.gameState.getCurrentCharacter();
+        const currentHp = this.gameState.characters[currentChar.id]?.currentHp;
+        const maxHp = 100;
+
+        if (currentHp >= maxHp) {
+            this.currentDialogue = [
+                { speaker: 'player', text: "Chloe, could you heal me?" },
+                { speaker: 'npc', text: "You're already at full health! You don't need healing right now." },
+                { speaker: 'player', text: "Thanks for checking though." }
+            ];
+        } else {
+            this.currentDialogue = [
+                { speaker: 'player', text: "Chloe, I need healing..." },
+                { speaker: 'npc', text: "Of course. Let me help you." },
+                { speaker: 'npc', text: "*Chloe's gentle energy washes over you*" },
+                { speaker: 'npc', text: "There. You should feel better now." },
+                { speaker: 'player', text: "Thanks, Chloe. That really helped." }
+            ];
+
+            if (this.game && this.game.combatSystem) {
+                this.game.combatSystem.healCharacter(currentChar.id);
+            }
+        }
+
+        this.currentLineIndex = 0;
+        this.isActive = true;
+        this.isSwitchDialogue = false;
+    }
+
     // Show interaction menu for an NPC
     showInteractionMenu(npcId) {
         let npc = this.npcs.find(n => n.id === npcId);
@@ -614,6 +644,10 @@ class DialogueManager {
             { id: 'cancel', label: 'Stop talking to them', enabled: true }
         ];
 
+        if (npcId === 'chloe') {
+            this.menuOptions.splice(2, 0, { id: 'heal', label: 'Ask for healing', enabled: true });
+        }
+
         return true;
     }
 
@@ -630,6 +664,9 @@ class DialogueManager {
             return this.startDialogue(this.currentNPC.id);
         } else if (optionId === 'switch') {
             return this.startSwitchDialogue(this.currentNPC.id);
+        } else if (optionId === 'heal') {
+            this.showHealingDialogue();
+            return true;
         } else if (optionId === 'cancel') {
             this.cancelDialogue();
             return false;

@@ -16,9 +16,20 @@
    opal: getCSSVar('--opal'),
    tyson: getCSSVar('--tyson'),
    victor: getCSSVar('--victor'),
- };
+};
 
- // Character definitions based on the 8 persona names from styles.css
+const CHARACTER_BASE_HP = {
+  opal: 120,
+  alexis: 100,
+  tyson: 200,
+  chloe: 90,
+  isabell: 80,
+  nicholas: 80,
+  austine: 75,
+  victor: 100
+};
+
+// Character definitions based on the 8 persona names from styles.css
  const CHARACTERS = {
    alexis: {
      id: 'alexis',
@@ -28,8 +39,7 @@
      quest: {
        unlockCriteria: 'defeat3Agents',
        completionCriteria: 'collect10Weapons',
-       description: 'Collect 10 strife specium to complete.',
-       cannotSwapWith: ['opal']
+       description: 'Collect 10 strife specium to complete.'
      },
      abilities: ['weaponSteal', 'invincibleInCombat'],
      abilityDescriptions: {
@@ -273,6 +283,7 @@ class GameState {
     };
     this.grist = 50;
     this.chestStates = [];
+    this.defeatedAgents = [];
 
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };
@@ -282,6 +293,34 @@ class GameState {
         progress: {}
       };
     });
+
+    this.characters = {};
+    Object.keys(CHARACTERS).forEach((charId) => {
+      this.characters[charId] = {
+        currentHp: CHARACTER_BASE_HP[charId] || 100
+      };
+    });
+
+    this.migrateDefeatedAgents();
+  }
+
+  migrateDefeatedAgents() {
+    if (this.defeatedAgents && this.defeatedAgents.length > 0) {
+      const migratedAgents = [];
+      for (const agentKey of this.defeatedAgents) {
+        const parts = agentKey.split('_');
+        if (parts.length === 2) {
+          const x = Math.round(parseFloat(parts[0]));
+          const y = Math.round(parseFloat(parts[1]));
+          const newKey = `${x}_${y}`;
+          if (!migratedAgents.includes(newKey)) {
+            migratedAgents.push(newKey);
+          }
+        }
+      }
+      this.defeatedAgents = migratedAgents;
+      this.save();
+    }
   }
 
   // Check if a dialogue has been completed
@@ -451,8 +490,15 @@ class GameState {
     }
   }
 
-  defeatAgent() {
+  defeatAgent(agentX = null, agentY = null) {
     this.combatStats.agentsDefeated++;
+    if (agentX !== null && agentY !== null) {
+      const agentKey = `${agentX}_${agentY}`;
+      if (!this.defeatedAgents.includes(agentKey)) {
+        this.defeatedAgents.push(agentKey);
+      }
+      this.save();
+    }
   }
 
   addWeapon(weaponId) {
@@ -569,7 +615,9 @@ class GameState {
       miniGameScores: this.miniGameScores,
       buildProgress: this.buildProgress,
       grist: this.grist,
-      chestStates: this.chestStates
+      chestStates: this.chestStates,
+      defeatedAgents: this.defeatedAgents,
+      characters: this.characters
     };
     try {
       localStorage.setItem('switchGameState', JSON.stringify(data));
@@ -608,6 +656,10 @@ class GameState {
       if (data.buildProgress) this.buildProgress = data.buildProgress;
       this.grist = data.grist || 0;
       if (data.chestStates) this.chestStates = data.chestStates;
+      if (data.defeatedAgents) this.defeatedAgents = data.defeatedAgents;
+      if (data.characters) this.characters = data.characters;
+
+      this.migrateDefeatedAgents();
     } catch (e) {
       console.warn('Failed to load game state:', e);
     }
@@ -659,6 +711,7 @@ class GameState {
       bridgesBuilt: []
     };
     this.grist = 50;
+    this.defeatedAgents = [];
 
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };
@@ -668,6 +721,14 @@ class GameState {
         progress: {}
       };
     });
+
+    this.characters = {};
+    Object.keys(CHARACTERS).forEach((charId) => {
+      this.characters[charId] = {
+        currentHp: CHARACTER_BASE_HP[charId] || 100
+      };
+    });
+
     try {
       localStorage.removeItem('switchGameState');
     } catch (_) {}

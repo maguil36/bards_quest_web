@@ -1,3 +1,17 @@
+import {
+    initializeMapTiles,
+    createRoom,
+    createGap,
+    roomDefinitions,
+    boulderPositions,
+    obstaclePositions,
+    fillableChasmPositions,
+    chestPositions,
+    agentConfigs
+} from './mapData.js';
+
+import { PokemonCombatSystem } from './combat.js';
+
  // Main game logic for the Switch game
 class SwitchGame {
     constructor() {
@@ -23,7 +37,7 @@ class SwitchGame {
             this.gameState,
             (success) => this.onLogicPuzzleComplete(success)
         );
-        this.combatSystem = new CombatSystem(this.gameState);
+        this.combatSystem = new PokemonCombatSystem(this.gameState);
 
         // Game world settings
         this.mapWidth = 5120;
@@ -86,6 +100,7 @@ class SwitchGame {
         this.inMiniGame = false;
         this.miniGameForSwitch = false;
         this.inCombat = false;
+        this.playerFrozen = false;
         this.currentPuzzleChest = null;
 
         // Glitch/ending state
@@ -112,7 +127,9 @@ class SwitchGame {
         this.obstacles = [];
         this.fillableChasms = [];
         this.walls = [];
+        this.agents = [];
 
+        this.gameState.load();
         this.initializeMap();
 
         this.init();
@@ -123,9 +140,6 @@ class SwitchGame {
         if (typeof refreshCharacterColors === 'function') {
             refreshCharacterColors();
         }
-
-        // Load game state
-        this.gameState.load();
 
         // Restore chest states after loading game state
         this.restoreChestStates();
@@ -426,6 +440,11 @@ class SwitchGame {
         switch (currentChar.id) {
             case 'opal':
                 if (currentChar.abilities.includes('teleport')) {
+                    if (this.playerFrozen) {
+                        this.showFloatingText(this.player.x, this.player.y - 40, 'Cannot teleport while being watched!', '#ff6666');
+                        return;
+                    }
+
                     const targetX = Math.max(0, Math.min(this.mapWidth - this.player.width, worldX));
                     const targetY = Math.max(0, Math.min(this.mapHeight - this.player.height, worldY));
 
@@ -576,21 +595,11 @@ class SwitchGame {
             }
         }
 
-        if (this.gameState && this.gameState.combatStats.agentsDefeated < 3) {
-            const agents = [
-                { x: 750, y: 750 },
-                { x: 1280, y: 320 },
-                { x: 1280, y: 1280 }
-            ];
-
-            const defeatedCount = this.gameState.combatStats.agentsDefeated || 0;
-            for (let i = defeatedCount; i < agents.length; i++) {
-                const agent = agents[i];
-                const tileSize = 32;
-
-                if (newX < agent.x + tileSize &&
+        for (const agent of this.agents) {
+            if (!agent.defeated) {
+                if (newX < agent.x + this.tileSize &&
                     newX + this.player.width > agent.x &&
-                    newY < agent.y + tileSize &&
+                    newY < agent.y + this.tileSize &&
                     newY + this.player.height > agent.y) {
                     return false;
                 }
@@ -1199,175 +1208,65 @@ class SwitchGame {
     }
 
     initializeMap() {
-        for (let y = 0; y < this.mapRows; y++) {
-            this.mapTiles[y] = [];
-            for (let x = 0; x < this.mapCols; x++) {
-                this.mapTiles[y][x] = 1;
+        initializeMapTiles(this.mapTiles, this.mapRows, this.mapCols);
+
+        for (const room of roomDefinitions) {
+            if (room.type === 'gap') {
+                createGap(this.mapTiles, this.mapRows, this.mapCols, room.x, room.y, room.width, room.height);
+            } else if (room.type === 'room') {
+                createRoom(this.mapTiles, this.mapRows, this.mapCols, room.x, room.y, room.width, room.height, room.walled);
             }
         }
 
-        const createRoom = (startX, startY, width, height, walled = 0) => {
-            for (let y = startY; y < startY + height; y++) {
-                for (let x = startX; x < startX + width; x++) {
-                    if (x >= 0 && x < this.mapCols && y >= 0 && y < this.mapRows) {
-                        this.mapTiles[y][x] = 0;
-                    }
-                }
-            }
+        this.boulders = boulderPositions.map(pos => ({
+            x: pos.x * this.tileSize,
+            y: pos.y * this.tileSize
+        }));
 
-            if (walled === 1) {
-                for (let x = startX; x < startX + width; x++) {
-                    if (x >= 0 && x < this.mapCols) {
-                        if (startY >= 0 && startY < this.mapRows) {
-                            this.mapTiles[startY][x] = 1;
-                        }
-                        if (startY + height - 1 >= 0 && startY + height - 1 < this.mapRows) {
-                            this.mapTiles[startY + height - 1][x] = 1;
-                        }
-                    }
-                }
-                for (let y = startY; y < startY + height; y++) {
-                    if (y >= 0 && y < this.mapRows) {
-                        if (startX >= 0 && startX < this.mapCols) {
-                            this.mapTiles[y][startX] = 1;
-                        }
-                        if (startX + width - 1 >= 0 && startX + width - 1 < this.mapCols) {
-                            this.mapTiles[y][startX + width - 1] = 1;
-                        }
-                    }
-                }
-            }
-        };
+        this.obstacles = obstaclePositions.map(pos => ({
+            x: pos.x * this.tileSize,
+            y: pos.y * this.tileSize,
+            broken: pos.broken
+        }));
 
-        const createGap = (startX, startY, width, height) => {
-            for (let y = startY; y < startY + height; y++) {
-                for (let x = startX; x < startX + width; x++) {
-                    if (x >= 0 && x < this.mapCols && y >= 0 && y < this.mapRows) {
-                        this.mapTiles[y][x] = 2;
-                    }
-                }
-            }
-        };
+        this.fillableChasms = fillableChasmPositions.map(pos => ({
+            x: pos.x * this.tileSize,
+            y: pos.y * this.tileSize,
+            filled: pos.filled
+        }));
 
-        
-        createGap(0, 0, 160, 160,1);
-        createRoom(65, 65, 30, 30,1);
-        createRoom(5, 65, 30, 30,1);
-        createRoom(5, 5, 30, 30,1);
-        createRoom(65, 5, 30, 30,1);
-        createRoom(125, 65, 30, 30,1);
-        createRoom(65, 125, 30, 30,1);
-        createRoom(125, 125, 30, 30,1);
-        createRoom(125, 5, 30, 30,1);
-        createRoom(5, 125, 30, 30,1);
+        this.chests = chestPositions.map(chest => ({
+            x: chest.x * this.tileSize,
+            y: chest.y * this.tileSize,
+            opened: chest.opened,
+            item: chest.item,
+            requiresPuzzle: chest.requiresPuzzle,
+            restrictedTo: chest.restrictedTo
+        }));
 
-        createRoom(17, 35, 6, 30,1);
-        createRoom(17, 95, 6, 30,1);
-        createRoom(137, 35, 6, 30,1);
-        createRoom(137, 95, 6, 30,1);
-        createRoom(35, 17, 30, 6,1);
-        createRoom(35, 137, 30, 6,1);
-        createRoom(95, 137, 30, 6,1);
-        createRoom(77, 95, 6, 30,1);
+        this.agents = agentConfigs.map(agent => {
+            const agentX = agent.x * this.tileSize;
+            const agentY = agent.y * this.tileSize;
+            const agentKey = `${agentX}_${agentY}`;
+            const isDefeated = this.gameState.defeatedAgents && this.gameState.defeatedAgents.includes(agentKey);
 
-        createRoom(18, 34, 4, 32);
-        createRoom(18, 94, 4, 32);
-        createRoom(138, 34, 4, 32);
-        createRoom(138, 94, 4, 32);
-        createRoom(34, 18, 32, 4);
-        createRoom(34, 138, 32, 4);
-        createRoom(94, 138, 32, 4);
-        createRoom(78, 94, 4, 32);
-
-        this.boulders = [
-            { x: 78 * this.tileSize, y: 83 * this.tileSize },
-            { x: 82 * this.tileSize, y: 85 * this.tileSize },
-            { x: 86 * this.tileSize, y: 87 * this.tileSize },
-            { x: 80 * this.tileSize, y: 91 * this.tileSize },
-            { x: 84 * this.tileSize, y: 93 * this.tileSize },
-
-            { x: 15 * this.tileSize, y: 83 * this.tileSize },
-            { x: 18 * this.tileSize, y: 86 * this.tileSize },
-            { x: 22 * this.tileSize, y: 89 * this.tileSize },
-            { x: 25 * this.tileSize, y: 92 * this.tileSize },
-
-            { x: 75 * this.tileSize, y: 23 * this.tileSize },
-            { x: 78 * this.tileSize, y: 26 * this.tileSize },
-            { x: 82 * this.tileSize, y: 29 * this.tileSize },
-            { x: 86 * this.tileSize, y: 32 * this.tileSize },
-            { x: 90 * this.tileSize, y: 35 * this.tileSize },
-        ];
-
-        this.obstacles = [
-            { x: 76 * this.tileSize, y: 83 * this.tileSize, broken: false },
-            { x: 80 * this.tileSize, y: 85 * this.tileSize, broken: false },
-            { x: 84 * this.tileSize, y: 87 * this.tileSize, broken: false },
-            { x: 88 * this.tileSize, y: 89 * this.tileSize, broken: false },
-            { x: 82 * this.tileSize, y: 92 * this.tileSize, broken: false },
-
-            { x: 115 * this.tileSize, y: 83 * this.tileSize, broken: false },
-            { x: 118 * this.tileSize, y: 85 * this.tileSize, broken: false },
-            { x: 122 * this.tileSize, y: 87 * this.tileSize, broken: false },
-            { x: 126 * this.tileSize, y: 89 * this.tileSize, broken: false },
-            { x: 130 * this.tileSize, y: 91 * this.tileSize, broken: false },
-
-            { x: 12 * this.tileSize, y: 133 * this.tileSize, broken: false },
-            { x: 15 * this.tileSize, y: 135 * this.tileSize, broken: false },
-            { x: 18 * this.tileSize, y: 137 * this.tileSize, broken: false },
-            { x: 22 * this.tileSize, y: 139 * this.tileSize, broken: false },
-
-            { x: 142 * this.tileSize, y: 138 * this.tileSize, broken: false },
-            { x: 145 * this.tileSize, y: 140 * this.tileSize, broken: false },
-            { x: 148 * this.tileSize, y: 142 * this.tileSize, broken: false },
-            { x: 152 * this.tileSize, y: 144 * this.tileSize, broken: false },
-            { x: 156 * this.tileSize, y: 146 * this.tileSize, broken: false },
-        ];
-
-        this.fillableChasms = [
-            { x: 145 * this.tileSize, y: 33 * this.tileSize, filled: false },
-            { x: 146 * this.tileSize, y: 33 * this.tileSize, filled: false },
-            { x: 147 * this.tileSize, y: 33 * this.tileSize, filled: false },
-            { x: 148 * this.tileSize, y: 33 * this.tileSize, filled: false },
-            { x: 149 * this.tileSize, y: 33 * this.tileSize, filled: false },
-            { x: 150 * this.tileSize, y: 33 * this.tileSize, filled: false },
-            { x: 151 * this.tileSize, y: 37 * this.tileSize, filled: false },
-            { x: 152 * this.tileSize, y: 37 * this.tileSize, filled: false },
-            { x: 153 * this.tileSize, y: 37 * this.tileSize, filled: false },
-            { x: 154 * this.tileSize, y: 37 * this.tileSize, filled: false },
-
-            { x: 15 * this.tileSize, y: 38 * this.tileSize, filled: false },
-            { x: 16 * this.tileSize, y: 38 * this.tileSize, filled: false },
-            { x: 17 * this.tileSize, y: 38 * this.tileSize, filled: false },
-            { x: 18 * this.tileSize, y: 38 * this.tileSize, filled: false },
-            { x: 19 * this.tileSize, y: 38 * this.tileSize, filled: false },
-            { x: 20 * this.tileSize, y: 38 * this.tileSize, filled: false },
-            { x: 18 * this.tileSize, y: 45 * this.tileSize, filled: false },
-            { x: 19 * this.tileSize, y: 45 * this.tileSize, filled: false },
-            { x: 20 * this.tileSize, y: 45 * this.tileSize, filled: false },
-            { x: 21 * this.tileSize, y: 45 * this.tileSize, filled: false },
-        ];
-
-        this.chests = [
-            { x: 82 * this.tileSize, y: 87 * this.tileSize, opened: false, item: 'puzzlePiece' },
-
-            { x: 22 * this.tileSize, y: 87 * this.tileSize, opened: false, item: 'lostAnimal' },
-
-            { x: 82 * this.tileSize, y: 142 * this.tileSize, opened: false, item: 'notebook' },
-
-            { x: 82 * this.tileSize, y: 27 * this.tileSize, opened: false, item: 'opalMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
-
-            { x: 152 * this.tileSize, y: 37 * this.tileSize, opened: false, item: 'austineMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
-
-            { x: 122 * this.tileSize, y: 87 * this.tileSize, opened: false, item: 'ancientArtifact' },
-
-            { x: 20 * this.tileSize, y: 42 * this.tileSize, opened: false, item: 'magicalCrystal' },
-
-            { x: 147 * this.tileSize, y: 142 * this.tileSize, opened: false, item: 'heroicSword' },
-
-            { x: 17 * this.tileSize, y: 135 * this.tileSize, opened: false, item: 'shieldOfValor' },
-
-            { x: 122 * this.tileSize, y: 42 * this.tileSize, opened: false, item: 'mysticalOrb' },
-        ];
+            return {
+                x: agentX,
+                y: agentY,
+                spawnX: agentX,
+                spawnY: agentY,
+                direction: agent.direction,
+                patrolPath: agent.patrolPath,
+                patrolIndex: agent.patrolIndex,
+                patrolReverse: agent.patrolReverse,
+                speed: agent.speed,
+                detectionRange: agent.detectionRange,
+                chasing: agent.chasing,
+                defeated: isDefeated,
+                animationFrame: agent.animationFrame,
+                animationTimer: agent.animationTimer
+            };
+        });
     }
 
     createBackgroundSprite() {
@@ -1428,6 +1327,7 @@ class SwitchGame {
         this.updatePlayerMovement();
         this.updateCamera();
         this.updateAnimations();
+        this.updateAgents();
         this.checkForInteractions();
         this.checkForItemPickups();
         this.checkForCombatEncounters();
@@ -1437,6 +1337,249 @@ class SwitchGame {
         this.updateInventoryUI();
         this.updateQuestUI();
         this.updateAbilitiesUI();
+    }
+
+    updateAgents() {
+        if (this.inCombat) return;
+
+        for (const agent of this.agents) {
+            if (agent.defeated) continue;
+
+            let isMoving = false;
+
+            if (agent.chasing) {
+                const dx = this.player.x - agent.x;
+                const dy = this.player.y - agent.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < this.tileSize * 1.5) {
+                    agent.chasing = false;
+                    this.playerFrozen = false;
+                    this.startAgentCombat(agent);
+                    return;
+                }
+
+                const moveX = dx / distance * agent.speed;
+                const moveY = dy / distance * agent.speed;
+
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    agent.direction = dx > 0 ? 'right' : 'left';
+                } else {
+                    agent.direction = dy > 0 ? 'down' : 'up';
+                }
+
+                const newX = agent.x + moveX;
+                const newY = agent.y + moveY;
+
+                if (!this.checkCollision(newX, newY, 32, 32)) {
+                    agent.x = newX;
+                    agent.y = newY;
+                    isMoving = true;
+                }
+            } else {
+                const wasMoving = this.updateAgentPatrol(agent);
+                if (wasMoving) isMoving = true;
+                this.checkAgentDetection(agent);
+            }
+
+            if (isMoving) {
+                agent.animationTimer = (agent.animationTimer || 0) + 1;
+                if (agent.animationTimer > 10) {
+                    agent.animationFrame = ((agent.animationFrame || 0) + 1) % 4;
+                    agent.animationTimer = 0;
+                }
+            } else {
+                agent.animationFrame = 0;
+            }
+        }
+    }
+
+    updateAgentPatrol(agent) {
+        if (agent.patrolPath.length === 0) return false;
+        if (agent.patrolPath.length === 1) {
+            const [targetX, targetY] = agent.patrolPath[0];
+            agent.x = targetX * this.tileSize;
+            agent.y = targetY * this.tileSize;
+            return false;
+        }
+
+        const currentTarget = agent.patrolPath[agent.patrolIndex];
+        const targetX = currentTarget[0] * this.tileSize;
+        const targetY = currentTarget[1] * this.tileSize;
+
+        const dx = targetX - agent.x;
+        const dy = targetY - agent.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < agent.speed * 2) {
+            if (agent.patrolReverse) {
+                agent.patrolIndex--;
+                if (agent.patrolIndex < 0) {
+                    agent.patrolIndex = 1;
+                    agent.patrolReverse = false;
+                }
+            } else {
+                agent.patrolIndex++;
+                if (agent.patrolIndex >= agent.patrolPath.length) {
+                    agent.patrolIndex = agent.patrolPath.length - 2;
+                    agent.patrolReverse = true;
+                }
+            }
+            return false;
+        } else {
+            const moveX = dx / distance * agent.speed;
+            const moveY = dy / distance * agent.speed;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                agent.direction = dx > 0 ? 'right' : 'left';
+            } else {
+                agent.direction = dy > 0 ? 'down' : 'up';
+            }
+
+            agent.x += moveX;
+            agent.y += moveY;
+            return true;
+        }
+    }
+
+    checkAgentDetection(agent) {
+        const detectionDistance = agent.detectionRange * this.tileSize;
+        let checkX = agent.x;
+        let checkY = agent.y;
+
+        switch (agent.direction) {
+            case 'up':
+                for (let i = 1; i <= agent.detectionRange; i++) {
+                    checkY = agent.y - i * this.tileSize;
+                    if (Math.abs(this.player.x - agent.x) < this.tileSize / 2 &&
+                        Math.abs(this.player.y - checkY) < this.tileSize / 2) {
+                        agent.chasing = true;
+                        this.playerFrozen = true;
+                        return;
+                    }
+                }
+                break;
+            case 'down':
+                for (let i = 1; i <= agent.detectionRange; i++) {
+                    checkY = agent.y + i * this.tileSize;
+                    if (Math.abs(this.player.x - agent.x) < this.tileSize / 2 &&
+                        Math.abs(this.player.y - checkY) < this.tileSize / 2) {
+                        agent.chasing = true;
+                        this.playerFrozen = true;
+                        return;
+                    }
+                }
+                break;
+            case 'left':
+                for (let i = 1; i <= agent.detectionRange; i++) {
+                    checkX = agent.x - i * this.tileSize;
+                    if (Math.abs(this.player.x - checkX) < this.tileSize / 2 &&
+                        Math.abs(this.player.y - agent.y) < this.tileSize / 2) {
+                        agent.chasing = true;
+                        this.playerFrozen = true;
+                        return;
+                    }
+                }
+                break;
+            case 'right':
+                for (let i = 1; i <= agent.detectionRange; i++) {
+                    checkX = agent.x + i * this.tileSize;
+                    if (Math.abs(this.player.x - checkX) < this.tileSize / 2 &&
+                        Math.abs(this.player.y - agent.y) < this.tileSize / 2) {
+                        agent.chasing = true;
+                        this.playerFrozen = true;
+                        return;
+                    }
+                }
+                break;
+        }
+    }
+
+    startAgentCombat(agent) {
+        this.inCombat = true;
+        this.currentAgentInCombat = agent;
+        const combatUI = document.getElementById('combatUI');
+        if (combatUI) combatUI.style.display = 'block';
+
+        const currentChar = this.gameState.getCurrentCharacter();
+        this.combatSystem.startCombat({
+            id: 'derseAgent',
+            name: 'Dark Agent',
+            health: 100,
+            maxHealth: 100,
+            attack: 50,
+            defense: 50
+        });
+
+        document.getElementById('playerName').textContent = currentChar.name;
+        document.getElementById('playerHP').textContent = this.combatSystem.playerHP;
+        document.getElementById('playerMaxHP').textContent = this.combatSystem.playerMaxHP;
+        document.getElementById('enemyName').textContent = 'Dark Agent';
+        document.getElementById('enemyHP').textContent = this.combatSystem.enemyHP;
+        document.getElementById('enemyMaxHP').textContent = this.combatSystem.enemyMaxHP;
+
+        const moves = this.combatSystem.getMoves(currentChar.id);
+        const moveButtons = document.querySelectorAll('.combatMove');
+        moveButtons.forEach((btn, index) => {
+            if (moves[index]) {
+                btn.textContent = `${moves[index].name}`;
+                if (moves[index].power > 0) {
+                    btn.textContent += ` (${moves[index].type === 'physical' ? 'Phys' : moves[index].type === 'special' ? 'Spec' : 'Stat'} ${moves[index].power})`;
+                }
+                btn.onclick = () => this.useCombatMove(index);
+            }
+        });
+    }
+
+    checkCollision(x, y, width, height) {
+        const tileLeft = Math.floor(x / this.tileSize);
+        const tileRight = Math.floor((x + width - 1) / this.tileSize);
+        const tileTop = Math.floor(y / this.tileSize);
+        const tileBottom = Math.floor((y + height - 1) / this.tileSize);
+
+        for (let ty = tileTop; ty <= tileBottom; ty++) {
+            for (let tx = tileLeft; tx <= tileRight; tx++) {
+                if (ty >= 0 && ty < this.mapRows && tx >= 0 && tx < this.mapCols) {
+                    const tileType = this.mapTiles[ty][tx];
+                    if (tileType === 1 || tileType === 2) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        for (const boulder of this.boulders) {
+            if (x < boulder.x + this.tileSize &&
+                x + width > boulder.x &&
+                y < boulder.y + this.tileSize &&
+                y + height > boulder.y) {
+                return true;
+            }
+        }
+
+        for (const obstacle of this.obstacles) {
+            if (!obstacle.broken) {
+                if (x < obstacle.x + this.tileSize &&
+                    x + width > obstacle.x &&
+                    y < obstacle.y + this.tileSize &&
+                    y + height > obstacle.y) {
+                    return true;
+                }
+            }
+        }
+
+        for (const chasm of this.fillableChasms) {
+            if (!chasm.filled) {
+                if (x < chasm.x + this.tileSize &&
+                    x + width > chasm.x &&
+                    y < chasm.y + this.tileSize &&
+                    y + height > chasm.y) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     updateFloatingTexts() {
@@ -1473,57 +1616,6 @@ class SwitchGame {
     }
 
     checkForCombatEncounters() {
-        if (this.inCombat || !this.gameState) return;
-
-        const playerCenterX = this.player.x + this.player.width / 2;
-        const playerCenterY = this.player.y + this.player.height / 2;
-        const encounterDistance = 40;
-
-        if (this.gameState.combatStats.agentsDefeated < 3) {
-            const agents = [
-                { x: 750, y: 750 },
-                { x: 1280, y: 320 },
-                { x: 1280, y: 1280 }
-            ];
-
-            const defeatedCount = this.gameState.combatStats.agentsDefeated || 0;
-            for (let i = defeatedCount; i < agents.length; i++) {
-                const agent = agents[i];
-                const dx = playerCenterX - (agent.x + 16);
-                const dy = playerCenterY - (agent.y + 16);
-                const distance = Math.hypot(dx, dy);
-
-                if (distance < encounterDistance) {
-                    this.startCombat();
-                    break;
-                }
-            }
-        }
-    }
-
-    startCombat() {
-        this.inCombat = true;
-        const combatUI = document.getElementById('combatUI');
-        if (combatUI) combatUI.style.display = 'block';
-
-        const currentChar = this.gameState.getCurrentCharacter();
-        this.combatSystem.startCombat('derseAgent');
-
-        document.getElementById('playerName').textContent = currentChar.name;
-        document.getElementById('playerHP').textContent = this.combatSystem.playerHP;
-        document.getElementById('playerMaxHP').textContent = this.combatSystem.playerMaxHP;
-        document.getElementById('enemyName').textContent = 'Derse Agent';
-        document.getElementById('enemyHP').textContent = this.combatSystem.enemyHP;
-        document.getElementById('enemyMaxHP').textContent = this.combatSystem.enemyMaxHP;
-
-        const moves = this.combatSystem.getMoves(currentChar.id);
-        const moveButtons = document.querySelectorAll('.combatMove');
-        moveButtons.forEach((btn, index) => {
-            if (moves[index]) {
-                btn.textContent = `${moves[index].name} (${moves[index].damage})`;
-                btn.onclick = () => this.useCombatMove(index);
-            }
-        });
     }
 
     useCombatMove(moveIndex) {
@@ -1534,12 +1626,16 @@ class SwitchGame {
 
         const logEl = document.getElementById('combatLog');
         if (logEl && result) {
-            logEl.innerHTML += `<div>${result.message}</div>`;
+            if (result.messages && Array.isArray(result.messages)) {
+                result.messages.forEach(msg => {
+                    logEl.innerHTML += `<div>${msg}</div>`;
+                });
+            }
             logEl.scrollTop = logEl.scrollHeight;
         }
 
-        if (!this.combatSystem.inCombat && result) {
-            setTimeout(() => this.endCombat(result.playerWon), 1500);
+        if (!this.combatSystem.inCombat && result && result.type === 'combatEnd') {
+            setTimeout(() => this.endCombat(result.won), 1500);
         }
     }
 
@@ -1554,7 +1650,22 @@ class SwitchGame {
         if (logEl) logEl.innerHTML = '';
 
         if (playerWon) {
+            if (this.currentAgentInCombat) {
+                this.currentAgentInCombat.defeated = true;
+                this.gameState.defeatAgent(this.currentAgentInCombat.spawnX, this.currentAgentInCombat.spawnY);
+                this.currentAgentInCombat = null;
+            }
             this.updateQuestUI();
+        } else {
+            this.showFloatingText(this.player.x, this.player.y - 40, 'You have been defeated!', '#ff0000');
+            setTimeout(() => {
+                if (this.gameState && typeof this.gameState.reset === 'function') {
+                    this.gameState.reset();
+                }
+                localStorage.removeItem('switchAudioSettings');
+                localStorage.removeItem('switchGameState');
+                window.location.reload();
+            }, 2000);
         }
     }
 
@@ -1562,6 +1673,7 @@ class SwitchGame {
         // Prevent movement during combat
         if (this.inCombat) return;
         if (this.dialogueManager.showingMenu) return;
+        if (this.playerFrozen) return;
 
         let dx = 0;
         let dy = 0;
@@ -1652,24 +1764,12 @@ class SwitchGame {
         }
 
         // Check collision with agents
-        if (this.gameState && this.gameState.combatStats.agentsDefeated < 3) {
-            const agents = [
-                { x: 750, y: 750 },
-                { x: 1280, y: 320 },
-                { x: 1280, y: 1280 }
-            ];
-
-            const defeatedCount = this.gameState.combatStats.agentsDefeated || 0;
-            for (let i = defeatedCount; i < agents.length; i++) {
-                const agent = agents[i];
-                const tileSize = 32;
-
-                // Check if new position would collide with agent
-                if (newX < agent.x + tileSize &&
+        for (const agent of this.agents) {
+            if (!agent.defeated) {
+                if (newX < agent.x + this.tileSize &&
                     newX + this.player.width > agent.x &&
-                    newY < agent.y + tileSize &&
+                    newY < agent.y + this.tileSize &&
                     newY + this.player.height > agent.y) {
-                    // Collision detected, don't move
                     return;
                 }
             }
@@ -2988,36 +3088,6 @@ class SwitchGame {
             }
         }
 
-        // Draw Derse agents (enemies)
-        if (this.gameState && this.gameState.combatStats && this.gameState.combatStats.agentsDefeated < 3) {
-            const agents = [
-                { x: 750, y: 750 },
-                { x: 1280, y: 320 },
-                { x: 1280, y: 1280 }
-            ];
-
-            const defeatedCount = this.gameState.combatStats.agentsDefeated || 0;
-            for (let i = defeatedCount; i < agents.length; i++) {
-                const agent = agents[i];
-                const screenX = agent.x - this.camera.x;
-                const screenY = agent.y - this.camera.y;
-
-                if (screenX > -tile && screenX < this.canvas.width &&
-                    screenY > -tile && screenY < this.canvas.height) {
-
-                    this.ctx.fillStyle = '#8B0000';
-                    this.ctx.shadowColor = '#8B0000';
-                    this.ctx.shadowBlur = 8;
-                    this.ctx.fillRect(screenX, screenY, tile, tile);
-                    this.ctx.shadowBlur = 0;
-
-                    this.ctx.fillStyle = '#fff';
-                    this.ctx.font = 'bold 10px Arial';
-                    this.ctx.textAlign = 'center';
-                    this.ctx.fillText('AGENT', screenX + tile/2, screenY - 8);
-                }
-            }
-        }
 
 
         // Draw NPCs
@@ -3050,6 +3120,77 @@ class SwitchGame {
                     this.ctx.font = '12px Arial';
                     this.ctx.textAlign = 'center';
                     this.ctx.fillText(npc.name || npc.id, screenX + (tile / 2), screenY - 5);
+                }
+            }
+        }
+
+        // Draw agents
+        for (const agent of this.agents) {
+            if (!agent.defeated) {
+                const screenX = agent.x - this.camera.x;
+                const screenY = agent.y - this.camera.y;
+
+                if (screenX > -tile && screenX < this.canvas.width &&
+                    screenY > -tile && screenY < this.canvas.height) {
+
+                    const frame = agent.animationFrame || 0;
+                    const dirRow = agent.direction === 'down' ? 0 :
+                                   agent.direction === 'left' ? 1 :
+                                   agent.direction === 'right' ? 2 : 3;
+
+                    const agentSprite = this.sprites && this.sprites.characters && this.sprites.characters['opal'];
+
+                    if (agentSprite) {
+                        this.ctx.save();
+                        this.ctx.filter = 'brightness(0)';
+                        this.ctx.drawImage(
+                            agentSprite,
+                            frame * tile, dirRow * tile, tile, tile,
+                            screenX, screenY, tile, tile
+                        );
+                        this.ctx.restore();
+                    } else {
+                        this.ctx.fillStyle = '#000000';
+                        this.ctx.fillRect(screenX, screenY, tile, tile);
+                    }
+
+                    if (agent.chasing) {
+                        this.ctx.strokeStyle = '#ff0000';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.strokeRect(screenX - 2, screenY - 2, tile + 4, tile + 4);
+                    }
+
+                    const centerX = screenX + tile / 2;
+                    const centerY = screenY + tile / 2;
+                    const visionLength = agent.detectionRange * tile;
+                    this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.beginPath();
+
+                    switch (agent.direction) {
+                        case 'up':
+                            this.ctx.moveTo(centerX, centerY);
+                            this.ctx.lineTo(centerX - 8, centerY - visionLength);
+                            this.ctx.lineTo(centerX + 8, centerY - visionLength);
+                            break;
+                        case 'down':
+                            this.ctx.moveTo(centerX, centerY);
+                            this.ctx.lineTo(centerX - 8, centerY + visionLength);
+                            this.ctx.lineTo(centerX + 8, centerY + visionLength);
+                            break;
+                        case 'left':
+                            this.ctx.moveTo(centerX, centerY);
+                            this.ctx.lineTo(centerX - visionLength, centerY - 8);
+                            this.ctx.lineTo(centerX - visionLength, centerY + 8);
+                            break;
+                        case 'right':
+                            this.ctx.moveTo(centerX, centerY);
+                            this.ctx.lineTo(centerX + visionLength, centerY - 8);
+                            this.ctx.lineTo(centerX + visionLength, centerY + 8);
+                            break;
+                    }
+                    this.ctx.closePath();
+                    this.ctx.stroke();
                 }
             }
         }
