@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Switch - Character Adventure Game</title>
     <link rel="stylesheet" href="../../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -64,7 +67,7 @@
             padding: 8px 10px;
             border-radius: 6px;
             background: var(--surface);
-            transition: background 2s ease-in-out, background-color 2s ease-in-out, boarder-color 2s ease-in-out !important;
+            transition: background 2s ease-in-out, background-color 2s ease-in-out, border-color 2s ease-in-out !important;
         }
 
         .speaker-player #dialogueText {
@@ -253,6 +256,157 @@
         .settingsValue { color: var(--muted); font-size: 12px; line-height: 1.4; }
         .volumeRow { display: flex; align-items: center; gap: 10px; }
         #volumeSlider { flex: 1; }
+
+        /* Battle UI Animations */
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes damage-shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-10px);
+            }
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        .damage-shake {
+            animation: damage-shake 0.5s;
+        }
+
+        .battle-flash {
+            animation: battle-flash 0.6s;
+        }
+
+        @keyframes battle-flash {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            50% {
+                opacity: 1;
+                background: white;
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .victory-flash {
+            animation: victory-flash 1.5s;
+        }
+
+        @keyframes victory-flash {
+            0%, 100% {
+                filter: brightness(1);
+            }
+            25%, 75% {
+                filter: brightness(1.5);
+            }
+            50% {
+                filter: brightness(2);
+            }
+        }
+
+        /* STRIFE Title Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes strifeZoom {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Combat UI Styling */
+        #combatUI {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 500px;
+            background: var(--card);
+            border: 3px solid var(--accent);
+            border-radius: 0;
+            z-index: 110;
+            display: none;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -376,24 +530,7 @@
             </div>
         </div>
 
-        <div id="combatUI" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); border: 2px solid var(--accent); border-radius: 8px; padding: 20px; min-width: 400px; z-index: 110; display: none;">
-            <div style="font-weight: bold; font-size: 18px; margin-bottom: 16px; text-align: center;">Combat</div>
-            <div id="combatEnemy" style="margin-bottom: 12px;">
-                <div style="font-weight: bold;">Enemy: <span id="enemyName">???</span></div>
-                <div>HP: <span id="enemyHP">100</span>/<span id="enemyMaxHP">100</span></div>
-            </div>
-            <div id="combatPlayer" style="margin-bottom: 16px;">
-                <div style="font-weight: bold;">You: <span id="playerName">???</span></div>
-                <div>HP: <span id="playerHP">100</span>/<span id="playerMaxHP">100</span></div>
-            </div>
-            <div id="combatMoves" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <button class="combatMove" data-move="0" style="background: var(--accent); color: var(--bg); border: none; padding: 12px; border-radius: 4px; cursor: pointer;">Move 1</button>
-                <button class="combatMove" data-move="1" style="background: var(--accent); color: var(--bg); border: none; padding: 12px; border-radius: 4px; cursor: pointer;">Move 2</button>
-                <button class="combatMove" data-move="2" style="background: var(--accent); color: var(--bg); border: none; padding: 12px; border-radius: 4px; cursor: pointer;">Move 3</button>
-                <button class="combatMove" data-move="3" style="background: var(--accent); color: var(--bg); border: none; padding: 12px; border-radius: 4px; cursor: pointer;">Move 4</button>
-            </div>
-            <div id="combatLog" style="margin-top: 16px; font-size: 14px; color: var(--muted); max-height: 100px; overflow-y: auto;"></div>
-        </div>
+        <div id="combatUI"></div>
     </div>
     </div>
 
@@ -440,6 +577,8 @@
     <script src="dialogue.js"></script>
     <script src="minigames.js"></script>
     <script src="audio.js"></script>
+    <script src="bitmapFont.js"></script>
+    <script src="battleUI.js"></script>
     <script type="module" src="game.js"></script>
   </body>
 </html>

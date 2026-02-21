@@ -38,6 +38,7 @@ class SwitchGame {
             (success) => this.onLogicPuzzleComplete(success)
         );
         this.combatSystem = new PokemonCombatSystem(this.gameState);
+        this.battleUI = new BattleUI(this.gameState);
 
         // Game world settings
         this.mapWidth = 5120;
@@ -1498,36 +1499,70 @@ class SwitchGame {
     startAgentCombat(agent) {
         this.inCombat = true;
         this.currentAgentInCombat = agent;
-        const combatUI = document.getElementById('combatUI');
-        if (combatUI) combatUI.style.display = 'block';
 
-        const currentChar = this.gameState.getCurrentCharacter();
-        this.combatSystem.startCombat({
-            id: 'derseAgent',
-            name: 'Dark Agent',
-            health: 100,
-            maxHealth: 100,
-            attack: 50,
-            defense: 50
-        });
+        this.battleUI.showStrifeTitle(() => {
+            const currentChar = this.gameState.getCurrentCharacter();
+            const combatData = this.combatSystem.startCombat({
+                id: 'derseAgent',
+                name: 'Derse Agent',
+                health: 75,
+                maxHealth: 75,
+                attack: 60,
+                defense: 50
+            });
 
-        document.getElementById('playerName').textContent = currentChar.name;
-        document.getElementById('playerHP').textContent = this.combatSystem.playerHP;
-        document.getElementById('playerMaxHP').textContent = this.combatSystem.playerMaxHP;
-        document.getElementById('enemyName').textContent = 'Dark Agent';
-        document.getElementById('enemyHP').textContent = this.combatSystem.enemyHP;
-        document.getElementById('enemyMaxHP').textContent = this.combatSystem.enemyMaxHP;
+            this.battleUI.combatData = combatData;
+            this.battleUI.show(combatData);
 
-        const moves = this.combatSystem.getMoves(currentChar.id);
-        const moveButtons = document.querySelectorAll('.combatMove');
-        moveButtons.forEach((btn, index) => {
-            if (moves[index]) {
-                btn.textContent = `${moves[index].name}`;
-                if (moves[index].power > 0) {
-                    btn.textContent += ` (${moves[index].type === 'physical' ? 'Phys' : moves[index].type === 'special' ? 'Spec' : 'Stat'} ${moves[index].power})`;
+            this.battleUI.onMoveSelected = (moveIndex) => {
+                this.useCombatMove(moveIndex);
+            };
+
+            this.battleUI.onAbscond = () => {
+                const currentChar = this.gameState.getCurrentCharacter();
+
+                if (currentChar.id === 'tyson') {
+                    this.battleUI.commandPrompt = '==> Tyson uses his TIME powers to RESET!';
+                    this.battleUI.render();
+
+                    setTimeout(() => {
+                        agent.x = agent.spawnX;
+                        agent.y = agent.spawnY;
+                        agent.chasing = false;
+
+                        this.player.x = this.playerStartX;
+                        this.player.y = this.playerStartY;
+
+                        this.endCombat(false, true);
+                    }, 1500);
+                } else {
+                    this.battleUI.commandPrompt = '==> Could not escape! You take damage!';
+                    this.battleUI.currentPhase = 'animating';
+                    this.battleUI.render();
+
+                    setTimeout(() => {
+                        const result = this.combatSystem.enemyAttack();
+                        if (result && result.messages) {
+                            result.messages.forEach(msg => this.battleUI.addLogMessage(msg));
+                        }
+
+                        this.battleUI.playDamageAnimation(true);
+
+                        this.battleUI.updateCombatData({
+                            player: this.combatSystem.player,
+                            enemy: this.combatSystem.enemy
+                        });
+
+                        if (!this.combatSystem.inCombat && result && result.type === 'combatEnd') {
+                            setTimeout(() => this.endCombat(result.won), 1500);
+                        } else {
+                            this.battleUI.currentPhase = 'selecting';
+                            this.battleUI.commandPrompt = '==> What will you do?';
+                            this.battleUI.render();
+                        }
+                    }, 1500);
                 }
-                btn.onclick = () => this.useCombatMove(index);
-            }
+            };
         });
     }
 
@@ -1618,25 +1653,158 @@ class SwitchGame {
     checkForCombatEncounters() {
     }
 
+    getStatAbbreviation(stat) {
+        const abbreviations = {
+            'attack': 'ATK',
+            'defense': 'DEF',
+            'spAttack': 'SP ATK',
+            'spDefense': 'SP DEF',
+            'speed': 'SPD'
+        };
+        return abbreviations[stat] || stat.toUpperCase();
+    }
+
+    getMoveEffectLabel(move) {
+        if (!move.effect) return null;
+
+        if (move.effect.type === 'defenseBoost') {
+            return 'DEF Boost';
+        } else if (move.effect.type === 'heal') {
+            return `Heal ${move.effect.percent}%`;
+        } else if (move.effect.type === 'delayed') {
+            return 'Delayed ATK';
+        } else if (move.effect.type === 'selfKO') {
+            return 'Self KO';
+        } else if (move.effect.type === 'statChange' && move.effect.stats) {
+            const statDesc = Object.entries(move.effect.stats).map(([stat, change]) => {
+                return `${this.getStatAbbreviation(stat)} ${change > 0 ? '+' : ''}${change}`;
+            }).join(', ');
+            return statDesc;
+        }
+
+        return null;
+    }
+
     useCombatMove(moveIndex) {
-        const result = this.combatSystem.playerAttack(moveIndex);
+        this.battleUI.currentPhase = 'animating';
+        this.battleUI.render();
 
-        document.getElementById('playerHP').textContent = this.combatSystem.playerHP;
-        document.getElementById('enemyHP').textContent = this.combatSystem.enemyHP;
+        const player = this.combatSystem.player;
+        const enemy = this.combatSystem.enemy;
+        const playerMove = player.moves[moveIndex];
 
-        const logEl = document.getElementById('combatLog');
-        if (logEl && result) {
-            if (result.messages && Array.isArray(result.messages)) {
-                result.messages.forEach(msg => {
-                    logEl.innerHTML += `<div>${msg}</div>`;
+        setTimeout(() => {
+            const playerName = player.name || player.id;
+            this.battleUI.commandPrompt = `==> ${playerName} used ${playerMove.name}!`;
+            this.battleUI.render();
+
+            this.battleUI.playAttackAnimation(true, () => {
+                const result = this.combatSystem.executeMove(player, enemy, moveIndex);
+
+                if (result.success) {
+                    let message = '';
+                    let color = '#0f0';
+
+                    if (result.hits) {
+                        message = `${playerName} aggrieved with ${playerMove.name} and hit ${result.hits} time(s) for ${result.damage} damage`;
+                    } else if (result.damage > 0) {
+                        message = `${playerName} aggrieved with ${playerMove.name} for ${result.damage} damage`;
+                    } else if (result.statChanges) {
+                        const statDesc = Object.entries(result.statChanges).map(([stat, change]) => {
+                            return `${this.getStatAbbreviation(stat)} ${change > 0 ? '+' : ''}${change}`;
+                        }).join(', ');
+                        message = `${playerName} used ${playerMove.name}! ${statDesc}`;
+                        color = result.statTarget === 'self' ? 'rgb(0, 255, 0)' : 'rgb(255, 255, 0)';
+                    } else if (result.healAmount) {
+                        message = `${playerName} used ${playerMove.name} and restored ${result.healAmount} HP`;
+                        color = 'rgb(0, 255, 0)';
+                    } else if (playerMove.effect && playerMove.effect.type === 'defenseBoost') {
+                        message = `${playerName} used ${playerMove.name}! DEF Boost`;
+                        color = 'rgb(0, 255, 0)';
+                    } else if (result.messages && result.messages.some(msg => msg.includes('missed'))) {
+                        message = `${playerName} aggrieved with ${playerMove.name} but missed!`;
+                    } else {
+                        message = `${playerName} used ${playerMove.name}!`;
+                    }
+
+                    this.battleUI.addLogMessage(message, color);
+                }
+
+                this.battleUI.updateCombatData({
+                    player: this.combatSystem.player,
+                    enemy: this.combatSystem.enemy
                 });
-            }
-            logEl.scrollTop = logEl.scrollHeight;
-        }
 
-        if (!this.combatSystem.inCombat && result && result.type === 'combatEnd') {
-            setTimeout(() => this.endCombat(result.won), 1500);
-        }
+                if (enemy.hp <= 0) {
+                    this.combatSystem.inCombat = false;
+                    setTimeout(() => {
+                        this.battleUI.playVictoryAnimation(() => {
+                            this.endCombat(true);
+                        });
+                    }, 1000);
+                    return;
+                }
+
+                this.battleUI.waitForInput(() => {
+                    const enemyMoveIndex = Math.floor(Math.random() * enemy.moves.length);
+                    const enemyMove = enemy.moves[enemyMoveIndex];
+                    const enemyName = enemy.name;
+
+                    this.battleUI.commandPrompt = `==> ${enemyName} used ${enemyMove.name}!`;
+                    this.battleUI.render();
+
+                    this.battleUI.playAttackAnimation(false, () => {
+                        const enemyResult = this.combatSystem.executeMove(enemy, player, enemyMoveIndex);
+
+                        if (enemyResult.success) {
+                            let message = '';
+                            let color = '#0f0';
+
+                            if (enemyResult.hits) {
+                                message = `${enemyName} aggrieved with ${enemyMove.name} and hit ${enemyResult.hits} time(s) for ${enemyResult.damage} damage`;
+                            } else if (enemyResult.damage > 0) {
+                                message = `${enemyName} aggrieved with ${enemyMove.name} for ${enemyResult.damage} damage`;
+                            } else if (enemyResult.statChanges) {
+                                const statDesc = Object.entries(enemyResult.statChanges).map(([stat, change]) => {
+                                    return `${this.getStatAbbreviation(stat)} ${change > 0 ? '+' : ''}${change}`;
+                                }).join(', ');
+                                message = `${enemyName} used ${enemyMove.name}! ${statDesc}`;
+                                color = enemyResult.statTarget === 'self' ? 'rgb(255, 255, 0)' : 'rgb(0, 255, 0)';
+                            } else if (enemyResult.healAmount) {
+                                message = `${enemyName} used ${enemyMove.name} and restored ${enemyResult.healAmount} HP`;
+                                color = 'rgb(255, 255, 0)';
+                            } else if (enemyMove.effect && enemyMove.effect.type === 'defenseBoost') {
+                                message = `${enemyName} used ${enemyMove.name}! DEF Boost`;
+                                color = 'rgb(255, 255, 0)';
+                            } else if (enemyResult.messages && enemyResult.messages.some(msg => msg.includes('missed'))) {
+                                message = `${enemyName} aggrieved with ${enemyMove.name} but missed!`;
+                            } else {
+                                message = `${enemyName} used ${enemyMove.name}!`;
+                            }
+
+                            this.battleUI.addLogMessage(message, color);
+                        }
+
+                        this.battleUI.updateCombatData({
+                            player: this.combatSystem.player,
+                            enemy: this.combatSystem.enemy
+                        });
+
+                        if (player.hp <= 0) {
+                            this.combatSystem.inCombat = false;
+                            setTimeout(() => this.endCombat(false), 1500);
+                            return;
+                        }
+
+                        this.battleUI.waitForInput(() => {
+                            this.battleUI.currentPhase = 'selecting';
+                            this.battleUI.commandPrompt = '==> What will you do?';
+                            this.battleUI.render();
+                        });
+                    });
+                });
+            });
+        }, 300);
     }
 
 

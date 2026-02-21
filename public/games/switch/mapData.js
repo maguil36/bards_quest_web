@@ -186,6 +186,34 @@ export const agentConfigs = [
         animationFrame: 0,
         animationTimer: 0
     },
+        {
+        x: 20,
+        y: 74,
+        direction: 'right',
+        patrolPath: [[20, 74], [30, 74]],
+        patrolIndex: 0,
+        patrolReverse: false,
+        speed: 1,
+        detectionRange: 5,
+        chasing: false,
+        defeated: false,
+        animationFrame: 0,
+        animationTimer: 0
+    },
+    {
+        x: 20,
+        y: 73,
+        direction: 'right',
+        patrolPath: [[20, 73], [30, 73]],
+        patrolIndex: 0,
+        patrolReverse: false,
+        speed: 1,
+        detectionRange: 5,
+        chasing: false,
+        defeated: false,
+        animationFrame: 0,
+        animationTimer: 0
+    },
     {
         x: 20,
         y: 70,

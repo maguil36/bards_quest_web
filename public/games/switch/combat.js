@@ -94,7 +94,7 @@ const CHARACTER_STATS = {
 const MOVE_DATABASE = {
   opal: [
     {
-      name: 'Pollarm Kind Attack',
+      name: 'Attack (Pollarm Kind)',
       type: 'physical',
       power: 65,
       accuracy: 100,
@@ -109,13 +109,13 @@ const MOVE_DATABASE = {
     },
     {
       name: 'Spacial Splice',
-      type: 'status',
-      power: 0,
+      type: 'special',
+      power: 75,
       accuracy: 100,
-      effect: { type: 'statChange', target: 'enemy', stats: { attack: -1, defense: -1} }
+      effect: null
     },
     {
-      name: 'Spacial Shield',
+      name: 'Dimensional Rift',
       type: 'status',
       power: 0,
       accuracy: 100,
@@ -124,7 +124,7 @@ const MOVE_DATABASE = {
   ],
   tyson: [
     {
-      name: 'Sholve Kind Attack',
+      name: 'Attack (Sholve Kind)',
       type: 'physical',
       power: 50,
       accuracy: 100,
@@ -154,7 +154,7 @@ const MOVE_DATABASE = {
   ],
   nicholas: [
     {
-      name: 'Rifle Kind Attack',
+      name: 'Attack (Rifle Kind)',
       type: 'special',
       power: 50,
       accuracy: 100,
@@ -193,7 +193,7 @@ const MOVE_DATABASE = {
   ],
   isabell: [
     {
-      name: 'Hatchet Kind Attack',
+      name: 'Attack (Hatchet Kind)',
       type: 'physical',
       power: 60,
       accuracy: 100,
@@ -224,7 +224,7 @@ const MOVE_DATABASE = {
   ],
   chloe: [
     {
-      name: 'Whip Kind Attack',
+      name: 'Attack (Whip Kind)',
       type: 'physical',
       power: 50,
       accuracy: 100,
@@ -619,12 +619,15 @@ class PokemonCombatSystem {
         const target = move.effect.target === 'self' ? attacker : defender;
         const sourceAbility = attacker.ability.name === 'Tactician' ? 'Tactician' : null;
         const statMessages = this.changeStats(target, move.effect.stats, sourceAbility);
+        results.statChanges = move.effect.stats;
+        results.statTarget = move.effect.target;
         results.messages.push(...statMessages);
         break;
 
       case 'heal':
         const healAmount = Math.floor(attacker.maxHp * (move.effect.percent / 100));
         attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmount);
+        results.healAmount = healAmount;
         results.messages.push(`${attacker.isPlayer ? attacker.id : attacker.name} restored ${healAmount} HP!`);
         break;
 
@@ -655,7 +658,7 @@ class PokemonCombatSystem {
 
   handleDamageMove(attacker, defender, move, results) {
     const checkCrit = move.effect?.type === 'alwaysCrit' || this.checkCritical(attacker);
-    
+
     if (move.effect?.type === 'multihit') {
       const { min, max } = move.effect;
       const hits = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -668,17 +671,18 @@ class PokemonCombatSystem {
       }
 
       results.damage = totalDamage;
+      results.hits = hits;
       results.messages.push(`Hit ${hits} time(s) for ${totalDamage} damage!`);
     } else {
       const damage = this.calculateDamage(attacker, defender, move, checkCrit);
       defender.hp = Math.max(0, defender.hp - damage);
       results.damage = damage;
-      
+
       if (checkCrit) {
         results.critical = true;
         results.messages.push(`A critical hit!`);
       }
-      
+
       results.messages.push(`Dealt ${damage} damage!`);
     }
 
@@ -686,6 +690,8 @@ class PokemonCombatSystem {
       const target = move.effect.target === 'self' ? attacker : defender;
       const sourceAbility = attacker.ability.name === 'Tactician' ? 'Tactician' : null;
       const statMessages = this.changeStats(target, move.effect.stats, sourceAbility);
+      results.statChanges = move.effect.stats;
+      results.statTarget = move.effect.target;
       results.messages.push(...statMessages);
     }
   }
