@@ -18,40 +18,56 @@ import { MapInteractions } from './map/mapInteractions.js';
 import { MapAI } from './map/mapAI.js';
 import { MapQuests } from './map/mapQuests.js';
 import { GAME_CONSTANTS, getInteractionRange, CHARACTER_ASPECTS } from './constants.js';
-import { GameOrchestrator } from './orchestration/GameOrchestrator.js';
 
  // Main game logic for the Switch game
 class SwitchGame {
     constructor() {
+        console.log('🎮 SwitchGame constructor started');
 
         try {
+            console.log('📺 Getting canvas element...');
             this.canvas = document.getElementById('gameCanvas');
             if (!this.canvas) {
                 throw new Error('❌ Canvas element not found! Check HTML for id="gameCanvas"');
             }
+            console.log('✅ Canvas found:', this.canvas);
 
+            console.log('🎨 Getting 2D context...');
             this.ctx = this.canvas.getContext('2d');
             if (!this.ctx) {
                 throw new Error('❌ Could not get 2D context from canvas');
             }
+            console.log('✅ 2D context obtained');
 
+            console.log('⚙️ Setting context properties...');
             this.ctx.imageSmoothingEnabled = false;
+            console.log('✅ Context properties set');
 
+            console.log('💾 Creating GameState...');
             this.gameState = new GameState();
+            console.log('✅ GameState created:', this.gameState);
 
+            console.log('📋 Initializing NPC and character lists...');
             this.npcs = []; // will be built dynamically in init()
             this.characters = CHARACTERS;
+            console.log('✅ Character list loaded with', Object.keys(CHARACTERS).length, 'characters');
 
+            console.log('💬 Creating DialogueManager...');
             this.dialogueManager = new DialogueManager(this.gameState, this.npcs, this);
+            console.log('✅ DialogueManager created');
 
+            console.log('🔊 Creating AudioManager...');
             this.audioManager = new AudioManager();
+            console.log('✅ AudioManager created');
 
+            console.log('🎮 Creating mini-games and combat systems...');
             this.miniGame = new NicholasMiniGame(
                 this.canvas,
                 this.ctx,
                 this.gameState,
                 (success) => this.onMiniGameComplete(success)
             );
+            console.log('  ✅ NicholasMiniGame created');
 
             this.logicPuzzle = new LogicPuzzleMiniGame(
                 this.canvas,
@@ -59,31 +75,46 @@ class SwitchGame {
                 this.gameState,
                 (success) => this.onLogicPuzzleComplete(success)
             );
+            console.log('  ✅ LogicPuzzleMiniGame created');
 
             this.combatSystem = new PokemonCombatSystem(this.gameState);
             this.gameState.combatSystem = this.combatSystem;
+            console.log('  ✅ PokemonCombatSystem created');
 
             this.battleUI = new BattleUI(this.gameState);
+            console.log('  ✅ BattleUI created');
 
+            console.log('✅ All mini-games and combat systems created');
 
+            console.log('🖼️ Creating GameRenderer...');
             this.renderer = new GameRenderer();
+            console.log('✅ GameRenderer created');
 
+            console.log('🎬 Creating EndingManager...');
             this.endingManager = new EndingManager(this);
+            console.log('✅ EndingManager created');
 
-            this.battleController = new BattleController({ game: this });
+            console.log('⚔️ Creating BattleController...');
+            this.battleController = new BattleController(this);
             this.gameState.battleController = this.battleController;
+            console.log('✅ BattleController created');
 
+            console.log('🌍 Setting up game world settings...');
             this.mapWidth = GAME_CONSTANTS.MAP_WIDTH;
             this.mapHeight = GAME_CONSTANTS.MAP_HEIGHT;
             this.tileSize = GAME_CONSTANTS.TILE_SIZE;
+            console.log('✅ World settings: mapWidth=', this.mapWidth, 'mapHeight=', this.mapHeight, 'tileSize=', this.tileSize);
 
+            console.log('📷 Initializing camera...');
             this.camera = {
                 x: 0,
                 y: 0,
                 width: this.canvas.width,
                 height: this.canvas.height
             };
+            console.log('✅ Camera initialized:', this.camera);
 
+            console.log('👤 Initializing player...');
             this.player = {
                 x: GAME_CONSTANTS.PLAYER_START_X,
                 y: GAME_CONSTANTS.PLAYER_START_Y,
@@ -95,13 +126,19 @@ class SwitchGame {
                 animationFrame: 0,
                 animationTimer: 0
             };
+            console.log('✅ Player initialized at', this.player.x, this.player.y);
 
+            console.log('⌨️ Setting up input handling...');
             this.keys = {};
             this.lastInteractionTime = 0;
+            console.log('✅ Input handling initialized');
 
+            console.log('🖼️ Initializing sprite system...');
             this.sprites = {};
             this.spritesLoaded = false;
+            console.log('✅ Sprite system initialized');
 
+            console.log('🎨 Getting UI elements from DOM...');
             this.dialogueBox = document.getElementById('dialogueBox');
             this.dialogueText = document.getElementById('dialogueText');
             this.switchPrompt = document.getElementById('switchPrompt');
@@ -113,28 +150,52 @@ class SwitchGame {
             this.questUI = document.getElementById('questUI');
             this.abilitiesUI = document.getElementById('abilitiesUI');
             this.combatUI = document.getElementById('combatUI');
+            console.log('✅ UI elements retrieved:');
+            console.log('  - dialogueBox:', !!this.dialogueBox);
+            console.log('  - dialogueText:', !!this.dialogueText);
+            console.log('  - switchPrompt:', !!this.switchPrompt);
+            console.log('  - miniGamePrompt:', !!this.miniGamePrompt);
+            console.log('  - glitchOverlay:', !!this.glitchOverlay);
+            console.log('  - errorMessage:', !!this.errorMessage);
+            console.log('  - characterName:', !!this.characterName);
+            console.log('  - inventoryUI:', !!this.inventoryUI);
+            console.log('  - questUI:', !!this.questUI);
+            console.log('  - abilitiesUI:', !!this.abilitiesUI);
+            console.log('  - combatUI:', !!this.combatUI);
 
+            console.log('👁️ Hiding UI overlays and prompts initially...');
             if (this.glitchOverlay) {
                 this.glitchOverlay.style.display = 'none';
+                console.log('  ✅ glitchOverlay hidden');
             } else {
+                console.warn('  ⚠️ glitchOverlay element not found');
             }
             if (this.switchPrompt) {
                 this.switchPrompt.style.display = 'none';
+                console.log('  ✅ switchPrompt hidden');
             } else {
+                console.warn('  ⚠️ switchPrompt element not found');
             }
             if (this.miniGamePrompt) {
                 this.miniGamePrompt.style.display = 'none';
+                console.log('  ✅ miniGamePrompt hidden');
             } else {
+                console.warn('  ⚠️ miniGamePrompt element not found');
             }
             if (this.dialogueBox) {
                 this.dialogueBox.style.display = 'none';
+                console.log('  ✅ dialogueBox hidden');
             } else {
+                console.warn('  ⚠️ dialogueBox element not found');
             }
             if (this.combatUI) {
                 this.combatUI.style.display = 'none';
+                console.log('  ✅ combatUI hidden');
             } else {
+                console.warn('  ⚠️ combatUI element not found');
             }
 
+            console.log('🎮 Initializing game state flags...');
             this.isGameRunning = true;
             this.showingDialogue = false;
             this.showingSwitchPrompt = false;
@@ -143,79 +204,122 @@ class SwitchGame {
             this.inCombat = false;
             this.playerFrozen = false;
             this.currentPuzzleChest = null;
+            console.log('✅ Game state flags initialized');
 
+            console.log('💬 Initializing floating text system...');
             this.floatingTexts = [];
+            console.log('✅ Floating text system initialized');
 
+            console.log('🗺️ Initializing map system...');
             this.mapTiles = [];
             this.mapCols = Math.floor(this.mapWidth / this.tileSize);
             this.mapRows = Math.floor(this.mapHeight / this.tileSize);
+            console.log('✅ Map grid initialized: cols=', this.mapCols, 'rows=', this.mapRows);
 
+            console.log('🏗️ Initializing map objects...');
             this.chests = [];
             this.boulders = [];
             this.obstacles = [];
             this.fillableChasms = [];
             this.walls = [];
             this.agents = [];
+            console.log('✅ Map object arrays initialized');
 
+            console.log('💾 Loading saved game state...');
             this.gameState.load();
+            console.log('✅ Game state loaded');
 
+            console.log('🗺️ Initializing map layout...');
             this.initializeMap();
+            console.log('✅ Map layout initialized');
 
+            console.log('🎮 Initializing map interactions...');
             this.mapInteractions = new MapInteractions(this);
+            console.log('✅ Map interactions initialized');
 
-            this.mapAI = new MapAI({ game: this });
+            console.log('🤖 Initializing map AI...');
+            this.mapAI = new MapAI(this);
+            console.log('✅ Map AI initialized');
 
-            this.mapQuests = new MapQuests({ game: this });
+            console.log('📋 Initializing quest system...');
+            this.mapQuests = new MapQuests(this);
+            console.log('✅ Quest system initialized');
 
-            this.gameOrchestrator = new GameOrchestrator(this);
-
+            console.log('🚀 Calling async init()...');
             this.init();
+            console.log('✅ async init() called');
 
+            console.log('✅ Constructor completed successfully!');
         } catch (error) {
+            console.error('❌ ERROR in constructor:', error);
+            console.error('❌ Error message:', error.message);
+            console.error('❌ Error stack:', error.stack);
             throw error;
         }
     }
 
     async init() {
         try {
+            console.log('🚀 === INIT() STARTED ===');
 
+            console.log('🎨 Refreshing character colors...');
             if (typeof refreshCharacterColors === 'function') {
                 refreshCharacterColors();
+                console.log('✅ Character colors refreshed');
             } else {
+                console.warn('⚠️ refreshCharacterColors function not found');
             }
 
+            console.log('📦 Restoring chest states...');
             this.restoreChestStates();
+            console.log('✅ Chest states restored');
 
+            console.log('👤 Setting player position...');
             const currentChar = this.gameState.getCurrentCharacter();
+            console.log('  Current character:', currentChar);
             const savedPos = this.gameState.characterPositions[currentChar.id];
             if (savedPos) {
                 this.player.x = savedPos.x;
                 this.player.y = savedPos.y;
+                console.log(`  ✅ Player positioned at (${savedPos.x}, ${savedPos.y})`);
             } else {
+                console.log(`  ℹ️ No saved position, using default (${this.player.x}, ${this.player.y})`);
             }
 
+            console.log('🤖 Building NPC list...');
             this.npcs = NPCS.filter(npc => npc.id !== currentChar.id).map(npc => ({ ...npc }));
+            console.log(`  ✅ ${this.npcs.length} NPCs created`);
             if (this.dialogueManager) {
                 this.dialogueManager.npcs = this.npcs;
+                console.log('  ✅ NPCs linked to DialogueManager');
             }
 
+            console.log('📍 Restoring NPC positions...');
             for (const npc of this.npcs) {
                 const saved = this.gameState.characterPositions[npc.id];
                 if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') {
                     npc.position = { x: saved.x, y: saved.y };
                 }
             }
+            console.log('✅ NPC positions restored');
 
+            console.log('🖥️ Updating UI...');
             this.updateCharacterUI();
+            console.log('✅ UI updated');
 
+            console.log('🎧 Setting up event listeners...');
             this.setupEventListeners();
+            console.log('✅ Event listeners set up');
 
+            console.log('👁️ Hiding overlays...');
             if (this.glitchOverlay) this.glitchOverlay.style.display = 'none';
             if (this.switchPrompt) this.switchPrompt.style.display = 'none';
             if (this.miniGamePrompt) this.miniGamePrompt.style.display = 'none';
             if (this.dialogueBox) this.dialogueBox.style.display = 'none';
             if (this.combatUI) this.combatUI.style.display = 'none';
+            console.log('✅ Overlays hidden');
 
+            console.log('🎮 Setting game state flags...');
             this.isGameRunning = true;
             this.showingDialogue = false;
             this.showingSwitchPrompt = false;
@@ -223,21 +327,31 @@ class SwitchGame {
             this.miniGameForSwitch = false;
             this.inCombat = false;
             this.abilityMode = null;
+            console.log('✅ Game state flags set');
 
+            console.log('🖼️ Loading sprites...');
             await this.loadSprites();
+            console.log('✅ Sprites loaded successfully!');
 
+            console.log('🎵 Starting background music...');
             if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
                 this.audioManager.playCharacterMusic(currentChar.id);
+                console.log('✅ Background music started');
             } else {
+                console.warn('⚠️ AudioManager or playCharacterMusic not available');
             }
 
+            console.log('🎨 Applying character theme...');
             this.applyCharacterTheme(currentChar);
+            console.log('✅ Theme applied');
 
-            this.gameOrchestrator.initialize();
-            this.gameOrchestrator.start();
-
+            console.log('🎬 Starting game loop...');
             this.gameLoop();
+            console.log('✅ === INIT() COMPLETED SUCCESSFULLY ===');
         } catch (error) {
+            console.error('❌ === CRITICAL ERROR IN INIT() ===');
+            console.error('Error:', error);
+            console.error('Stack:', error.stack);
             throw error;
         }
     }
@@ -453,28 +567,41 @@ class SwitchGame {
     }
 
     onMiniGameComplete(success) {
+        console.log('🎮 [MINIGAME] Minigame completed with result:', success ? 'SUCCESS ✅' : 'FAILURE ❌');
         this.inMiniGame = false;
 
         const targetNpcId = this.dialogueManager.pendingSwitch;
         const isNicholasUnlock = targetNpcId === 'nicholas' && !this.gameState.unlockedCharacters.has('nicholas');
 
+        console.log('🔍 [MINIGAME] Target NPC:', targetNpcId, '| Nicholas unlocked:', this.gameState.unlockedCharacters.has('nicholas'));
+        console.log('🔍 [MINIGAME] miniGameForSwitch:', this.miniGameForSwitch, '| isNicholasUnlock:', isNicholasUnlock);
 
         if (isNicholasUnlock) {
+            console.log('👤 [MINIGAME] Nicholas UNLOCK minigame detected');
             this.miniGameForSwitch = false;
 
             if (success) {
+                console.log('✅ [MINIGAME] SUCCESS - Unlocking Nicholas and showing success dialogue');
                 this.gameState.unlockCharacter('nicholas');
                 this.gameState.save();
+                console.log('💬 [DIALOGUE] Calling showMinigameResultDialogue for Nicholas (success)');
                 this.dialogueManager.showMinigameResultDialogue('nicholas', true);
                 this.showingDialogue = true;
+                console.log('💬 [DIALOGUE] Calling showDialogueUI to display dialogue');
                 this.showDialogueUI();
+                console.log('💬 [DIALOGUE] showDialogueUI completed');
             } else {
+                console.log('❌ [MINIGAME] FAILURE - Showing failure dialogue');
+                console.log('💬 [DIALOGUE] Calling showMinigameResultDialogue for Nicholas (failure)');
                 this.dialogueManager.showMinigameResultDialogue('nicholas', false);
                 this.showingDialogue = true;
+                console.log('💬 [DIALOGUE] Calling showDialogueUI to display dialogue');
                 this.showDialogueUI();
+                console.log('💬 [DIALOGUE] showDialogueUI completed');
             }
         } else if (this.miniGameForSwitch) {
             this.miniGameForSwitch = false;
+            console.log('🔄 [MINIGAME] Switch minigame for:', targetNpcId);
 
             if (this.dialogueManager.handleMiniGameComplete(success, targetNpcId)) {
                 this.showingDialogue = true;
@@ -484,6 +611,7 @@ class SwitchGame {
     }
 
     startSwitchMiniGame() {
+        console.log('🎮 [MINIGAME START] Starting switch minigame (miniGameForSwitch=true)');
         this.miniGameForSwitch = true;
         this.inMiniGame = true;
         this.miniGame.start();
@@ -509,12 +637,14 @@ class SwitchGame {
     }
 
     handleMiniGamePrompt(accepted) {
+        console.log('🎯 [MINIGAME PROMPT] User response:', accepted ? 'ACCEPTED ✅' : 'REJECTED ❌');
         if (this.miniGamePrompt) {
             this.miniGamePrompt.style.display = 'none';
         }
         this.showingSwitchPrompt = false;
 
         if (accepted) {
+            console.log('🎮 [MINIGAME START] Starting Nicholas unlock minigame (miniGameForSwitch=false)');
             this.inMiniGame = true;
             this.miniGame.start();
         } else {
@@ -780,8 +910,31 @@ class SwitchGame {
     }
 
     update() {
-        if (!this.isGameRunning || this.showingSwitchPrompt) return;
-        this.gameOrchestrator.update();
+        if (!this.isGameRunning || this.showingDialogue || this.showingSwitchPrompt) return;
+
+        // Update logic puzzle if active
+        if (this.logicPuzzle && this.logicPuzzle.active) {
+            this.logicPuzzle.update();
+            return;
+        }
+
+        // Update mini-game if active
+        if (this.inMiniGame && this.miniGame) {
+            this.miniGame.update();
+            return;
+        }
+
+        this.updatePlayerMovement();
+        this.updateCamera();
+        this.updateAnimations();
+        this.updateAgents();
+        this.checkForInteractions();
+        this.checkForItemPickups();
+        this.updateFloatingTexts();
+
+        // Update UI
+        this.updateInventoryUI();
+        this.updateQuestUI();
     }
 
     updateAgents() {
@@ -797,7 +950,7 @@ class SwitchGame {
     }
 
     startAgentCombat(agent) {
-        this.gameOrchestrator.onCombatTriggered(agent);
+        this.battleController.startAgentCombat(agent);
     }
 
     checkCollision(x, y, width, height) {
@@ -1284,6 +1437,7 @@ class SwitchGame {
                 }, '*');
             } catch (e) {
                 // If we can't communicate with parent, that's okay — just fail silently.
+                console.warn('Could not send theme change to parent page', e);
             }
         }
         // If the user has a specific theme preference, do not override it here.
@@ -1360,8 +1514,16 @@ class SwitchGame {
 
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎮 DOMContentLoaded event fired');
     try {
+        console.log('🎮 Creating SwitchGame instance...');
         const game = new SwitchGame();
+        console.log('✅ SwitchGame created successfully:', game);
+        console.log('✅ Game running:', game.isGameRunning);
+        console.log('✅ Canvas:', game.canvas);
+        console.log('✅ Context:', game.ctx);
     } catch (error) {
+        console.error('❌ ERROR creating SwitchGame:', error);
+        console.error('❌ Error stack:', error.stack);
     }
 });

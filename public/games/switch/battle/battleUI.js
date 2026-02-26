@@ -1,3 +1,6 @@
+import { BattleUIInput } from './battleUIInput.js';
+import { ASPECT_COLORS, CHARACTER_ASPECTS, getCharacterAspect, getAspectColor } from '../constants.js';
+
 class BattleUI {
   constructor(gameState) {
     this.gameState = gameState;
@@ -6,86 +9,44 @@ class BattleUI {
     this.currentPhase = 'selecting';
     this.animating = false;
     this.commandPrompt = '';
-    this.battleMessages = [];
     this.focusedButtonIndex = 0;
     this.keyboardNavigationEnabled = true;
+    this.lastPlayerHP = null;
+    this.lastEnemyHP = null;
+    this.messageDisplayTimeout = null;
+    this.waitingForSpace = false;
 
-    this.aspectColors = {
-      space: '#000000',
-      time: '#ff0000',
-      breath: '#00d5f2',
-      light: '#f2a400',
-      heart: '#ff00ff',
-      mind: '#008141',
-      life: '#4ac925',
-      doom: '#497e15',
-      blood: '#a10000',
-      rage: '#6a006a',
-      void: '#0715cd',
-      hope: '#ffffff',
-    };
-
-    this.pixelatedTextConfig = {
-      fontFamily: '"Courier New", monospace',
-      fontWeight: '900',
-      baseFontSize: 14,
-      scale: 8,
-      opacityThreshold: 200,
-      removeIsolatedPixels: true,
-      minNeighbors: 8,
-
-      presets: {
-        strife: {
-          color: '#ffcd00',
-          shadowColor: '#FF3601',
-          shadowOffset: 1,
-          bgColor: null,
-          scale: 8,
-          dilate: false
-        },
-        command: {
-          color: '#fff',
-          bgColor: '#000',
-          shadowColor: null,
-          shadowOffset: 0,
-          scale: 1
-        },
-        button: {
-          color: '#fff',
-          bgColor: '#000',
-          shadowColor: null,
-          shadowOffset: 0,
-          scale: 1
-        }
-      }
-    };
-
-    this.bitmapFont = new BitmapFontRenderer({
-      fontFamily: this.pixelatedTextConfig.fontFamily,
-      fontWeight: this.pixelatedTextConfig.fontWeight,
-      baseFontSize: this.pixelatedTextConfig.baseFontSize,
-      scale: this.pixelatedTextConfig.scale,
-      opacityThreshold: this.pixelatedTextConfig.opacityThreshold
-    });
+    this.textRenderer = new BattleTextRenderer();
+    this.animations = new BattleAnimations();
+    this.inputHandler = new BattleUIInput(this);
 
     this.init();
   }
-  
+
+  get battleMessages() {
+    return this.textRenderer.getMessages();
+  }
+
+  set battleMessages(messages) {
+    this.textRenderer.setMessages(messages);
+  }
+
   init() {
     this.container = document.getElementById('combatUI');
     if (!this.container) {
       console.error('Combat UI container not found');
       return;
     }
-    
+
+    this.animations.setContainer(this.container);
     this.setupEventListeners();
   }
   
   setupEventListeners() {
-    
+
     document.addEventListener('keydown', (e) => {
       if (!this.isVisible) return;
-      
+
       if (e.key === 'Escape' && this.currentPhase === 'menu') {
         this.currentPhase = 'selecting';
         this.render();
@@ -112,37 +73,23 @@ class BattleUI {
   hide() {
     this.isVisible = false;
     this.container.style.display = 'none';
-    if (this.keyboardEventListener) {
-      document.removeEventListener('keydown', this.keyboardEventListener);
-      this.keyboardEventListener = null;
-    }
+    this.inputHandler.cleanup();
   }
   
   playIntroAnimation(callback) {
-    this.container.classList.add('battle-flash');
-    this.commandPrompt = `==> ${this.combatData.player.name}: Engage in STRIFE!`;
-    this.render();
-    
-    setTimeout(() => {
-      this.container.classList.remove('battle-flash');
-      if (callback) callback();
-    }, 600);
+    this.animations.playIntroAnimation(
+      callback,
+      (prompt) => {
+        this.commandPrompt = prompt;
+        this.render();
+      },
+      this.combatData.player.name
+    );
   }
   
   getAspectColor(characterId) {
-    const aspectMap = {
-      opal: 'space',
-      alexis: 'rage',
-      tyson: 'doom',
-      chloe: 'life',
-      isabell: 'blood',
-      nicholas: 'light',
-      austine: 'mind',
-      victor: 'time',
-    };
-    
-    const aspect = aspectMap[characterId] || 'void';
-    return this.aspectColors[aspect];
+    const aspect = getCharacterAspect(characterId);
+    return getAspectColor(aspect);
   }
   
   render() {
@@ -160,7 +107,7 @@ class BattleUI {
 
     this.attachMoveHandlers();
     this.renderHealthVitals(player, enemy);
-    this.setupKeyboardNavigation();
+    this.inputHandler.setupKeyboardNavigation();
   }
 
   renderHealthVitals(player, enemy) {
@@ -438,18 +385,7 @@ class BattleUI {
   }
 
   renderFragmotifBackground(player, aspectColor) {
-    const aspectMap = {
-      opal: 'space',
-      alexis: 'rage',
-      tyson: 'doom',
-      chloe: 'life',
-      isabell: 'blood',
-      nicholas: 'light',
-      austine: 'mind',
-      victor: 'time'
-    };
-
-    const heroAspect = aspectMap[player?.id] || 'space';
+    const heroAspect = getCharacterAspect(player?.id);
 
     return `
       <div style="
@@ -529,7 +465,7 @@ class BattleUI {
       return this.renderItemsSelection(player, aspectColor);
     } else if (this.currentPhase === 'abscond_message') {
       return this.renderAbscondMessage(aspectColor);
-    } else if (this.currentPhase === 'animating') {
+    } else if (this.currentPhase === 'animating' || this.currentPhase === 'waiting_for_space') {
       return this.renderBattleLog();
     }
 
@@ -640,41 +576,23 @@ class BattleUI {
   }
 
   createPixelatedText(text, presetOrConfig = 'command') {
-    let config;
-
-    if (typeof presetOrConfig === 'string') {
-      config = this.pixelatedTextConfig.presets[presetOrConfig];
-      if (!config) {
-        console.warn(`Preset "${presetOrConfig}" not found, using default`);
-        config = this.pixelatedTextConfig.presets.command;
-      }
-    } else {
-      config = presetOrConfig;
-    }
-
-    return this.renderPixelatedText(
-      text,
-      config.color,
-      config.bgColor,
-      config.shadowColor,
-      config.shadowOffset || 0,
-      config.scale || this.pixelatedTextConfig.scale,
-      config.dilate || false,
-      config.baseFontSize || this.pixelatedTextConfig.baseFontSize
-    );
+    return this.textRenderer.createPixelatedText(text, presetOrConfig);
   }
 
   renderPixelatedText(text, color = '#fff', bgColor = '#000', shadowColor = null, shadowOffset = 1, scale = 8, dilate = false, customFontSize = null) {
-    return this.bitmapFont.renderText(text, color, bgColor, shadowColor, shadowOffset, scale, dilate, customFontSize);
+    return this.textRenderer.renderPixelatedText(text, color, bgColor, shadowColor, shadowOffset, scale, dilate, customFontSize);
   }
 
   renderMainMenu(aspectColor) {
-    const buttons = [
-      { id: 'aggrieve', label: 'AGGRIEVE', description: 'Attack the enemy', image: 'aggrieve.png' },
-      { id: 'abuse', label: 'ABUSE', description: 'Use items', image: 'abuse.png' },
-      { id: 'assault', label: 'ASSAULT', description: 'Access fraymotifs', image: 'assault.png' },
-      { id: 'abscond', label: 'ABSCOND', description: 'Flee from battle', image: 'abscond.png' }
-    ];
+    const characterId = this.gameState.getCurrentCharacter().id;
+    const strifeOptions = window.STRIFE_OPTIONS[characterId] || window.STRIFE_OPTIONS.opal;
+
+    const buttons = strifeOptions.map(option => ({
+      id: option.id,
+      label: option.name,
+      description: option.tooltip,
+      image: 'aggrieve.png'
+    }));
 
     setTimeout(() => {
       buttons.forEach(btn => {
@@ -694,6 +612,8 @@ class BattleUI {
           buttonElement.appendChild(img);
         }
       });
+
+      this.inputHandler.setupKeyboardNavigation();
     }, 0);
 
     return `
@@ -924,11 +844,11 @@ class BattleUI {
     return `
       <div class="battle-log" style="
         position: absolute;
-        bottom: 0;
+        top: 0;
         left: 0;
         right: 0;
         background: transparent;
-        border-top: 3px solid #0f0;
+        border-bottom: 3px solid #0f0;
         padding: 20px;
         max-height: 150px;
         overflow-y: auto;
@@ -945,15 +865,17 @@ class BattleUI {
     actionButtons.forEach((button, index) => {
       button.addEventListener('click', (e) => {
         const action = e.currentTarget.dataset.action;
-        this.handleAction(action);
+        if (this.onStrifeAction) {
+          this.onStrifeAction(action);
+        }
       });
 
       button.addEventListener('mouseenter', (e) => {
-        const allButtons = this.getNavigableButtons();
+        const allButtons = this.inputHandler.getNavigableButtons();
         const buttonIndex = allButtons.indexOf(e.currentTarget);
         if (buttonIndex !== -1) {
           this.focusedButtonIndex = buttonIndex;
-          this.updateButtonFocus(allButtons);
+          this.inputHandler.updateButtonFocus(allButtons);
         }
       });
 
@@ -976,11 +898,11 @@ class BattleUI {
       });
 
       button.addEventListener('mouseenter', (e) => {
-        const allButtons = this.getNavigableButtons();
+        const allButtons = this.inputHandler.getNavigableButtons();
         const buttonIndex = allButtons.indexOf(e.currentTarget);
         if (buttonIndex !== -1) {
           this.focusedButtonIndex = buttonIndex;
-          this.updateButtonFocus(allButtons);
+          this.inputHandler.updateButtonFocus(allButtons);
         }
       });
 
@@ -998,11 +920,11 @@ class BattleUI {
       });
 
       backButton.addEventListener('mouseenter', () => {
-        const allButtons = this.getNavigableButtons();
+        const allButtons = this.inputHandler.getNavigableButtons();
         const buttonIndex = allButtons.indexOf(backButton);
         if (buttonIndex !== -1) {
           this.focusedButtonIndex = buttonIndex;
-          this.updateButtonFocus(allButtons);
+          this.inputHandler.updateButtonFocus(allButtons);
         }
       });
 
@@ -1012,34 +934,9 @@ class BattleUI {
     }
   }
   
-  handleAction(action) {
-    switch (action) {
-      case 'aggrieve':
-        this.currentPhase = 'moves';
-        this.commandPrompt = '==> Choose your attack!';
-        this.focusedButtonIndex = 0;
-        this.render();
-        break;
-      case 'abscond':
-        this.currentPhase = 'abscond_message';
-        this.commandPrompt = '==> You can\'t abscond!';
-        this.focusedButtonIndex = 0;
-        this.render();
-        break;
-      case 'abuse':
-        this.currentPhase = 'items';
-        this.commandPrompt = '==> Choose an item!';
-        this.focusedButtonIndex = 0;
-        this.render();
-        break;
-      case 'assault':
-        this.currentPhase = 'fraymotif';
-        this.commandPrompt = '==> Choose your fraymotif!';
-        this.focusedButtonIndex = 0;
-        this.render();
-        break;
-    }
-  }
+
+
+
   
   handleMoveSelection(moveIndex) {
     this.currentPhase = 'animating';
@@ -1052,144 +949,26 @@ class BattleUI {
   }
   
   updateCombatData(combatData) {
-    // Store HP from our last saved state, not from combatData
-    const oldPlayerHP = this.lastPlayerHP;
-    const oldEnemyHP = this.lastEnemyHP;
-    const newPlayerHP = combatData.player.hp;
-    const newEnemyHP = combatData.enemy.hp;
+    if (!combatData) return;
 
-    // Save current HP for next comparison
-    this.lastPlayerHP = newPlayerHP;
-    this.lastEnemyHP = newEnemyHP;
+    const oldPlayerHP = this.lastPlayerHP !== null ? this.lastPlayerHP : combatData.player.hp;
+    const oldEnemyHP = this.lastEnemyHP !== null ? this.lastEnemyHP : combatData.enemy.hp;
 
     this.combatData = combatData;
-    this.render();
 
-    // Animate health bars after render completes
-    if (oldPlayerHP !== undefined && oldPlayerHP !== newPlayerHP) {
-      setTimeout(() => {
-        this.animateHealthBar('player', oldPlayerHP, newPlayerHP, combatData.player.maxHp);
-      }, 10);
+    if (oldPlayerHP !== combatData.player.hp) {
+      this.animations.animateHealthBar('player', oldPlayerHP, combatData.player.hp, combatData.player.maxHp, this.container);
     }
 
-    if (oldEnemyHP !== undefined && oldEnemyHP !== newEnemyHP) {
-      setTimeout(() => {
-        this.animateHealthBar('enemy', oldEnemyHP, newEnemyHP, combatData.enemy.maxHp);
-      }, 10);
-    }
-  }
-
-  animateHealthBar(type, oldHP, newHP, maxHP) {
-    const oldPercent = (oldHP / maxHP) * 100;
-
-    if (type === 'player') {
-      const playerDamageBar = this.container.querySelector('.player-panel .hp-bar > div > div:first-child');
-      const playerHealthBar = this.container.querySelector('.player-panel .hp-bar > div > div:last-child');
-
-      if (playerDamageBar && playerHealthBar) {
-        playerDamageBar.style.width = `${100 - oldPercent}%`;
-        playerHealthBar.style.width = `${oldPercent}%`;
-      }
-    } else if (type === 'enemy') {
-      const enemyDamageBar = this.container.querySelector('.enemy-panel .hp-bar > div > div:first-child');
-      const enemyHealthBar = this.container.querySelector('.enemy-panel .hp-bar > div > div:last-child');
-      const enemyHPBar = this.container.querySelector('.enemy-panel .hp-bar');
-
-      if (enemyDamageBar && enemyHealthBar) {
-        enemyDamageBar.style.width = `${100 - oldPercent}%`;
-        enemyHealthBar.style.width = `${oldPercent}%`;
-      }
-
-      if (enemyHPBar) {
-        enemyHPBar.style.left = `calc(${oldPercent - 100}% + 3px)`;
-      }
+    if (oldEnemyHP !== combatData.enemy.hp) {
+      this.animations.animateHealthBar('enemy', oldEnemyHP, combatData.enemy.hp, combatData.enemy.maxHp, this.container);
     }
 
-    const duration = 2000;
-    const startTime = Date.now();
-
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-      const currentHP = oldHP + (newHP - oldHP) * easeProgress;
-      const hpPercent = (currentHP / maxHP) * 100;
-
-      if (type === 'player') {
-        const playerDamageBar = this.container.querySelector('.player-panel .hp-bar > div > div:first-child');
-        const playerHealthBar = this.container.querySelector('.player-panel .hp-bar > div > div:last-child');
-
-        if (playerDamageBar && playerHealthBar) {
-          playerDamageBar.style.width = `${100 - hpPercent}%`;
-          playerHealthBar.style.width = `${hpPercent}%`;
-        }
-      } else if (type === 'enemy') {
-        const enemyDamageBar = this.container.querySelector('.enemy-panel .hp-bar > div > div:first-child');
-        const enemyHealthBar = this.container.querySelector('.enemy-panel .hp-bar > div > div:last-child');
-        const enemyHPBar = this.container.querySelector('.enemy-panel .hp-bar');
-
-        if (enemyDamageBar && enemyHealthBar) {
-          enemyDamageBar.style.width = `${100 - hpPercent}%`;
-          enemyHealthBar.style.width = `${hpPercent}%`;
-        }
-
-        if (enemyHPBar) {
-          enemyHPBar.style.left = `calc(${hpPercent - 100}% + 3px)`;
-        }
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-
-    requestAnimationFrame(animate);
+    this.lastPlayerHP = combatData.player.hp;
+    this.lastEnemyHP = combatData.enemy.hp;
   }
 
-  animateHealthBar(type, oldHP, newHP, maxHP) {
-    const duration = 2000; // 2000ms (2 second) animation
-    const startTime = Date.now();
 
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      // Ease-out function
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-
-      const currentHP = oldHP + (newHP - oldHP) * easeProgress;
-      const hpPercent = (currentHP / maxHP) * 100;
-
-      if (type === 'player') {
-        const playerDamageBar = this.container.querySelector('.player-panel .hp-bar > div > div:first-child');
-        const playerHealthBar = this.container.querySelector('.player-panel .hp-bar > div > div:last-child');
-
-        if (playerDamageBar && playerHealthBar) {
-          playerDamageBar.style.width = `${100 - hpPercent}%`;
-          playerHealthBar.style.width = `${hpPercent}%`;
-        }
-      } else if (type === 'enemy') {
-        const enemyDamageBar = this.container.querySelector('.enemy-panel .hp-bar > div > div:first-child');
-        const enemyHealthBar = this.container.querySelector('.enemy-panel .hp-bar > div > div:last-child');
-        const enemyHPBar = this.container.querySelector('.enemy-panel .hp-bar');
-
-        if (enemyDamageBar && enemyHealthBar) {
-          enemyDamageBar.style.width = `${100 - hpPercent}%`;
-          enemyHealthBar.style.width = `${hpPercent}%`;
-        }
-
-        if (enemyHPBar) {
-          enemyHPBar.style.left = `calc(${hpPercent - 100}% + 3px)`;
-        }
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-
-    requestAnimationFrame(animate);
-  }
 
   updateHealthBars() {
     if (!this.combatData) return;
@@ -1220,223 +999,51 @@ class BattleUI {
   }
 
   addLogMessage(message, color = '#0f0') {
-    this.battleMessages.push({ text: `> ${message}`, color: color });
-    this.render();
-
-    const logContent = document.getElementById('combatLogContent');
-    if (logContent) {
-      logContent.scrollTop = logContent.scrollHeight;
-    }
+    this.textRenderer.addLogMessage(message, color, () => this.render(), this.container);
   }
 
-  typewriterEffect(element, text, speed = 50, callback) {
-    element.textContent = text;
-    element.style.opacity = '1';
-    if (callback) {
-      callback();
-    }
-  }
+
 
   showStrifeTitle(callback) {
-    const strifeOverlay = document.createElement('div');
-    strifeOverlay.id = 'strifeOverlay';
-    strifeOverlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 120;
-      animation: fadeIn 0.3s ease-out;
-    `;
-
-    const strifeImage = document.createElement('img');
-    strifeImage.src = '/games/switch/images/battleUI/strife.png';
-    strifeImage.style.cssText = `
-      image-rendering: pixelated;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: crisp-edges;
-    `;
-    strifeOverlay.appendChild(strifeImage);
-    document.body.appendChild(strifeOverlay);
-
-    setTimeout(() => {
-      strifeOverlay.style.animation = 'fadeOut 0.5s ease-out';
-      setTimeout(() => {
-        document.body.removeChild(strifeOverlay);
-        if (callback) callback();
-      }, 500);
-    }, 1500);
+    this.animations.showStrifeTitle(callback);
   }
 
   playDamageAnimation(isPlayer = false) {
-    const panel = isPlayer ? '.player-panel' : '.enemy-panel';
-    const element = this.container.querySelector(panel);
-    if (element) {
-      element.classList.add('damage-shake');
-      setTimeout(() => {
-        element.classList.remove('damage-shake');
-      }, 500);
-    }
+    this.animations.playDamageAnimation(isPlayer);
   }
 
   playVictoryAnimation(callback) {
-    this.container.classList.add('victory-flash');
-    this.commandPrompt = '==> VICTORY! You gained GRIST!';
-
-    setTimeout(() => {
-      this.container.classList.remove('victory-flash');
-      if (callback) callback();
-    }, 1500);
-  }
-
-  playAttackAnimation(isPlayer = false, callback) {
-    const attackerPanel = isPlayer ? '.player-sprite' : '.enemy-sprite';
-    const defenderPanel = isPlayer ? '.enemy-panel' : '.player-panel';
-
-    const attacker = this.container.querySelector(attackerPanel);
-    const defender = this.container.querySelector(defenderPanel);
-
-    if (attacker && defender) {
-      const originalTransform = attacker.style.transform;
-
-      if (isPlayer) {
-        attacker.style.transition = 'transform 0.2s ease-out';
-        attacker.style.transform = 'translateX(50px) scale(1.3)';
-
-        setTimeout(() => {
-          defender.classList.add('damage-shake');
-          attacker.style.transform = originalTransform || '';
-
-          setTimeout(() => {
-            defender.classList.remove('damage-shake');
-            attacker.style.transition = '';
-            if (callback) callback();
-          }, 500);
-        }, 200);
-      } else {
-        attacker.style.transition = 'transform 0.2s ease-out';
-        attacker.style.transform = 'translateX(-50px) scale(1.3)';
-
-        setTimeout(() => {
-          defender.classList.add('damage-shake');
-          attacker.style.transform = originalTransform || '';
-
-          setTimeout(() => {
-            defender.classList.remove('damage-shake');
-            attacker.style.transition = '';
-            if (callback) callback();
-          }, 500);
-        }, 200);
+    this.animations.playVictoryAnimation(
+      callback,
+      (prompt) => {
+        this.commandPrompt = prompt;
       }
-    } else if (callback) {
-      callback();
-    }
-  }
-
-  waitForInput(callback, timeout = 3000) {
-    let resolved = false;
-
-    const continuePrompt = document.createElement('div');
-    continuePrompt.id = 'continuePrompt';
-    continuePrompt.style.cssText = `
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      color: #00ff00;
-      font-size: 12px;
-      animation: pulse 1s ease-in-out infinite;
-    `;
-    continuePrompt.textContent = 'Press SPACE to continue...';
-    this.container.appendChild(continuePrompt);
-
-    const handleInput = (e) => {
-      if (e.key === ' ' || e.key === 'Spacebar') {
-        if (!resolved) {
-          resolved = true;
-          cleanup();
-          if (callback) callback();
-        }
-      }
-    };
-
-    const cleanup = () => {
-      document.removeEventListener('keydown', handleInput);
-      if (continuePrompt && continuePrompt.parentNode) {
-        continuePrompt.parentNode.removeChild(continuePrompt);
-      }
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-
-    document.addEventListener('keydown', handleInput);
-
-    const timeoutId = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        cleanup();
-        if (callback) callback();
-      }
-    }, timeout);
-  }
-
-  setupKeyboardNavigation() {
-    if (this.keyboardEventListener) {
-      document.removeEventListener('keydown', this.keyboardEventListener);
-    }
-
-    this.keyboardEventListener = (e) => {
-      if (!this.keyboardNavigationEnabled) return;
-
-      const buttons = this.getNavigableButtons();
-      if (buttons.length === 0) return;
-
-      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
-        e.preventDefault();
-        this.focusedButtonIndex = (this.focusedButtonIndex - 1 + buttons.length) % buttons.length;
-        this.updateButtonFocus(buttons);
-      } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-        e.preventDefault();
-        this.focusedButtonIndex = (this.focusedButtonIndex + 1) % buttons.length;
-        this.updateButtonFocus(buttons);
-      } else if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        if (buttons[this.focusedButtonIndex]) {
-          buttons[this.focusedButtonIndex].click();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', this.keyboardEventListener);
-
-    const buttons = this.getNavigableButtons();
-    if (buttons.length > 0) {
-      this.updateButtonFocus(buttons);
-    }
-  }
-
-  getNavigableButtons() {
-    const actionButtons = Array.from(this.container.querySelectorAll('.action-button'));
-    const moveButtons = Array.from(this.container.querySelectorAll('.move-button'));
-    const backButtons = Array.from(this.container.querySelectorAll('.back-button'));
-
-    return [...actionButtons, ...moveButtons, ...backButtons].filter(btn =>
-      btn.offsetParent !== null
     );
   }
 
-  updateButtonFocus(buttons) {
-    buttons.forEach((btn, index) => {
-      if (index === this.focusedButtonIndex) {
-        btn.style.transform = 'scale(1.05)';
-        btn.style.boxShadow = '0 0 20px currentColor';
-      } else {
-        btn.style.transform = 'scale(1)';
-        btn.style.boxShadow = 'none';
-      }
-    });
+  playAttackAnimation(isPlayer = false, callback) {
+    this.animations.playAttackAnimation(isPlayer, callback);
   }
+
+  waitForInput(callback, timeout = 5000) {
+    this.textRenderer.waitForInput(callback, this.container, timeout);
+  }
+
+  showMultiHitMessages(attackerName, moveName, hitData, finalCallback) {
+    const context = {
+      onRender: () => this.render(),
+      container: this.container,
+      onUpdateCombatData: () => {
+        this.updateCombatData({
+          player: this.gameState.combatSystem.player,
+          enemy: this.gameState.combatSystem.enemy
+        });
+      }
+    };
+
+    this.textRenderer.showMultiHitMessages(attackerName, moveName, hitData, finalCallback, context);
+  }
+
 }
+
+export { BattleUI };
