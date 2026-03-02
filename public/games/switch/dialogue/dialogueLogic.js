@@ -106,6 +106,31 @@ class DialogueManager {
         return true;
     }
 
+    // Start an encounter dialogue with an enemy
+    startEncounterDialogue(enemyType) {
+        const encounterDialogue = typeof AGENT_ENCOUNTER_DIALOGUES !== 'undefined'
+            ? AGENT_ENCOUNTER_DIALOGUES.spotted
+            : [
+                { speaker: 'npc', text: "A Derse Agent blocks your path!" },
+                { speaker: 'npc', text: "Prepare for battle!" }
+            ];
+
+        const npc = {
+            id: enemyType,
+            name: 'Derse Agent',
+            color: '#000000',
+            position: { x: 0, y: 0 }
+        };
+
+        this.currentNPC = npc;
+        this.currentDialogue = normalizeDialogue(encounterDialogue);
+        this.currentLineIndex = 0;
+        this.isActive = true;
+        this.isEncounterDialogue = true;
+
+        return true;
+    }
+
     // Get the current dialogue line
     getCurrentLine() {
         if (!this.isActive || !this.currentDialogue) return null;

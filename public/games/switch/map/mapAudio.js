@@ -8,11 +8,27 @@ class AudioManager {
         this.isEnabled = true;
         this.isFading = false; // Track if music is currently fading out
 
+        // Initialize encounter audio with custom loop support
+        this.encounterAudio = new Audio();
+        this.encounterAudio.preload = 'auto';
+        this.isPlayingEncounter = false;
+        this.encounterLoopStart = 0;
+        this.encounterLoopEnd = 0;
+        this.encounterLoopBackTo = 0;
+
         // Initialize audio settings
         this.backgroundMusic.volume = this.volume;
         this.backgroundMusic.loop = true; // ensure looping
         this.backgroundMusic.preload = 'auto';
         try { this.backgroundMusic.crossOrigin = 'anonymous'; } catch (_) {}
+
+        // Initialize encounter audio volume and custom loop handler
+        this.encounterAudio.volume = this.volume;
+        this.encounterAudio.addEventListener('timeupdate', () => {
+            if (this.isPlayingEncounter && this.encounterAudio.currentTime >= this.encounterLoopEnd) {
+                this.encounterAudio.currentTime = this.encounterLoopBackTo > 0 ? this.encounterLoopBackTo : this.encounterLoopStart;
+            }
+        });
 
         // Load settings from localStorage
         this.loadSettings();
@@ -55,6 +71,84 @@ class AudioManager {
                 // Music will start on the next user interaction.
             });
         }
+    }
+
+    playEncounterMusic(enemyType) {
+        if (this.isMuted) return;
+
+        this.backgroundMusic.pause();
+
+        const encounterConfig = this.getEncounterMusicConfig(enemyType);
+        if (!encounterConfig) return;
+
+        const { track, loopStart, loopEnd, loopBackTo } = encounterConfig;
+        const encounterTrack = `audio/${track}`;
+
+        this.encounterAudio.src = encounterTrack;
+        this.encounterLoopStart = loopStart;
+        this.encounterLoopEnd = loopEnd;
+        this.encounterLoopBackTo = loopBackTo || 0;
+        this.isPlayingEncounter = true;
+
+        this.encounterAudio.currentTime = loopStart;
+        this.encounterAudio.volume = this.isMuted ? 0 : this.volume;
+
+        const playPromise = this.encounterAudio.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {
+            });
+        }
+    }
+
+    stopEncounterMusic() {
+        this.isPlayingEncounter = false;
+        this.encounterAudio.pause();
+        this.encounterAudio.currentTime = 0;
+    }
+
+    getEncounterMusicConfig(enemyType) {
+        const configs = {
+            'derseAgent': {
+                track: 'vs_derse_encounter.mp3',
+                loopStart: 0,
+                loopEnd: 41,
+                loopBackTo: 2
+            },
+            'derseGuard': {
+                track: 'vs_derse_encounter.mp3',
+                loopStart: 0,
+                loopEnd: 41,
+                loopBackTo: 2
+            },
+            'derseArchagent': {
+                track: 'vs_derse_encounter.mp3',
+                loopStart: 41,
+                loopEnd: 100,
+                loopBackTo: 41
+            },
+            'dd': {
+                track: 'vs_derse_midnight_archagents.mp3',
+                loopStart: 0,
+                loopEnd: 28
+            },
+            'cd': {
+                track: 'vs_derse_midnight_archagents.mp3',
+                loopStart: 0,
+                loopEnd: 28
+            },
+            'hb': {
+                track: 'vs_derse_midnight_archagents.mp3',
+                loopStart: 0,
+                loopEnd: 28
+            },
+            'ss': {
+                track: 'vs_derse_midnight_archagents.mp3',
+                loopStart: 0,
+                loopEnd: 28
+            }
+        };
+
+        return configs[enemyType] || configs['derseAgent'];
     }
 
     // Fade out music over specified duration (in milliseconds), then stop

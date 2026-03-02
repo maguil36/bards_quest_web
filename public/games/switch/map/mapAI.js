@@ -9,6 +9,16 @@ export class MapAI {
             this.setPlayerFrozen = (value) => { config.game.playerFrozen = value; };
             this.startAgentCombat = (agent) => config.game.startAgentCombat(agent);
             this.checkCollision = (x, y, w, h) => config.game.checkCollision(x, y, w, h);
+            this.playEncounterMusic = (enemyType) => {
+                if (config.game.audioManager && typeof config.game.audioManager.playEncounterMusic === 'function') {
+                    config.game.audioManager.playEncounterMusic(enemyType);
+                }
+            };
+            this.startEncounterDialogue = (agent) => {
+                if (config.game.startEncounterDialogue) {
+                    config.game.startEncounterDialogue(agent);
+                }
+            };
         } else {
             this.player = config.player;
             this.agents = config.agents;
@@ -17,6 +27,8 @@ export class MapAI {
             this.setPlayerFrozen = config.setPlayerFrozen || (() => {});
             this.startAgentCombat = config.callbacks?.startAgentCombat || (() => {});
             this.checkCollision = config.callbacks?.checkCollision || (() => false);
+            this.playEncounterMusic = config.callbacks?.playEncounterMusic || (() => {});
+            this.startEncounterDialogue = config.callbacks?.startEncounterDialogue || (() => {});
         }
     }
 
@@ -28,15 +40,20 @@ export class MapAI {
 
             let isMoving = false;
 
-            if (agent.chasing) {
+            if (agent.alerted && !agent.chasing) {
+                const alertDuration = Date.now() - agent.alertTime;
+                if (alertDuration >= 1000) {
+                    agent.chasing = true;
+                    agent.alerted = false;
+                }
+            } else if (agent.chasing) {
                 const dx = this.player.x - agent.x;
                 const dy = this.player.y - agent.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < this.tileSize * 1.5) {
                     agent.chasing = false;
-                    this.setPlayerFrozen(false);
-                    this.startAgentCombat(agent);
+                    this.startEncounterDialogue(agent);
                     return;
                 }
 
@@ -134,8 +151,12 @@ export class MapAI {
                     checkY = agent.y - i * this.tileSize;
                     if (Math.abs(this.player.x - agent.x) < this.tileSize / 2 &&
                         Math.abs(this.player.y - checkY) < this.tileSize / 2) {
-                        agent.chasing = true;
-                        this.setPlayerFrozen(true);
+                        if (!agent.alerted && !agent.chasing) {
+                            agent.alerted = true;
+                            agent.alertTime = Date.now();
+                            this.setPlayerFrozen(true);
+                            this.playEncounterMusic(agent.type || 'derseAgent');
+                        }
                         return;
                     }
                 }
@@ -145,8 +166,12 @@ export class MapAI {
                     checkY = agent.y + i * this.tileSize;
                     if (Math.abs(this.player.x - agent.x) < this.tileSize / 2 &&
                         Math.abs(this.player.y - checkY) < this.tileSize / 2) {
-                        agent.chasing = true;
-                        this.setPlayerFrozen(true);
+                        if (!agent.alerted && !agent.chasing) {
+                            agent.alerted = true;
+                            agent.alertTime = Date.now();
+                            this.setPlayerFrozen(true);
+                            this.playEncounterMusic(agent.type || 'derseAgent');
+                        }
                         return;
                     }
                 }
@@ -156,8 +181,12 @@ export class MapAI {
                     checkX = agent.x - i * this.tileSize;
                     if (Math.abs(this.player.x - checkX) < this.tileSize / 2 &&
                         Math.abs(this.player.y - agent.y) < this.tileSize / 2) {
-                        agent.chasing = true;
-                        this.setPlayerFrozen(true);
+                        if (!agent.alerted && !agent.chasing) {
+                            agent.alerted = true;
+                            agent.alertTime = Date.now();
+                            this.setPlayerFrozen(true);
+                            this.playEncounterMusic(agent.type || 'derseAgent');
+                        }
                         return;
                     }
                 }
@@ -167,8 +196,12 @@ export class MapAI {
                     checkX = agent.x + i * this.tileSize;
                     if (Math.abs(this.player.x - checkX) < this.tileSize / 2 &&
                         Math.abs(this.player.y - agent.y) < this.tileSize / 2) {
-                        agent.chasing = true;
-                        this.setPlayerFrozen(true);
+                        if (!agent.alerted && !agent.chasing) {
+                            agent.alerted = true;
+                            agent.alertTime = Date.now();
+                            this.setPlayerFrozen(true);
+                            this.playEncounterMusic(agent.type || 'derseAgent');
+                        }
                         return;
                     }
                 }

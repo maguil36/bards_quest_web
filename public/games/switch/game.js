@@ -14,9 +14,14 @@ import { PokemonCombatSystem } from './battle/battleCombat.js';
 import { EndingManager } from './map/mapEnding.js';
 import { BattleController } from './battle/battleController.js';
 import { BattleUI } from './battle/battleUI.js';
+import { BattleAudio } from './battle/BattleAudio.js';
+import { CHARACTER_STATS, DEFAULT_WEAPONS, WEAPON_DATABASE, ABILITY_DESCRIPTIONS, ABILITIES } from './battle/battleCombatData.js';
 import { MapInteractions } from './map/mapInteractions.js';
 import { MapAI } from './map/mapAI.js';
 import { MapQuests } from './map/mapQuests.js';
+import { MapCharacterStatsUI } from './map/mapCharacterStatsUI.js';
+import { MapQuestUI } from './map/mapQuestUI.js';
+import { MapQuestLogic } from './map/mapQuestLogic.js';
 import { GAME_CONSTANTS, getInteractionRange, CHARACTER_ASPECTS } from './constants.js';
 import { GameOrchestrator } from './orchestration/GameOrchestrator.js';
 
@@ -65,6 +70,7 @@ class SwitchGame {
 
             this.battleUI = new BattleUI(this.gameState);
 
+            this.battleAudio = new BattleAudio();
 
             this.renderer = new GameRenderer();
 
@@ -72,6 +78,10 @@ class SwitchGame {
 
             this.battleController = new BattleController({ game: this });
             this.gameState.battleController = this.battleController;
+
+            this.characterStatsUI = new MapCharacterStatsUI(this.gameState);
+            this.questUI = new MapQuestUI(this.gameState);
+            this.questLogic = new MapQuestLogic(this.gameState);
 
             this.mapWidth = GAME_CONSTANTS.MAP_WIDTH;
             this.mapHeight = GAME_CONSTANTS.MAP_HEIGHT;
@@ -110,7 +120,7 @@ class SwitchGame {
             this.errorMessage = document.getElementById('errorMessage');
             this.characterName = document.getElementById('characterName');
             this.inventoryUI = document.getElementById('inventoryUI');
-            this.questUI = document.getElementById('questUI');
+            this.questUIElement = document.getElementById('questUI');
             this.abilitiesUI = document.getElementById('abilitiesUI');
             this.combatUI = document.getElementById('combatUI');
 
@@ -338,6 +348,56 @@ class SwitchGame {
             });
         }
 
+        // Character stats modal
+        const statsModal = document.getElementById('characterStatsModal');
+        const statsModalClose = document.getElementById('statsModalClose');
+        const openStatsModalBtn = document.getElementById('openStatsModalBtn');
+        const viewCharacterStatsBtn = document.getElementById('viewCharacterStatsBtn');
+
+        const openStatsModal = () => {
+            if (typeof this.updateStatsModal === 'function') {
+                this.updateStatsModal();
+            }
+            if (statsModal) {
+                statsModal.style.display = 'block';
+                statsModal.classList.add('show');
+            }
+            if (settingsModal) {
+                settingsModal.style.display = 'none';
+            }
+        };
+
+        const closeStatsModal = () => {
+            if (statsModal) {
+                statsModal.style.display = 'none';
+                statsModal.classList.remove('show');
+            }
+        };
+
+        if (openStatsModalBtn) openStatsModalBtn.addEventListener('click', openStatsModal);
+        if (viewCharacterStatsBtn) viewCharacterStatsBtn.addEventListener('click', openStatsModal);
+        if (statsModalClose) statsModalClose.addEventListener('click', closeStatsModal);
+
+        // E key to open stats modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'e' || e.key === 'E') {
+                if (this.showingDialogue || this.inBattle) return;
+                if (settingsModal && settingsModal.style.display === 'block') return;
+                if (statsModal && statsModal.style.display === 'block') return;
+                e.preventDefault();
+                openStatsModal();
+            }
+        });
+
+        // Escape to close stats modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && statsModal && statsModal.style.display === 'block') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                closeStatsModal();
+            }
+        });
+
         // Close settings with Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && settingsModal && settingsModal.style.display === 'block') {
@@ -524,32 +584,170 @@ class SwitchGame {
 
     updateSettingsPanel() {
         const current = this.gameState.getCurrentCharacter();
-        const nameEl = document.getElementById('settingsCurrentCharacter');
-        const charProg = document.getElementById('settingsCharProgress');
-        const charTotal = document.getElementById('settingsCharTotal');
-        const questInfo = document.getElementById('settingsQuestInfo');
-        const questStatus = document.getElementById('settingsQuestStatus');
 
-        if (nameEl) nameEl.textContent = current.name;
-
-        if (this.gameState) {
-            const done = this.gameState.getCompletedCountForCharacter(current.id);
-            const total = this.gameState.getTotalTargetsPerCharacter(current.id);
-            if (charProg) charProg.textContent = String(done);
-            if (charTotal) charTotal.textContent = String(total);
-
-            const charData = CHARACTERS[current.id];
-            if (charData) {
-                if (questInfo && charData.quest) {
-                    questInfo.textContent = charData.quest.description || 'No quest';
-                }
-
-                if (questStatus) {
-                    const isCompleted = this.gameState.completedQuests.has(current.id);
-                    questStatus.textContent = isCompleted ? 'Complete' : 'Ongoing';
-                }
-            }
+        if (this.characterStatsUI) {
+            this.characterStatsUI.updateStatsDisplay(current.id);
         }
+
+        if (this.questUI) {
+            this.questUI.updateQuestDisplay();
+        }
+    }
+
+    updateStatsModal() {
+        const current = this.gameState.getCurrentCharacter();
+        const characterId = current.id;
+        const stats = CHARACTER_STATS[characterId];
+        const character = CHARACTERS[characterId];
+        const weaponId = DEFAULT_WEAPONS[characterId] || 'fist';
+        const weapon = WEAPON_DATABASE[weaponId];
+
+        if (!stats || !character) {
+            const container = document.getElementById('statsModalContent');
+            if (container) {
+                container.innerHTML = '<div style="color: var(--muted);">No character data available</div>';
+            }
+            return;
+        }
+
+        const portraitImg = document.getElementById('statsPortraitImage');
+        const characterNameEl = document.getElementById('statsCharacterName');
+        const characterTitleEl = document.getElementById('statsCharacterTitle');
+
+        if (portraitImg) {
+            portraitImg.src = `sprites/${characterId}_portrait.png`;
+            portraitImg.onerror = () => {
+                portraitImg.style.display = 'none';
+            };
+        }
+
+        if (characterNameEl) {
+            characterNameEl.textContent = character.name;
+            characterNameEl.style.color = character.color;
+        }
+
+        if (characterTitleEl) {
+            characterTitleEl.textContent = character.quest?.description || 'Adventurer';
+        }
+
+        const mapCharacter = this.gameState.characters[characterId];
+        const currentHp = mapCharacter ? mapCharacter.hp : CHARACTER_BASE_HP[characterId];
+        const maxHp = stats.maxHp;
+        const hpPercent = (currentHp / maxHp) * 100;
+
+        const currentLevel = this.gameState.levels?.[characterId] || 1;
+        const currentXp = this.gameState.xp?.[characterId] || 0;
+        const xpForNextLevel = this.calculateXpForLevel(currentLevel + 1);
+        const xpForCurrentLevel = this.calculateXpForLevel(currentLevel);
+        const xpProgress = currentXp - xpForCurrentLevel;
+        const xpNeeded = xpForNextLevel - xpForCurrentLevel;
+        const xpPercent = currentLevel >= 100 ? 100 : (xpProgress / xpNeeded) * 100;
+
+        const statGrowth = mapCharacter?.statGrowth || {
+            hp: 0,
+            attack: 0,
+            defense: 0,
+            specialAttack: 0,
+            specialDefense: 0,
+            speed: 0
+        };
+
+        const displayStats = {
+            attack: stats.attack + statGrowth.attack,
+            defense: stats.defense + statGrowth.defense,
+            specialAttack: stats.specialAttack + statGrowth.specialAttack,
+            specialDefense: stats.specialDefense + statGrowth.specialDefense,
+            speed: stats.speed + statGrowth.speed
+        };
+
+        let html = '';
+
+        html += '<div class="stats-section">';
+        html += '<div class="stats-section-title">Vitality & Experience</div>';
+
+        html += '<div class="stats-vitality-bar-container">';
+        html += '<div class="stats-vitality-label">';
+        html += '<span>Health</span>';
+        html += `<span>${currentHp} / ${maxHp}</span>`;
+        html += '</div>';
+        html += '<div class="stats-vitality-bar">';
+        html += `<div class="stats-vitality-fill" style="width: ${hpPercent}%;"></div>`;
+        html += '</div>';
+        html += '</div>';
+
+        html += '<div class="stats-level-container">';
+        html += '<div class="stats-level-label">';
+        html += '<span>Level</span>';
+        html += `<span>${currentLevel} / 100</span>`;
+        html += '</div>';
+        if (currentLevel < 100) {
+            html += '<div class="stats-xp-bar">';
+            html += `<div class="stats-xp-fill" style="width: ${xpPercent}%;"></div>`;
+            html += '</div>';
+            html += `<div class="stats-xp-text">${xpProgress} / ${xpNeeded} XP to next level</div>`;
+        } else {
+            html += '<div class="stats-xp-bar">';
+            html += `<div class="stats-xp-fill" style="width: 100%;"></div>`;
+            html += '</div>';
+            html += `<div class="stats-xp-text">Max Level!</div>`;
+        }
+        html += '</div>';
+
+        html += '</div>';
+
+        html += '<div class="stats-section">';
+        html += '<div class="stats-section-title">Battle Stats</div>';
+        html += '<div class="stats-grid">';
+        html += `<div class="stat-item"><span class="stat-label">Attack</span><span class="stat-value">${stats.attack}${statGrowth.attack > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.attack}</span>` : ''}</span></div>`;
+        html += `<div class="stat-item"><span class="stat-label">Defense</span><span class="stat-value">${stats.defense}${statGrowth.defense > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.defense}</span>` : ''}</span></div>`;
+        html += `<div class="stat-item"><span class="stat-label">Sp. Atk</span><span class="stat-value">${stats.specialAttack}${statGrowth.specialAttack > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.specialAttack}</span>` : ''}</span></div>`;
+        html += `<div class="stat-item"><span class="stat-label">Sp. Def</span><span class="stat-value">${stats.specialDefense}${statGrowth.specialDefense > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.specialDefense}</span>` : ''}</span></div>`;
+        html += `<div class="stat-item"><span class="stat-label">Speed</span><span class="stat-value">${stats.speed}${statGrowth.speed > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.speed}</span>` : ''}</span></div>`;
+        html += '</div>';
+        html += '</div>';
+
+        if (weapon) {
+            html += '<div class="stats-section">';
+            html += '<div class="stats-section-title">Equipment</div>';
+            html += '<div class="stats-weapon-info">';
+            html += `<div class="stats-weapon-name">${weapon.name}</div>`;
+            html += `<div class="stats-weapon-desc">${weapon.description || 'A trusty weapon'}</div>`;
+            html += '</div>';
+            html += '</div>';
+        }
+
+        const combatAbility = ABILITIES[characterId];
+        if (combatAbility) {
+            html += '<div class="stats-section">';
+            html += '<div class="stats-section-title">Combat Ability</div>';
+            html += '<div class="stats-ability-combat">';
+            html += `<div class="stats-ability-name">${combatAbility.name}</div>`;
+            html += '</div>';
+            html += '</div>';
+        }
+
+        if (character.abilities && character.abilities.length > 0) {
+            html += '<div class="stats-section">';
+            html += '<div class="stats-section-title">Map Abilities</div>';
+            html += '<ul class="stats-abilities-list">';
+            character.abilities.forEach(abilityId => {
+                const description = ABILITY_DESCRIPTIONS[abilityId];
+                if (description) {
+                    html += `<li class="stats-ability-item">${description}</li>`;
+                }
+            });
+            html += '</ul>';
+            html += '</div>';
+        }
+
+        const container = document.getElementById('statsModalContent');
+        if (container) {
+            container.innerHTML = html;
+        }
+    }
+
+    calculateXpForLevel(level) {
+        return Math.floor(Math.pow(level, 3));
     }
 
     updateInventoryUI() {
@@ -734,7 +932,8 @@ class SwitchGame {
                 chasing: agent.chasing,
                 defeated: isDefeated,
                 animationFrame: agent.animationFrame,
-                animationTimer: agent.animationTimer
+                animationTimer: agent.animationTimer,
+                type: agent.type || 'derseAgent'
             };
         });
     }
@@ -796,7 +995,25 @@ class SwitchGame {
         this.mapAI.checkAgentDetection(agent);
     }
 
+    startEncounterDialogue(agent) {
+        this.encounteringAgent = agent;
+        this.showingDialogue = true;
+        this.isEncounterDialogue = true;
+
+        if (this.dialogueManager && typeof this.dialogueManager.startEncounterDialogue === 'function') {
+            this.dialogueManager.startEncounterDialogue(agent.type || 'derseAgent');
+        }
+
+        if (this.dialogueBox) {
+            this.dialogueBox.style.display = 'block';
+        }
+        this.showDialogueUI();
+    }
+
     startAgentCombat(agent) {
+        if (this.audioManager && typeof this.audioManager.stopEncounterMusic === 'function') {
+            this.audioManager.stopEncounterMusic();
+        }
         this.gameOrchestrator.onCombatTriggered(agent);
     }
 
@@ -976,7 +1193,13 @@ class SwitchGame {
             this.dialogueManager.pendingSwitch = result.target;
             this.startSwitchMiniGame();
         } else if (!result) {
-            this.closeDialogue();
+            if (this.isEncounterDialogue && this.encounteringAgent) {
+                this.closeDialogue();
+                this.startAgentCombat(this.encounteringAgent);
+                this.encounteringAgent = null;
+            } else {
+                this.closeDialogue();
+            }
         } else {
             const current = this.dialogueManager.getCurrentLine();
             const npc = this.dialogueManager.getCurrentNPC();
@@ -1042,6 +1265,8 @@ class SwitchGame {
             this.updateSettingsPanel();
         }
     }
+
+
 
     handleCharacterSwitch(confirmed) {
         this.showingSwitchPrompt = false;

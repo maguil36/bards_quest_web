@@ -1,11 +1,15 @@
- // Character definitions now use site CSS variables for colors
- // The 8 characters map 1:1 to CSS variables defined in public/styles.css
- // --alexis, --austine, --chloe, --isabell, --nicholas, --opal, --tyson, --victor
+console.log('mapCharacters.js: File loading started');
 
- function getCSSVar(name) {
+// Character definitions now use site CSS variables for colors
+// The 8 characters map 1:1 to CSS variables defined in public/styles.css
+// --alexis, --austine, --chloe, --isabell, --nicholas, --opal, --tyson, --victor
+
+function getCSSVar(name) {
    const v = getComputedStyle(document.documentElement).getPropertyValue(name);
    return (v && v.trim()) || '#888';
  }
+
+console.log('mapCharacters.js: getCSSVar function defined');
 
  const CHAR_COLORS = {
    alexis: getCSSVar('--alexis'),
@@ -15,22 +19,22 @@
    nicholas: getCSSVar('--nicholas'),
    opal: getCSSVar('--opal'),
    tyson: getCSSVar('--tyson'),
-   victor: getCSSVar('--victor'),
-};
+   victor: getCSSVar('--victor')
+ };
 
-const CHARACTER_BASE_HP = {
-  opal: 120,
-  alexis: 100,
-  tyson: 200,
-  chloe: 90,
-  isabell: 80,
-  nicholas: 80,
-  austine: 75,
-  victor: 100
-};
+ const CHARACTER_BASE_HP = {
+   opal: 120,
+   alexis: 100,
+   tyson: 200,
+   chloe: 90,
+   isabell: 80,
+   nicholas: 80,
+   austine: 75,
+   victor: 100
+ };
 
 // Character definitions based on the 8 persona names from styles.css
- const CHARACTERS = {
+const CHARACTERS = {
    alexis: {
      id: 'alexis',
      name: 'Alexis',
@@ -177,7 +181,9 @@ function refreshCharacterColors() {
   }
 }
 
- // NPCs that need to be talked to (now the same as the playable characters)
+console.log('mapCharacters.js: CHARACTERS and refreshCharacterColors defined');
+
+// NPCs that need to be talked to (now the same as the playable characters)
 const NPCS = [
   {
     id: 'alexis',
@@ -229,7 +235,9 @@ const NPCS = [
   },
 ];
 
- // Game state management
+console.log('mapCharacters.js: NPCS array defined');
+
+// Game state management
 class GameState {
   constructor() {
     this.currentCharacter = 'opal';
@@ -297,8 +305,16 @@ class GameState {
     this.characters = {};
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characters[charId] = {
-        currentHp: CHARACTER_BASE_HP[charId] || 100
+        currentHp: CHARACTER_BASE_HP[charId] || 100,
+        fraymotifCharge: 0
       };
+    });
+
+    this.xp = {};
+    this.levels = {};
+    Object.keys(CHARACTERS).forEach((charId) => {
+      this.xp[charId] = 0;
+      this.levels[charId] = 1;
     });
 
     this.migrateDefeatedAgents();
@@ -725,7 +741,8 @@ class GameState {
     this.characters = {};
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characters[charId] = {
-        currentHp: CHARACTER_BASE_HP[charId] || 100
+        currentHp: CHARACTER_BASE_HP[charId] || 100,
+        fraymotifCharge: 0
       };
     });
 
@@ -735,3 +752,17 @@ class GameState {
     this.save();
   }
 }
+
+console.log('mapCharacters.js: GameState class defined');
+console.log('mapCharacters.js: About to export');
+
+export { CHARACTERS, NPCS, GameState, CHAR_COLORS, CHARACTER_BASE_HP, refreshCharacterColors };
+
+window.CHARACTERS = CHARACTERS;
+window.NPCS = NPCS;
+window.GameState = GameState;
+window.CHAR_COLORS = CHAR_COLORS;
+window.CHARACTER_BASE_HP = CHARACTER_BASE_HP;
+window.refreshCharacterColors = refreshCharacterColors;
+
+console.log('mapCharacters.js: Exports made available globally');

@@ -43,8 +43,10 @@ export class BattleUIInput {
     const actionButtons = Array.from(this.battleUI.container.querySelectorAll('.action-button'));
     const moveButtons = Array.from(this.battleUI.container.querySelectorAll('.move-button'));
     const backButtons = Array.from(this.battleUI.container.querySelectorAll('.back-button'));
+    const fraymotifButtons = Array.from(this.battleUI.container.querySelectorAll('.fraymotif-ability-button'));
+    const fraymotifBackButtons = Array.from(this.battleUI.container.querySelectorAll('.fraymotif-back-button'));
 
-    return [...actionButtons, ...moveButtons, ...backButtons].filter(btn =>
+    return [...actionButtons, ...moveButtons, ...backButtons, ...fraymotifButtons, ...fraymotifBackButtons].filter(btn =>
       btn.offsetParent !== null
     );
   }

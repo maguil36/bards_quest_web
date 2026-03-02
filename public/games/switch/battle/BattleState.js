@@ -34,7 +34,9 @@ export class BattleState {
             damageDealt: this.damageDealt,
             damageTaken: this.damageTaken,
             duration: battleDuration,
-            escaped: result.escaped || false
+            escaped: result.escaped || false,
+            enemy: this.enemy,
+            playerCharacter: this.playerCharacter
         };
         
         this.inCombat = false;

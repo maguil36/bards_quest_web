@@ -302,6 +302,21 @@ class GameRenderer {
             ctx.fillRect(screenX, screenY, tile, tile);
           }
 
+          if (agent.alerted) {
+            ctx.save();
+            ctx.fillStyle = '#ff0000';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            const alertX = screenX + tile / 2;
+            const alertY = screenY - 5;
+            ctx.strokeText('!', alertX, alertY);
+            ctx.fillText('!', alertX, alertY);
+            ctx.restore();
+          }
+
           if (agent.chasing) {
             ctx.strokeStyle = '#ff0000';
             ctx.lineWidth = 2;

@@ -145,6 +145,21 @@ export const chestPositions = [
 
 export const agentConfigs = [
     {
+        x: 20,
+        y: 69,
+        direction: 'right',
+        patrolPath: [[20, 69], [30, 69]],
+        patrolIndex: 0,
+        patrolReverse: false,
+        speed: 1,
+        detectionRange: 5,
+        chasing: false,
+        defeated: false,
+        animationFrame: 0,
+        animationTimer: 0,
+        type: 'derseGuard'
+    },
+    {
         x: 80,
         y: 80,
         direction: 'down',
@@ -156,7 +171,8 @@ export const agentConfigs = [
         chasing: false,
         defeated: false,
         animationFrame: 0,
-        animationTimer: 0
+        animationTimer: 0,
+        type: 'derseAgent'
     },
     {
         x: 20,
@@ -170,8 +186,9 @@ export const agentConfigs = [
         chasing: false,
         defeated: false,
         animationFrame: 0,
-        animationTimer: 0
-    },        
+        animationTimer: 0,
+        type: 'derseAgent'
+    },
     {
         x: 20,
         y: 75,
@@ -184,7 +201,8 @@ export const agentConfigs = [
         chasing: false,
         defeated: false,
         animationFrame: 0,
-        animationTimer: 0
+        animationTimer: 0,
+        type: 'derseAgent'
     },
         {
         x: 20,
@@ -198,7 +216,8 @@ export const agentConfigs = [
         chasing: false,
         defeated: false,
         animationFrame: 0,
-        animationTimer: 0
+        animationTimer: 0,
+        type: 'derseAgent'
     },
     {
         x: 20,
@@ -212,7 +231,8 @@ export const agentConfigs = [
         chasing: false,
         defeated: false,
         animationFrame: 0,
-        animationTimer: 0
+        animationTimer: 0,
+        type: 'derseAgent'
     },
     {
         x: 20,
@@ -226,7 +246,8 @@ export const agentConfigs = [
         chasing: false,
         defeated: false,
         animationFrame: 0,
-        animationTimer: 0
+        animationTimer: 0,
+        type: 'derseAgent'
     },
     {
         x: 120,
@@ -240,6 +261,82 @@ export const agentConfigs = [
         chasing: false,
         defeated: false,
         animationFrame: 0,
-        animationTimer: 0
+        animationTimer: 0,
+        type: 'derseAgent'
+    },
+    {
+        x: 20,
+        y: 81,
+        direction: 'right',
+        patrolPath: [[20, 81], [30, 81]],
+        patrolIndex: 0,
+        patrolReverse: false,
+        speed: 1,
+        detectionRange: 6,
+        chasing: false,
+        defeated: false,
+        animationFrame: 0,
+        animationTimer: 0,
+        type: 'derseArchagent'
+    },
+    {
+        x: 20,
+        y: 82,
+        direction: 'right',
+        patrolPath: [[20, 82], [30, 82]],
+        patrolIndex: 0,
+        patrolReverse: false,
+        speed: 1,
+        detectionRange: 6,
+        chasing: false,
+        defeated: false,
+        animationFrame: 0,
+        animationTimer: 0,
+        type: 'dd'
+    },
+    {
+        x: 20,
+        y: 83,
+        direction: 'right',
+        patrolPath: [[20, 83], [30, 83]],
+        patrolIndex: 0,
+        patrolReverse: false,
+        speed: 1,
+        detectionRange: 6,
+        chasing: false,
+        defeated: false,
+        animationFrame: 0,
+        animationTimer: 0,
+        type: 'cd'
+    },
+    {
+        x: 20,
+        y: 84,
+        direction: 'right',
+        patrolPath: [[20, 84], [30, 84]],
+        patrolIndex: 0,
+        patrolReverse: false,
+        speed: 1,
+        detectionRange: 6,
+        chasing: false,
+        defeated: false,
+        animationFrame: 0,
+        animationTimer: 0,
+        type: 'hb'
+    },
+    {
+        x: 20,
+        y: 85,
+        direction: 'right',
+        patrolPath: [[20, 85], [30, 85]],
+        patrolIndex: 0,
+        patrolReverse: false,
+        speed: 1,
+        detectionRange: 6,
+        chasing: false,
+        defeated: false,
+        animationFrame: 0,
+        animationTimer: 0,
+        type: 'ss'
     },
 ];

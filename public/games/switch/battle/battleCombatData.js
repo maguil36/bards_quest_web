@@ -1,233 +1,391 @@
 const CHARACTER_STATS = {
   opal: {
-    hp: 120,
-    maxHp: 120,
-    attack: 60,
-    defense: 70,
-    specialAttack: 70,
-    specialDefense: 70,
-    speed: 60
+    hp: 345,
+    maxHp: 345,
+    attack: 214,
+    defense: 280,
+    specialAttack: 280,
+    specialDefense: 250,
+    speed: 312,
+    level: 100
   },
   alexis: {
-    hp: 100,
-    maxHp: 100,
-    attack: 90,
-    defense: 45,
-    specialAttack: 40,
-    specialDefense: 45,
-    speed: 90
+    hp: 358,
+    maxHp: 358,
+    attack: 439,
+    defense: 266,
+    specialAttack: 279,
+    specialDefense: 202,
+    speed: 311,
+    level: 100
   },
   tyson: {
-    hp: 200,
-    maxHp: 200,
-    attack: 50,
-    defense: 60,
-    specialAttack: 50,
-    specialDefense: 60,
-    speed: 60
+    hp: 331,
+    maxHp: 331,
+    attack: 199,
+    defense: 396,
+    specialAttack: 296,
+    specialDefense: 224,
+    speed: 174,
+    level: 100
   },
   chloe: {
-    hp: 90,
-    maxHp: 90,
-    attack: 50,
-    defense: 40,
-    specialAttack: 50,
-    specialDefense: 40,
-    speed: 65
+    hp: 342,
+    maxHp: 342,
+    attack: 185,
+    defense: 228,
+    specialAttack: 206,
+    specialDefense: 228,
+    speed: 96,
+    level: 98
   },
   isabell: {
-    hp: 80,
-    maxHp: 80,
-    attack: 50,
-    defense: 40,
-    specialAttack: 40,
-    specialDefense: 60,
-    speed: 50
+    hp: 282,
+    maxHp: 282,
+    attack: 295,
+    defense: 180,
+    specialAttack: 290,
+    specialDefense: 160,
+    speed: 300,
+    level: 100
   },
   nicholas: {
-    hp: 80,
-    maxHp: 80,
-    attack: 45,
-    defense: 45,
-    specialAttack: 65,
-    specialDefense: 35,
-    speed: 50
+    hp: 278,
+    maxHp: 278,
+    attack: 166,
+    defense: 168,
+    specialAttack: 380,
+    specialDefense: 250,
+    speed: 248,
+    level: 100
   },
   austine: {
-    hp: 75,
-    maxHp: 75,
-    attack: 50,
-    defense: 50,
-    specialAttack: 50,
-    specialDefense: 50,
-    speed: 50
+    hp: 312,
+    maxHp: 312,
+    attack: 180,
+    defense: 215,
+    specialAttack: 225,
+    specialDefense: 276,
+    speed: 205,
+    level: 100
   },
   victor: {
-    hp: 100,
-    maxHp: 100,
-    attack: 50,
-    defense: 50,
-    specialAttack: 50,
-    specialDefense: 50,
-    speed: 50
+    hp: 265,
+    maxHp: 265,
+    attack: 136,
+    defense: 195,
+    specialAttack: 413,
+    specialDefense: 213,
+    speed: 399,
+    level: 100
+  },
+  derseGuard: {
+    hp: 400,
+    maxHp: 400,
+    attack: 107,
+    defense: 65,
+    specialAttack: 144,
+    specialDefense: 105,
+    speed: 87,
+    level: 50,
+    xpDrop: 125000
   },
   derseAgent: {
-    hp: 75,
-    maxHp: 75,
-    attack: 60,
-    defense: 50,
-    specialAttack: 40,
-    specialDefense: 40,
-    speed: 60
+    hp: 400,
+    maxHp: 400,
+    attack: 219,
+    defense: 181,
+    specialAttack: 125,
+    specialDefense: 139,
+    speed: 144,
+    level: 70,
+    xpDrop: 343000
   },
   derseArchagent: {
-    hp: 125,
-    maxHp: 125,
-    attack: 80,
-    defense: 60,
-    specialAttack: 70,
-    specialDefense: 50,
-    speed: 80
-  }
+    hp: 750,
+    maxHp: 750,
+    attack: 235,
+    defense: 196,
+    specialAttack: 221,
+    specialDefense: 189,
+    speed: 203,
+    level: 80,
+    xpDrop: 512000
+  },
+    dd: {
+    hp: 900,
+    maxHp: 900,
+    attack: 213,
+    defense: 210,
+    specialAttack: 275,
+    specialDefense: 229,
+    speed: 298,
+    level: 90,
+    xpDrop: 1093500
+  },
+    cd: {
+    hp: 1000,
+    maxHp: 1000,
+    attack: 203,
+    defense: 273,
+    specialAttack: 266,
+    specialDefense: 290,
+    speed: 134,
+    level: 90,
+    xpDrop: 1093500
+  },
+    hb: {
+    hp: 1250,
+    maxHp: 1250,
+    attack: 319,
+    defense: 284,
+    specialAttack: 212,
+    specialDefense: 259,
+    speed: 174,
+    level: 90,
+    xpDrop: 1093500
+  },
+    ss: {
+    hp: 1500,
+    maxHp: 1500,
+    attack: 339,
+    defense: 236,
+    specialAttack: 276,
+    specialDefense: 213,
+    speed: 306,
+    level: 100,
+    xpDrop: 1500000
+  },
+
 };
 
 const WEAPON_DATABASE = {
+  fist: {
+    id: 'fist',
+    name: 'Fist Kind',
+    power: 30,
+    accuracy: 95,
+    type: 'physical',
+    ability: null,
+    description: 'Backup weapon'
+  },
   dualKnife: {
     id: 'dualKnife',
     name: 'Dual Knife',
-    power: 45,
+    power: 65,
+    accuracy: 100,
     type: 'physical',
     ability: 'doubleHit',
     description: 'Always hits twice'
   },
-  inferiorKnife: {
-    id: 'inferiorKnife',
-    name: 'Inferior Knife',
-    power: 40,
-    type: 'physical',
-    ability: 'doubleHit',
-    description: 'Inferior dual knife from Alexis'
-  },
   inferiorPolearm: {
     id: 'inferiorPolearm',
     name: 'Inferior Polearm',
-    power: 70,
+    power: 80,
+    accuracy: 100,
     type: 'physical',
     ability: 'doubleHit',
     description: 'Inferior polearm from Opal'
   },
+  polearm: {
+    id: 'polearm',
+    name: 'Polearm',
+    power: 100,
+    accuracy: 100,
+    type: 'physical',
+    ability: 'priority',
+    description: 'Attacks have priority +1'
+  },
   inferiorRifle: {
     id: 'inferiorRifle',
     name: 'Inferior Rifle',
-    power: 85,
+    power: 80,
+    accuracy: 90,
     type: 'physical',
     ability: 'doubleHit',
     description: 'Inferior rifle from Nicholas'
+  },
+  rifle: {
+    id: 'rifle',
+    name: 'Rifle',
+    power: 120,
+    accuracy: 100,
+    type: 'special',
+    ability: 'hitsSpecialDef',
+    description: 'Hits against special defense'
   },
   inferiorWhip: {
     id: 'inferiorWhip',
     name: 'Inferior Whip',
     power: 65,
+    accuracy: 95,
     type: 'physical',
     ability: 'doubleHit',
     description: 'Inferior whip from Chloe'
   },
-  inferiorBomb: {
-    id: 'inferiorBomb',
-    name: 'Inferior Bomb',
-    power: 20,
+  whip: {
+    id: 'whip',
+    name: 'Whip',
+    power: 80,
+    accuracy: 95,
     type: 'physical',
-    ability: 'doubleHit',
-    description: 'Inferior bomb from Tyson'
+    ability: 'lowerSpeed',
+    description: 'Decreases enemy speed by 1 stage on hit'
   },
   inferiorHatchet: {
     id: 'inferiorHatchet',
     name: 'Inferior Hatchet',
     power: 70,
+    accuracy: 100,
     type: 'physical',
     ability: 'doubleHit',
     description: 'Inferior hatchet from Isabela'
+  },
+  hatchet: {
+    id: 'hatchet',
+    name: 'Hatchet',
+    power: 90,
+    accuracy: 100,
+    type: 'physical',
+    ability: 'critDefHalved',
+    description: 'Defense halved on critical hits'
   },
   inferiorCrossbow: {
     id: 'inferiorCrossbow',
     name: 'Inferior Crossbow',
     power: 75,
+    accuracy: 95,
     type: 'physical',
     ability: 'doubleHit',
     description: 'Inferior crossbow from Austine'
   },
-  mace: {
-    id: 'mace',
-    name: 'Mace',
-    power: 65,
-    type: 'physical',
-    ability: 'ignorePositiveModifiers',
-    description: 'Ignores positive enemy modifiers'
-  },
-  polearm: {
-    id: 'polearm',
-    name: 'Polearm',
-    power: 75,
-    type: 'physical',
-    ability: 'priority',
-    description: 'Attacks have priority +1'
-  },
-  rifle: {
-    id: 'rifle',
-    name: 'Rifle',
-    power: 90,
-    type: 'special',
-    ability: 'hitsSpecialDef',
-    description: 'Hits against special defense'
-  },
-  whip: {
-    id: 'whip',
-    name: 'Whip',
-    power: 70,
-    type: 'physical',
-    ability: 'lowerSpeed',
-    description: 'Decreases enemy speed by 1 stage on hit'
-  },
-  bomb: {
-    id: 'bomb',
-    name: 'Bomb',
-    power: 25,
-    type: 'special',
-    ability: 'oneTimeUse',
-    description: 'One-time use, activate for scaling damage'
-  },
-  fist: {
-    id: 'fist',
-    name: 'Fist Kind',
-    power: 20,
-    type: 'physical',
-    ability: null,
-    description: 'Backup weapon'
-  },
-  hatchet: {
-    id: 'hatchet',
-    name: 'Hatchet',
-    power: 75,
-    type: 'physical',
-    ability: 'critDefHalved',
-    description: 'Defense halved on critical hits'
-  },
-  hatchetUpgraded: {
-    id: 'hatchetUpgraded',
-    name: 'Hatchet+',
-    power: 80,
-    type: 'physical',
-    ability: 'critDefHalved',
-    description: 'Defense halved on critical hits (upgraded)'
-  },
   crossbow: {
     id: 'crossbow',
     name: 'Crossbow',
-    power: 80,
+    power: 110,
+    accuracy: 95,
+    type: 'special',
+    ability: 'critBoost',
+    description: '+1 stage critical hit ratio'
+  },
+  crossbowRed: {
+    id: 'crossbow',
+    name: 'Crossbow',
+    power: 110,
+    accuracy: 95,
+    type: 'special',
+    ability: 'critBoost',
+    description: '+1 stage critical hit ratio'
+  },
+  crossbowBlue: {
+    id: 'crossbow',
+    name: 'Crossbow',
+    power: 110,
+    accuracy: 95,
     type: 'physical',
     ability: 'critBoost',
     description: '+1 stage critical hit ratio'
   },
+  crossbowGreen: {
+    id: 'crossbow',
+    name: 'Crossbow',
+    power: 110,
+    accuracy: 95,
+    type: 'physical',
+    ability: 'hitsSpecialDef',
+    description: 'Hits against special defense'
+  },
+  bomb: {
+    id: 'bomb',
+    name: 'Bomb',
+    power: 30,
+    accuracy: 100,
+    type: 'special',
+    ability: 'oneTimeUse',
+    description: 'One-time use, activate for scaling damage'
+  },
+  guardBaton: {
+    id: 'crossbow',
+    name: 'Crossbow',
+    power: 50,
+    accuracy: 90,
+    type: 'physical',
+    ability: 'non-leathal',
+    description: 'non lethal weapon, made to keep enemies subdued'
+  },
+  agentPistol: {
+    id: 'mace',
+    name: 'Mace',
+    power: 90,
+    accuracy: 95,
+    type: 'special',
+    ability: null,
+    description: 'Ignores positive enemy modifiers'
+  },
+  agentKnife: {
+    id: 'mace',
+    name: 'Mace',
+    power: 50,
+    accuracy: 100,
+    type: 'physical',
+    ability: null,
+    description: 'Ignores positive enemy modifiers'
+  },
+  archAgentKnife: {
+    id: 'mace',
+    name: 'Mace',
+    power: 55,
+    accuracy: 100,
+    type: 'physical',
+    ability: 'ignorePositiveModifiers',
+    description: 'Ignores positive enemy modifiers'
+  },
+  archAgentTommyGun: {
+    id: 'mace',
+    name: 'Mace',
+    power: 90,
+    accuracy: 65,
+    type: 'special',
+    ability: 'tripleHit', 
+    description: 'Ignores positive enemy modifiers'
+  },
+  ssKnife: {
+    id: 'crossbow',
+    name: 'Crossbow',
+    power: 60,
+    accuracy: 100,
+    type: 'physical',
+    ability: 'tripleHit',
+    description: '+1 stage critical hit ratio'
+  },
+  hbMace: {
+    id: 'mace',
+    name: 'Mace',
+    power: 160,
+    accuracy: 85,
+    type: 'physical',
+    ability: 'ignorePositiveModifiers',
+    description: 'Ignores positive enemy modifiers'
+  },
+  ddSpear: {
+    id: 'mace',
+    name: 'Mace',
+    power: 100,
+    type: 'physical',
+    ability: 'ignorePositiveModifiers',
+    description: 'Ignores positive enemy modifiers'
+  },
+  cdBomb: {
+    id: 'mace',
+    name: 'Mace',
+    power: 30,
+    accuracy: 100,
+    type: 'physical',
+    ability: 'ignorePositiveModifiers',
+    description: 'Ignores positive enemy modifiers'
+  },
+
+
 };
 
 const DEFAULT_WEAPONS = {
@@ -237,7 +395,14 @@ const DEFAULT_WEAPONS = {
   chloe: 'whip',
   tyson: 'bomb',
   isabela: 'hatchet',
-  austine: 'crossbow'
+  austine: 'crossbow',
+  derseAgent: 'fist',
+  derseGuard: 'fist',
+  derseArchagent: 'fist',
+  dd: 'fist',
+  cd: 'fist',
+  hb: 'fist',
+  ss: 'fist'
 };
 
 const STRIFE_OPTIONS = {
@@ -247,7 +412,7 @@ const STRIFE_OPTIONS = {
     { id: 'antagonize', name: 'ANTAGONIZE', category: 'status', tooltip: '+2 ATK for you, +1 ATK for enemy for 3 turns.' },
     { id: 'abuse', name: 'ABUSE', category: 'status', tooltip: 'Decrease enemy DEF by 1 stage for 3 turns.' },
     { id: 'avenge', name: 'AVENGE', category: 'damage', tooltip: '0.5x power, hits 2-5 times. Lower enemy SP.DEF by 1 stage for 3 turns.' },
-    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 300 charge).' }
+    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   opal: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
@@ -255,7 +420,7 @@ const STRIFE_OPTIONS = {
     { id: 'apparate', name: 'APPARATE', category: 'combat', tooltip: 'Priority 4. Block next attack, +1 crit ratio next turn.' },
     { id: 'accost', name: 'ACCOST', category: 'status', tooltip: 'Lower enemy ATK by 1 stage for 3 turns.' },
     { id: 'assail', name: 'ASSAIL', category: 'damage', tooltip: '0.5x power, hits 2-5 times. Lower DEF by 1 stage for 3 turns.' },
-    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 300 charge).' }
+    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   nicholas: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
@@ -263,7 +428,7 @@ const STRIFE_OPTIONS = {
     { id: 'accuse', name: 'ACCUSE', category: 'status', tooltip: '+1 SP.ATK for 3 turns.' },
     { id: 'afflict', name: 'AFFLICT', category: 'status', tooltip: 'Lower enemy SP.DEF by 1 stage for 3 turns.' },
     { id: 'annihilate', name: 'ANNIHILATE', category: 'damage', tooltip: '3x damage but -1 accuracy for 3 turns.' },
-    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 300 charge).' }
+    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   chloe: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
@@ -271,7 +436,7 @@ const STRIFE_OPTIONS = {
     { id: 'ameliorate', name: 'AMELIORATE', category: 'combat', tooltip: 'Heal 1/16 HP per turn for 5 turns.' },
     { id: 'avoid', name: 'AVOID', category: 'status', tooltip: '+1 evasion for 3 turns.' },
     { id: 'adjudge', name: 'ADJUDGE', category: 'damage', tooltip: '120 power but speed halved this turn.' },
-    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 300 charge).' }
+    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   tyson: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
@@ -279,7 +444,7 @@ const STRIFE_OPTIONS = {
     { id: 'apologize', name: 'APOLOGIZE', category: 'status', tooltip: '-1 your ATK, -1 enemy ATK and SP.ATK for 3 turns.' },
     { id: 'activate', name: 'ACTIVATE', category: 'item', tooltip: 'Detonate thrown bomb (100 power per turn).' },
     { id: 'abscond', name: 'ABSCOND', category: 'abscond', tooltip: 'Flee from battle.' },
-    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 300 charge).' }
+    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   isabela: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
@@ -295,10 +460,7 @@ const STRIFE_OPTIONS = {
     { id: 'alternate', name: 'ALTERNATE', category: 'item', tooltip: 'Switch crossbow bolt type.' },
     { id: 'accuse', name: 'ACCUSE', category: 'status', tooltip: '+1 SP.ATK for 3 turns.' },
     { id: 'analyze', name: 'ANALYZE', category: 'status', tooltip: '+1 critical hit ratio for 3 turns.' },
-    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 300 charge).' }
-  ],
-  derseSoldier: [
-    { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
+    { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   derseGuard: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
@@ -381,20 +543,36 @@ export function getCombatantData(characterId) {
   };
 }
 
+const ABILITY_DESCRIPTIONS = {
+  weaponSteal: 'Can steal weapons from enemies in combat',
+  invincibleInCombat: 'Cannot be defeated in battle',
+  autoSolvePuzzle: 'Automatically solves puzzles',
+  healOthers: 'Can heal other party members',
+  healSelf: 'Can heal self during combat',
+  gristCreator: 'Can create grist resources',
+  buildStructures: 'Can build structures in the game world',
+  damageBoost: 'Deals increased damage in combat',
+  teleport: 'Can teleport to different locations',
+  spatialManipulation: 'Can manipulate space and positioning',
+  largeInventory: 'Has expanded inventory capacity',
+  gameBreaker: 'Has abilities that break game mechanics'
+};
+
 if (typeof window !== 'undefined') {
   window.CHARACTER_STATS = CHARACTER_STATS;
   window.WEAPON_DATABASE = WEAPON_DATABASE;
   window.DEFAULT_WEAPONS = DEFAULT_WEAPONS;
+  window.ABILITY_DESCRIPTIONS = ABILITY_DESCRIPTIONS;
   window.STRIFE_OPTIONS = STRIFE_OPTIONS;
   window.STRIFE_CATEGORIES = STRIFE_CATEGORIES;
   window.ABILITIES = ABILITIES;
-  window.getCombatantData = getCombatantData;
 }
 
 export {
   CHARACTER_STATS,
   WEAPON_DATABASE,
   DEFAULT_WEAPONS,
+  ABILITY_DESCRIPTIONS,
   STRIFE_OPTIONS,
   STRIFE_CATEGORIES,
   ABILITIES

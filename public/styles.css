@@ -2648,6 +2648,26 @@ html[data-contrast="high"] .pesterlog .redacted .msg {
   object-fit: cover;
 }
 
+/* Metallic shine animation */
+@keyframes metallic-shine {
+  0% {
+    transform: translate(-100%, -100%);
+  }
+  100% {
+    transform: translate(100%, 100%);
+  }
+}
+
+/* Shine sweep animation for battle intro */
+@keyframes shine-sweep {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 /* Ensure headings maintain their own font sizes independent of --reader-text */
 h1, h2, h3, h4, h5, h6 {
   font-size: revert;

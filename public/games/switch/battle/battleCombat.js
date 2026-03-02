@@ -79,6 +79,8 @@ class PokemonCombatSystem {
       const baseStats = CHARACTER_STATS[characterId] || defaultStats;
       const savedHp = this.gameState.characters[characterId]?.currentHp;
       const currentHp = savedHp !== undefined ? savedHp : baseStats.hp;
+      const savedCharge = this.gameState.characters[characterId]?.fraymotifCharge;
+      const fraymotifCharge = savedCharge !== undefined ? Math.min(1000, savedCharge) : 0;
 
       return {
         id: characterId,
@@ -90,7 +92,7 @@ class PokemonCombatSystem {
         weapon: DEFAULT_WEAPONS[characterId] || 'fist',
         weaponDeck: [DEFAULT_WEAPONS[characterId]],
         stageModifiers: [],
-        fraymotifCharge: 0,
+        fraymotifCharge: fraymotifCharge,
         critStage: 0,
         statusEffects: {},
         isPlayer: true
@@ -263,7 +265,7 @@ class PokemonCombatSystem {
   calculateDamage(attacker, defender, move, isCritical = false) {
     if (move.power === 0) return 0;
 
-    const level = 50;
+    const level = attacker.level || 50;
     const isPhysical = move.type === 'physical';
 
     let attack = isPhysical ? attacker.attack : attacker.specialAttack;
@@ -281,32 +283,32 @@ class PokemonCombatSystem {
     if (!isCritical || attackStage > 0) {
       attack *= this.getStatStageMultiplier(attackStage);
     }
-    
+
     if (!isCritical || defenseStage < 0) {
       defense *= this.getStatStageMultiplier(defenseStage);
     }
-    
+
     if (defender.statusEffects.defenseBoost) {
       defense *= defender.statusEffects.defenseBoost.multiplier;
     }
-    
-    let damage = Math.floor(((2 * level / 5) + 2) * move.power * (attack / defense) / 50) + 2;
-    
+
+    let damage = Math.floor(((level * 2 / 5) + 2) * move.power * (attack / defense) / 50);
+
+    const randomFactor = 0.85 + Math.random() * 0.15;
+    damage = Math.floor(damage * randomFactor);
+
     if (isCritical) {
       damage = Math.floor(damage * 1.5);
     }
-    
+
     if (attacker.ability.effect === 'lowAccuracyHighDamage' && !isPhysical) {
       damage = Math.floor(damage * 2);
     }
-    
+
     if (attacker.isPlayer && this.playerLastMove === move.name && attacker.ability.effect === 'repeatMoveHalved') {
       damage = Math.floor(damage / 2);
     }
-    
-    const randomFactor = 0.85 + Math.random() * 0.15;
-    damage = Math.floor(damage * randomFactor);
-    
+
     return Math.max(1, damage);
   }
 
@@ -555,7 +557,7 @@ class PokemonCombatSystem {
     const weapon = WEAPON_DATABASE[attacker.weapon];
     if (!weapon) return 0;
 
-    const level = 50;
+    const level = attacker.level || 50;
     const isPhysical = weapon.type === 'physical';
 
     let attack = isPhysical ? attacker.attack : attacker.specialAttack;
@@ -576,16 +578,16 @@ class PokemonCombatSystem {
       defense *= defender.statusEffects.defenseBoost.multiplier;
     }
 
-    let damage = Math.floor(((2 * level / 5) + 2) * weaponPower * (attack / defense) / 50) + 2;
+    let damage = Math.floor(((level * 2 / 5) + 2) * weaponPower * (attack / defense) / 50);
+
+    const randomFactor = 0.85 + Math.random() * 0.15;
+    damage = Math.floor(damage * randomFactor);
 
     damage = Math.floor(damage * damageMultiplier);
 
     if (isCritical) {
       damage = Math.floor(damage * 1.5);
     }
-
-    const randomFactor = 0.85 + Math.random() * 0.15;
-    damage = Math.floor(damage * randomFactor);
 
     return Math.max(1, damage);
   }
@@ -660,7 +662,7 @@ class PokemonCombatSystem {
       results.messages.push(`Dealt ${damage} damage!`);
     }
 
-    this.player.fraymotifCharge = Math.min(300, this.player.fraymotifCharge + results.damage);
+    this.player.fraymotifCharge = Math.min(1000, this.player.fraymotifCharge + results.damage);
 
     if (weapon.ability === 'lowerSpeed') {
       const statMessages = this.changeStats(this.enemy, { speed: -1 });
@@ -905,6 +907,9 @@ class PokemonCombatSystem {
     const statMessages = this.changeStats(this.player, { attack: 1 });
     results.messages.push(...statMessages);
 
+    this.player.fraymotifCharge = Math.min(1000, this.player.fraymotifCharge + this.player.attack);
+    results.messages.push(`Gained ${this.player.attack} fraymotif charge!`);
+
     return results;
   }
 
@@ -1089,19 +1094,18 @@ class PokemonCombatSystem {
   }
 
   strifeAnthem() {
-    const results = { success: true, messages: [], damage: 0 };
+    const results = { success: true, messages: [], openFraymotif: true };
 
-    if (this.player.fraymotifCharge < 300) {
+    if (this.player.fraymotifCharge < 1000) {
       results.success = false;
+      results.openFraymotif = false;
       results.messages.push(`${this.player.id} used ANTHEM!`);
-      results.messages.push(`Not enough charge! (${this.player.fraymotifCharge}/300)`);
+      results.messages.push(`Not enough charge! (${this.player.fraymotifCharge}/1000)`);
       return results;
     }
 
     results.messages.push(`${this.player.id} used ANTHEM!`);
-    results.messages.push(`Fraymotif activated! (Fraymotif effects not yet implemented)`);
-
-    this.player.fraymotifCharge = 0;
+    results.messages.push(`Opening fraymotif menu...`);
 
     return results;
   }

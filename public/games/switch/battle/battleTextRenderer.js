@@ -77,21 +77,19 @@ class BattleTextRenderer {
     return this.bitmapFont.renderText(text, color, bgColor, shadowColor, shadowOffset, scale, dilate, customFontSize);
   }
 
-  addLogMessage(message, color = '#0f0', onRender = null, container = null) {
+  addLogMessage(message, color = '#0f0', onRender = null) {
     this.battleMessages.push({ text: `> ${message}`, color: color });
-    
+
     if (onRender) {
       onRender();
     }
 
-    if (container) {
-      setTimeout(() => {
-        const logContent = document.getElementById('combatLogContent');
-        if (logContent) {
-          logContent.scrollTop = logContent.scrollHeight;
-        }
-      }, 10);
-    }
+    setTimeout(() => {
+      const logContent = document.getElementById('combatLogContent');
+      if (logContent) {
+        logContent.scrollTop = logContent.scrollHeight;
+      }
+    }, 10);
   }
 
   waitForInput(callback, container, timeout = null) {

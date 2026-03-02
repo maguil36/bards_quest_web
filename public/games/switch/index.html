@@ -257,6 +257,362 @@
         .volumeRow { display: flex; align-items: center; gap: 10px; }
         #volumeSlider { flex: 1; }
 
+        /* Character Stats Modal - Homestuck/Pokemon Style - Full Screen */
+        #characterStatsModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg);
+            z-index: 125;
+            display: none;
+            overflow: hidden;
+        }
+
+        #statsModalHeader {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+            color: var(--bg);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #statsModalHeader::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            pointer-events: none;
+        }
+
+        #statsModalTitle {
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+
+        #statsModalClose {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            transition: all 0.2s;
+        }
+
+        #statsModalClose:hover {
+            background: rgba(0,0,0,0.5);
+            border-color: rgba(255,255,255,0.5);
+            transform: rotate(90deg);
+        }
+
+        #statsModalBody {
+            display: flex;
+            height: calc(100vh - 52px);
+            overflow: hidden;
+        }
+
+        #statsPortraitSection {
+            width: 45%;
+            background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+            border-right: 3px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 16px;
+        }
+
+        #statsPortraitSection::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.02) 2px,
+                rgba(0,0,0,0.02) 4px
+            );
+            pointer-events: none;
+        }
+
+        #statsPortraitContainer {
+            width: 85%;
+            max-width: 280px;
+            aspect-ratio: 1;
+            border: 3px solid var(--border);
+            background: var(--card);
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        #statsPortraitImage {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated;
+        }
+
+        #statsCharacterName {
+            font-size: 28px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 12px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+
+        #statsCharacterTitle {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        #statsInfoSection {
+            width: 55%;
+            padding: 16px;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        .stats-section {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            padding: 12px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .stats-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .stats-section-title {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: var(--card);
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            border: 2px solid var(--border);
+        }
+
+        .stats-vitality-bar-container {
+            margin-bottom: 10px;
+        }
+
+        .stats-vitality-bar-container:last-child {
+            margin-bottom: 0;
+        }
+
+        .stats-vitality-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stats-vitality-bar {
+            width: 100%;
+            height: 18px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-vitality-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+            transition: width 0.3s ease;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        .stats-vitality-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 4px,
+                rgba(255,255,255,0.1) 4px,
+                rgba(255,255,255,0.1) 8px
+            );
+        }
+
+        .stats-level-container {
+            margin-bottom: 0;
+        }
+
+        .stats-level-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stats-xp-bar {
+            width: 100%;
+            height: 14px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 3px;
+        }
+
+        .stats-xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
+            transition: width 0.3s ease;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        .stats-xp-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 3px,
+                rgba(255,255,255,0.15) 3px,
+                rgba(255,255,255,0.15) 6px
+            );
+        }
+
+        .stats-xp-text {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 2px;
+            text-align: right;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            background: var(--bg);
+            border-left: 3px solid var(--accent);
+        }
+
+        .stat-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--muted);
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stats-weapon-info {
+            margin-top: 6px;
+        }
+
+        .stats-weapon-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 3px;
+        }
+
+        .stats-weapon-desc {
+            font-size: 10px;
+            color: var(--muted);
+            line-height: 1.3;
+        }
+
+        .stats-abilities-list {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 0 0;
+        }
+
+        .stats-abilities-list li {
+            padding: 5px 8px;
+            margin-bottom: 4px;
+            background: var(--bg);
+            border-left: 3px solid var(--primary);
+            font-size: 10px;
+            line-height: 1.3;
+        }
+
+        .stats-abilities-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        @keyframes statsSlideIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        #characterStatsModal.show {
+            animation: statsSlideIn 0.2s ease-out;
+        }
+
         /* Battle UI Animations */
         @keyframes slideInLeft {
             from {
@@ -346,6 +702,28 @@
             }
             50% {
                 filter: brightness(2);
+            }
+        }
+
+        .metallic-flash {
+            animation: metallic-flash 0.6s ease-out;
+        }
+
+        @keyframes metallic-flash {
+            0% {
+                filter: brightness(1) contrast(1);
+            }
+            25% {
+                filter: brightness(1.8) contrast(1.3);
+            }
+            50% {
+                filter: brightness(2.2) contrast(1.5) saturate(0.5);
+            }
+            75% {
+                filter: brightness(1.5) contrast(1.2);
+            }
+            100% {
+                filter: brightness(1) contrast(1);
             }
         }
 
@@ -440,24 +818,26 @@
             </div>
 
             <div class="settingsRow">
-                <div class="settingsLabel">Playing as</div>
-                <div class="settingsValue"><span id="settingsCurrentCharacter">Alexis</span></div>
-            </div>
-
-            <div class="settingsRow">
                 <div class="settingsLabel">Controls</div>
                 <div class="settingsValue">
                     WASD or Arrow Keys — Move<br>
                     Space — Interact / talk<br>
+                    E — View character stats<br>
                     Esc — Close windows; open Options if none are open
                 </div>
             </div>
 
             <div class="settingsRow">
-                <div class="settingsLabel">Progress</div>
+                <div class="settingsLabel">Character Stats</div>
                 <div class="settingsValue">
-                    Talked to (this character): <span id="settingsCharProgress">0</span>/<span id="settingsCharTotal">0</span><br>
-                    <span id="settingsQuestInfo">No quest</span> — <span id="settingsQuestStatus">Ongoing</span>
+                    <button id="viewCharacterStatsBtn" style="background: var(--accent); color: var(--bg); border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 700; font-size: 13px; font-family: 'Courier New', monospace;">View Stats (E)</button>
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Quest Log</div>
+                <div class="settingsValue" id="questLogContainer">
+                    Loading...
                 </div>
             </div>
 
@@ -530,6 +910,27 @@
             </div>
         </div>
 
+        <div id="characterStatsModal">
+            <div id="statsModalHeader">
+                <div id="statsModalTitle">Character Stats</div>
+                <button id="statsModalClose" aria-label="Close stats">×</button>
+            </div>
+            <div id="statsModalBody">
+                <div id="statsPortraitSection">
+                    <div id="statsPortraitContainer">
+                        <img id="statsPortraitImage" src="" alt="Character Portrait">
+                    </div>
+                    <div id="statsCharacterName">Loading...</div>
+                    <div id="statsCharacterTitle">Adventurer</div>
+                </div>
+                <div id="statsInfoSection">
+                    <div id="statsModalContent">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="combatUI"></div>
     </div>
     </div>
@@ -573,7 +974,7 @@
         }
       });
     </script>
-    <script src="map/mapCharacters.js"></script>
+    <script type="module" src="map/mapCharacters.js"></script>
     <script src="dialogue/dialogueTalkTo.js"></script>
     <script src="dialogue/dialogueSwitchCharacter.js"></script>
     <script src="dialogue/dialogueEncounter.js"></script>

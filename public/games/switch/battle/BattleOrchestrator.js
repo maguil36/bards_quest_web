@@ -86,6 +86,18 @@ export class BattleOrchestrator extends BaseOrchestrator {
 
         this.battleState.startBattle(playerData, enemyData, combatConfig.agent || null);
         this.isActive = true;
+
+        console.log('[BattleOrchestrator] Attempting to play battle music for enemy:', enemyData.id);
+        if (this.game?.battleAudio) {
+            console.log('[BattleOrchestrator] battleAudio exists, calling playEnemyMusic');
+            this.game.battleAudio.playEnemyMusic(enemyData.id);
+        } else {
+            console.warn('[BattleOrchestrator] battleAudio NOT found!', {
+                hasGame: !!this.game,
+                hasBattleAudio: !!this.game?.battleAudio
+            });
+        }
+
         this.emit('battleStart', { player: playerData, enemy: enemyData });
 
         if (this.battleController) {
@@ -118,6 +130,16 @@ export class BattleOrchestrator extends BaseOrchestrator {
 
     endBattle(playerWon, resetOnly = false) {
         console.log('[BattleOrchestrator] endBattle called:', { playerWon, resetOnly });
+
+        if (this.combatSystem && this.combatSystem.player && this.gameState) {
+            const playerId = this.combatSystem.player.id;
+            const currentCharge = this.combatSystem.player.fraymotifCharge || 0;
+            if (this.gameState.characters[playerId]) {
+                this.gameState.characters[playerId].fraymotifCharge = Math.min(1000, currentCharge);
+                console.log(`[BattleOrchestrator] Saved fraymotif charge for ${playerId}: ${this.gameState.characters[playerId].fraymotifCharge}`);
+            }
+        }
+
         const summary = this.battleState.endBattle({ won: playerWon, escaped: resetOnly });
 
         console.log('[BattleOrchestrator] Emitting battleEnd event');

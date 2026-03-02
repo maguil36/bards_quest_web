@@ -1,5 +1,6 @@
 import { BattleUIInput } from './battleUIInput.js';
 import { ASPECT_COLORS, CHARACTER_ASPECTS, getCharacterAspect, getAspectColor } from '../constants.js';
+import { getFraymotifAbilities, getFraymotifBackground } from './battleFraymotifData.js';
 
 class BattleUI {
   constructor(gameState) {
@@ -29,6 +30,10 @@ class BattleUI {
 
   set battleMessages(messages) {
     this.textRenderer.setMessages(messages);
+  }
+
+  clearMessages() {
+    this.textRenderer.clearMessages();
   }
 
   init() {
@@ -63,6 +68,8 @@ class BattleUI {
     // Initialize HP tracking for animations
     this.lastPlayerHP = combatData.player.hp;
     this.lastEnemyHP = combatData.enemy.hp;
+
+    this.render();
 
     this.playIntroAnimation(() => {
       this.currentPhase = 'selecting';
@@ -455,7 +462,7 @@ class BattleUI {
   }
   
   renderActionPanel(player, aspectColor) {
-    if (this.currentPhase === 'selecting') {
+    if (this.currentPhase === 'intro' || this.currentPhase === 'selecting') {
       return this.renderMainMenu(aspectColor);
     } else if (this.currentPhase === 'moves') {
       return this.renderMoveSelection(player, aspectColor);
@@ -473,87 +480,74 @@ class BattleUI {
   }
 
   renderFragmotifSelection(player, aspectColor) {
-    const moves = player.moves || [];
-    const heroAspect = this.gameState?.currentCharacter?.aspect || 'space';
-
-    const getStatAbbreviation = (stat) => {
-      const abbreviations = {
-        'attack': 'ATK',
-        'defense': 'DEF',
-        'spAttack': 'SP ATK',
-        'spDefense': 'SP DEF',
-        'speed': 'SPD'
-      };
-      return abbreviations[stat] || stat.toUpperCase();
-    };
+    const fraymotifAbilities = getFraymotifAbilities(player.id);
 
     setTimeout(() => {
-      moves.slice(0, 4).forEach((move, index) => {
-        const moveButton = document.querySelector(`[data-fraymotif-index="${index}"]`);
-        if (moveButton) {
-          moveButton.innerHTML = '';
+      fraymotifAbilities.forEach((ability, index) => {
+        const abilityButton = document.querySelector(`[data-fraymotif-index="${index}"]`);
+        if (abilityButton) {
+          abilityButton.innerHTML = '';
 
           const container = document.createElement('div');
-          container.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
+          container.style.cssText = 'display: flex; flex-direction: column; gap: 4px; padding: 8px; background: rgba(0,0,0,0.7); border: 2px solid #ffd700; border-radius: 4px; min-width: 300px;';
 
-          const nameCanvas = this.createPixelatedText(move.name, 'button');
+          const nameCanvas = this.createPixelatedText(ability.name, {
+            color: '#ffd700',
+            bgColor: 'transparent',
+            shadowColor: null,
+            shadowOffset: 0,
+            scale: 0.6,
+            dilate: false,
+            baseFontSize: 14
+          });
           container.appendChild(nameCanvas);
 
-          let moveInfo = '';
-          if (move.power > 0) {
-            moveInfo = `PWR: ${move.power}`;
-          } else if (move.effect && move.effect.type === 'defenseBoost') {
-            moveInfo = 'DEF Boost';
-          } else if (move.effect && move.effect.type === 'heal') {
-            moveInfo = `Heal ${move.effect.percent}%`;
-          } else if (move.effect && move.effect.type === 'delayed') {
-            moveInfo = 'Delayed ATK';
-          } else if (move.effect && move.effect.type === 'selfKO') {
-            moveInfo = 'Self KO';
-          } else if (move.effect && move.effect.stats) {
-            const statDesc = Object.entries(move.effect.stats).map(([stat, change]) => {
-              return `${getStatAbbreviation(stat)} ${change > 0 ? '+' : ''}${change}`;
-            }).join(', ');
-            moveInfo = statDesc;
-          } else {
-            moveInfo = '---';
-          }
+          const descCanvas = this.createPixelatedText(ability.description, {
+            color: '#ffffff',
+            bgColor: 'transparent',
+            shadowColor: null,
+            shadowOffset: 0,
+            scale: 0.4,
+            dilate: false,
+            baseFontSize: 14
+          });
+          container.appendChild(descCanvas);
 
-          const infoContainer = document.createElement('div');
-          infoContainer.style.cssText = 'display: flex; gap: 12px;';
-
-          const typeCanvas = this.createPixelatedText(move.type.toUpperCase(), 'button');
-          const infoCanvas = this.createPixelatedText(moveInfo, 'button');
-
-          infoContainer.appendChild(typeCanvas);
-          infoContainer.appendChild(infoCanvas);
-          container.appendChild(infoContainer);
-
-          moveButton.appendChild(container);
+          abilityButton.appendChild(container);
         }
       });
 
-      const backButton = document.querySelector('.back-button');
+      const backButton = document.querySelector('.fraymotif-back-button');
       if (backButton) {
         backButton.innerHTML = '';
-        const canvas = this.createPixelatedText('← BACK', 'button');
+        const canvas = this.createPixelatedText('BACK TO STRIFE', {
+          color: '#ffffff',
+          bgColor: 'transparent',
+          shadowColor: null,
+          shadowOffset: 0,
+          scale: 0.6,
+          dilate: false,
+          baseFontSize: 14
+        });
         backButton.appendChild(canvas);
       }
+
+      this.inputHandler.setupKeyboardNavigation();
     }, 0);
 
     return `
       <div style="
         position: absolute;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
+        left: 35%;
+        top: 60%;
+        transform: translate(-50%, -50%);
         display: flex;
         flex-direction: column;
-        gap: 0;
+        gap: 10px;
         z-index: 10;
       ">
-        ${moves.slice(0, 4).map((move, index) => `
-          <button class="move-button" data-fraymotif-index="${index}" style="
+        ${fraymotifAbilities.map((ability, index) => `
+          <button class="fraymotif-ability-button" data-fraymotif-index="${index}" style="
             background: transparent;
             border: none;
             padding: 0;
@@ -563,14 +557,33 @@ class BattleUI {
           ">
           </button>
         `).join('')}
-        <button class="back-button" style="
+        <button class="fraymotif-back-button" style="
           background: transparent;
           border: none;
-          padding: 0;
+          padding: 8px;
           cursor: pointer;
           display: block;
+          margin-top: 10px;
         ">
         </button>
+      </div>
+    `;
+  }
+
+  renderFragmotifBackground(player, aspectColor) {
+    const backgroundImage = getFraymotifBackground(player.id);
+
+    return `
+      <div class="fraymotif-background" style="
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url('/games/switch/images/battleUI/${backgroundImage}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      ">
       </div>
     `;
   }
@@ -591,7 +604,7 @@ class BattleUI {
       id: option.id,
       label: option.name,
       description: option.tooltip,
-      image: 'aggrieve.png'
+      image: `${option.id}.png`
     }));
 
     setTimeout(() => {
@@ -599,17 +612,66 @@ class BattleUI {
         const buttonElement = document.querySelector(`[data-action="${btn.id}"]`);
         if (buttonElement) {
           buttonElement.innerHTML = '';
-          const img = document.createElement('img');
-          img.src = `/games/switch/images/battleUI/${btn.image}`;
-          img.style.cssText = `
-            image-rendering: pixelated;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: crisp-edges;
-            display: block;
-            width: 227px;
-            height: 43px;
-          `;
-          buttonElement.appendChild(img);
+
+          if (btn.id === 'anthem') {
+            const fraymotifCharge = this.combatData?.player?.fraymotifCharge || 0;
+            const chargePercent = Math.min(100, (fraymotifCharge / 1000) * 100);
+
+            const container = document.createElement('div');
+            container.style.cssText = `
+              position: relative;
+              width: 227px;
+              height: 43px;
+              overflow: hidden;
+            `;
+
+            const imgGreyed = document.createElement('img');
+            imgGreyed.src = `/games/switch/images/battleUI/${btn.image}`;
+            imgGreyed.style.cssText = `
+              image-rendering: pixelated;
+              image-rendering: -moz-crisp-edges;
+              image-rendering: crisp-edges;
+              display: block;
+              width: 227px;
+              height: 43px;
+              position: absolute;
+              top: 0;
+              left: 0;
+              filter: grayscale(100%) brightness(0.5);
+            `;
+            container.appendChild(imgGreyed);
+
+            const imgColor = document.createElement('img');
+            imgColor.src = `/games/switch/images/battleUI/${btn.image}`;
+            imgColor.style.cssText = `
+              image-rendering: pixelated;
+              image-rendering: -moz-crisp-edges;
+              image-rendering: crisp-edges;
+              display: block;
+              width: 227px;
+              height: 43px;
+              position: absolute;
+              top: 0;
+              left: 0;
+              clip-path: inset(0 ${100 - chargePercent}% 0 0);
+              transition: clip-path 0.3s ease-out;
+            `;
+            container.appendChild(imgColor);
+
+            buttonElement.appendChild(container);
+          } else {
+            const img = document.createElement('img');
+            img.src = `/games/switch/images/battleUI/${btn.image}`;
+            img.style.cssText = `
+              image-rendering: pixelated;
+              image-rendering: -moz-crisp-edges;
+              image-rendering: crisp-edges;
+              display: block;
+              width: 227px;
+              height: 43px;
+            `;
+            buttonElement.appendChild(img);
+          }
         }
       });
 
@@ -617,7 +679,7 @@ class BattleUI {
     }, 0);
 
     return `
-      <div style="
+      <div class="actions" style="
         position: absolute;
         left: 20px;
         bottom: 220px;
@@ -838,7 +900,21 @@ class BattleUI {
     const messagesHTML = this.battleMessages.map(msg => {
       const color = typeof msg === 'string' ? '#0f0' : (msg.color || '#0f0');
       const text = typeof msg === 'string' ? msg : msg.text;
-      return `<div style="margin-bottom: 4px; color: ${color};">${text}</div>`;
+
+      const canvas = this.textRenderer.bitmapFont.renderText(
+        text,
+        color,
+        null,
+        null,
+        1,
+        2,
+        false,
+        14
+      );
+
+      const dataURL = canvas.toDataURL();
+
+      return `<div style="margin-bottom: 8px; line-height: 0;"><img src="${dataURL}" style="image-rendering: pixelated; display: block;" /></div>`;
     }).join('');
 
     return `
@@ -852,8 +928,6 @@ class BattleUI {
         padding: 20px;
         max-height: 150px;
         overflow-y: auto;
-        font-family: 'Courier New', monospace;
-        color: #0f0;
       ">
         <div id="combatLogContent">${messagesHTML}</div>
       </div>
@@ -865,8 +939,44 @@ class BattleUI {
     actionButtons.forEach((button, index) => {
       button.addEventListener('click', (e) => {
         const action = e.currentTarget.dataset.action;
+
+        if (action === 'anthem') {
+          this.showFraymotifUI();
+          return;
+        }
+
         if (this.onStrifeAction) {
           this.onStrifeAction(action);
+        }
+      });
+
+      button.addEventListener('mouseenter', (e) => {
+        const allButtons = this.inputHandler.getNavigableButtons();
+        const buttonIndex = allButtons.indexOf(e.currentTarget);
+        if (buttonIndex !== -1) {
+          this.focusedButtonIndex = buttonIndex;
+          this.inputHandler.updateButtonFocus(allButtons);
+        }
+      });
+
+      button.addEventListener('mouseleave', (e) => {
+        // Keep the focus on this button for keyboard nav continuity
+      });
+    });
+
+    const fraymotifButtons = this.container.querySelectorAll('.fraymotif-ability-button');
+    fraymotifButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        const abilityIndex = parseInt(e.currentTarget.dataset.fraymotifIndex);
+        const fraymotifCharge = this.combatData?.player?.fraymotifCharge || 0;
+
+        if (!isNaN(abilityIndex)) {
+          if (fraymotifCharge >= 1000) {
+            this.handleFragmotifSelection(abilityIndex);
+          } else {
+            this.commandPrompt = `==> Not enough charge! (${fraymotifCharge}/1000)`;
+            this.render();
+          }
         }
       });
 
@@ -932,19 +1042,54 @@ class BattleUI {
         // Keep the focus on this button for keyboard nav continuity
       });
     }
+
+    const fraymotifBackButton = this.container.querySelector('.fraymotif-back-button');
+    if (fraymotifBackButton) {
+      fraymotifBackButton.addEventListener('click', () => {
+        this.currentPhase = 'selecting';
+        this.commandPrompt = '==> What will you do?';
+        this.render();
+      });
+
+      fraymotifBackButton.addEventListener('mouseenter', () => {
+        const allButtons = this.inputHandler.getNavigableButtons();
+        const buttonIndex = allButtons.indexOf(fraymotifBackButton);
+        if (buttonIndex !== -1) {
+          this.focusedButtonIndex = buttonIndex;
+          this.inputHandler.updateButtonFocus(allButtons);
+        }
+      });
+
+      fraymotifBackButton.addEventListener('mouseleave', () => {
+        // Keep the focus on this button for keyboard nav continuity
+      });
+    }
   }
-  
 
 
+  showFraymotifUI() {
+    this.currentPhase = 'fraymotif';
+    this.commandPrompt = '==> Choose a FRAYMOTIF...';
+    this.render();
+  }
 
-  
   handleMoveSelection(moveIndex) {
     this.currentPhase = 'animating';
     this.commandPrompt = '==> Engaging in STRIFE...';
     this.render();
-    
+
     if (this.onMoveSelected) {
       this.onMoveSelected(moveIndex);
+    }
+  }
+
+  handleFragmotifSelection(abilityIndex) {
+    this.currentPhase = 'animating';
+    this.commandPrompt = '==> Activating FRAYMOTIF...';
+    this.render();
+
+    if (this.onFragmotifSelected) {
+      this.onFragmotifSelected(abilityIndex);
     }
   }
   
@@ -1021,8 +1166,20 @@ class BattleUI {
     );
   }
 
-  playAttackAnimation(isPlayer = false, callback) {
-    this.animations.playAttackAnimation(isPlayer, callback);
+  playAttackAnimation(isPlayer = false, moveData = null, callback) {
+    console.log('[BATTLEUI WRAPPER] Received:', { isPlayer, moveData, callback: typeof callback });
+    if (typeof moveData === 'function') {
+      console.log('[BATTLEUI WRAPPER] moveData is function, swapping parameters');
+      callback = moveData;
+      moveData = null;
+    }
+    console.log('[BATTLEUI WRAPPER] Passing to animations:', { isPlayer, moveData, callback: typeof callback });
+    this.animations.playAttackAnimation(isPlayer, moveData, callback);
+  }
+
+  playAttackAnimationWithResult(isPlayer = false, moveData = null, didHit = true, callback) {
+    console.log('[BATTLEUI WRAPPER] playAttackAnimationWithResult:', { isPlayer, moveData, didHit, callback: typeof callback });
+    this.animations.playAttackAnimationWithResult(isPlayer, moveData, didHit, callback);
   }
 
   waitForInput(callback, timeout = 5000) {
