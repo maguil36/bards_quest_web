@@ -8,7 +8,7 @@ export const lightCharacterPaths: Record<string, string> = {
   'alexis': '/images/light/alexis.svg',
   'austine': '/images/light/austine.svg',
   'chloe': '/images/light/chloe.svg',
-  'isabell': '/images/light/isabell.svg',
+  'isabela': '/images/light/isabela.svg',
   'nicholas': '/images/light/nicholas.svg',
   'opal': '/images/light/opal.svg',
   'tyson': '/images/light/tyson.svg',

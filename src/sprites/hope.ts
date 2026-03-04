@@ -9,7 +9,7 @@ export const characterAspects: Record<string, string> = {
   'alexis': 'time',
   'austine': 'space',
   'chloe': 'breath',
-  'isabell': 'light',
+  'isabela': 'light',
   'nicholas': 'heart',
   'opal': 'mind',
   'tyson': 'hope',

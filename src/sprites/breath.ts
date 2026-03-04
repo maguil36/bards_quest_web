@@ -43,7 +43,7 @@ export const characterLevelNames: Record<string, string[]> = {
     'Heartbeat Herald', 'Lifeblood Liberator', 'Soul Sustainer', 'Spirit Shepherd', 'Essence Emissary',
     'Avatar of Altruism', 'Paragon of Preservation', 'Exemplar of Existence', 'Pinnacle of Prosperity', 'ROGUE OF LIFE ASCENDANT'
   ],
-  isabell: [
+  isabela: [
     'Friendship Fixer', 'Buddy Builder', 'Pal Patcher', 'Chum Channeler', 'Amigo Assembler',
     'Bond Braider', 'Connection Crafter', 'Relation Restorer', 'Tie Tightener', 'Link Lifter',
     'Unity Understander', 'Harmony Helper', 'Cooperation Cultivator', 'Alliance Architect', 'Partnership Planner',

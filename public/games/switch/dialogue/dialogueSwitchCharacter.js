@@ -48,9 +48,9 @@ const SWITCH_DIALOGUES = {
                 { speaker: 'npc', text: "If you can bring them to me, I'll know I can trust you with this connection." }
             ]
         },
-        isabell: {
+        isabela: {
             firstTime: [
-                { speaker: 'player', text: "Isabell, I need to switch perspectives with you." },
+                { speaker: 'player', text: "isabela, I need to switch perspectives with you." },
                 { speaker: 'npc', text: "That's a deep connection to ask for." },
                 { speaker: 'player', text: "I know. But it's necessary, see." },
                 { speaker: 'npc', text: "Then let's build that connection first. Talk to me." }

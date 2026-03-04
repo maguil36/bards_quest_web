@@ -6,17 +6,17 @@ const CHARACTER_STATS = {
     defense: 280,
     specialAttack: 280,
     specialDefense: 250,
-    speed: 312,
+    speed: 220,
     level: 100
   },
   alexis: {
     hp: 358,
     maxHp: 358,
     attack: 439,
-    defense: 266,
+    defense: 270,
     specialAttack: 279,
     specialDefense: 202,
-    speed: 311,
+    speed: 306,
     level: 100
   },
   tyson: {
@@ -32,21 +32,21 @@ const CHARACTER_STATS = {
   chloe: {
     hp: 342,
     maxHp: 342,
-    attack: 185,
-    defense: 228,
-    specialAttack: 206,
-    specialDefense: 228,
-    speed: 96,
+    attack: 222,
+    defense: 244,
+    specialAttack: 237,
+    specialDefense: 250,
+    speed: 172,
     level: 98
   },
-  isabell: {
-    hp: 282,
-    maxHp: 282,
-    attack: 295,
-    defense: 180,
-    specialAttack: 290,
-    specialDefense: 160,
-    speed: 300,
+  isabela: {
+    hp: 295,
+    maxHp: 295,
+    attack: 288,
+    defense: 214,
+    specialAttack: 291,
+    specialDefense: 167,
+    speed: 243,
     level: 100
   },
   nicholas: {
@@ -139,9 +139,9 @@ const CHARACTER_STATS = {
     maxHp: 1250,
     attack: 319,
     defense: 284,
-    specialAttack: 212,
+    specialAttack: 190,
     specialDefense: 259,
-    speed: 174,
+    speed: 194,
     level: 90,
     xpDrop: 1093500
   },
@@ -500,7 +500,7 @@ const ABILITIES = {
   tyson: { name: 'Doomed', effect: 'noCrits' },
   nicholas: { name: 'Light Destroyer', effect: 'lowAccuracyHighDamage' },
   alexis: { name: 'Adaptation', effect: 'defenseOnHit' },
-  isabell: { name: 'Singer', effect: 'endTurnHeal' },
+  isabela: { name: 'Singer', effect: 'endTurnHeal' },
   chloe: { name: 'Life Player', effect: 'startCombatLowerAttack' },
   austine: { name: 'Tactician', effect: 'doubleStatChanges' }
 };

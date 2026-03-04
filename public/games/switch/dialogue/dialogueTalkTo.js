@@ -16,7 +16,7 @@ const DIALOGUES = {
                 { speaker: 'npc', text: "You always seem so grounded, Opal. How do you stay so calm?" },
                 { speaker: 'player', text: "When you're responsible for keeping reality stable, panic isn't an option, see." }
             ],
-            isabell: [
+            isabela: [
                 { speaker: 'npc', text: "I've been trying to organize everyone. Think you could help coordinate?" },
                 { speaker: 'player', text: "Space brings people together. Blood keeps them together. I'll help, see." }
             ],
@@ -62,7 +62,7 @@ const DIALOGUES = {
                 { speaker: 'npc', text: "You preserve life, I take power. We're basically opposites." },
                 { speaker: 'player', text: "Maybe. But we both fight for what we believe in, even if our methods differ." }
             ],
-            isabell: [
+            isabela: [
                 { speaker: 'npc', text: "All this 'team unity' stuff feels suffocating. Can't we just work independently?" },
                 { speaker: 'player', text: "Independence is fine until you realize you need backup. Bonds aren't chains, Alexis." }
             ],
@@ -95,7 +95,7 @@ const DIALOGUES = {
                 { speaker: 'npc', text: "Mind and Life should work well together. Logic guides healing decisions." },
                 { speaker: 'player', text: "Healing isn't just logic, Austine. Sometimes you need to feel who needs saving." }
             ],
-            isabell: [
+            isabela: [
                 { speaker: 'npc', text: "Your coordination puzzles are fascinating. Multi-variable optimization problems." },
                 { speaker: 'player', text: "They're about people connecting, not equations. But I appreciate the perspective." }
             ],
@@ -128,7 +128,7 @@ const DIALOGUES = {
                 { speaker: 'npc', text: "You treat healing like optimization. Don't you ever just... care?" },
                 { speaker: 'player', text: "Efficiency saves more lives. But yes, I do care. Logic doesn't exclude compassion." }
             ],
-            isabell: [
+            isabela: [
                 { speaker: 'npc', text: "We both nurture in different ways. You build bonds, I tend wounds." },
                 { speaker: 'player', text: "Foundation and flourishing. Together we create spaces where people can thrive." }
             ],
@@ -146,8 +146,8 @@ const DIALOGUES = {
             ],
         }
     },
-    isabell: {
-        name: 'Isabell',
+    isabela: {
+        name: 'isabela',
         dialogues: {
             opal: [
                 { speaker: 'npc', text: "You're good at bringing people together. Want to help me organize this chaos?" },
@@ -159,7 +159,7 @@ const DIALOGUES = {
             ],
             austine: [
                 { speaker: 'npc', text: "Connection requires vulnerability, not just logic. You get that, right?" },
-                { speaker: 'player', text: "Intellectually, yes. Emotionally? I'm working on it, Isabell." }
+                { speaker: 'player', text: "Intellectually, yes. Emotionally? I'm working on it, isabela." }
             ],
             chloe: [
                 { speaker: 'npc', text: "We're both nurturers. You heal individuals, I maintain group bonds." },
@@ -198,7 +198,7 @@ const DIALOGUES = {
                 { speaker: 'npc', text: "Life and Light should complement each other. Growth needs honest illumination." },
                 { speaker: 'player', text: "And truth needs gentleness sometimes. Balance makes both more effective." }
             ],
-            isabell: [
+            isabela: [
                 { speaker: 'npc', text: "Your bonds are genuine, not forced. That's rare. I respect that." },
                 { speaker: 'player', text: "And your light doesn't manipulate. It just reveals. That's admirable." }
             ],
@@ -231,7 +231,7 @@ const DIALOGUES = {
                 { speaker: 'npc', text: "You offer healing, but some wounds aren't meant to close yet." },
                 { speaker: 'player', text: "I understand. When you're ready for help, I'll be here." }
             ],
-            isabell: [
+            isabela: [
                 { speaker: 'npc', text: "Everyone wants me to join the group, but this burden feels too personal to share." },
                 { speaker: 'player', text: "Isolation is a choice, not a requirement. You don't have to carry everything alone." }
             ],
@@ -264,7 +264,7 @@ const DIALOGUES = {
                 { speaker: 'npc', text: "Life fights entropy. But entropy always wins eventually. Do you hate me for that?" },
                 { speaker: 'player', text: "No. You're honest about what I already know. Death gives life meaning." }
             ],
-            isabell: [
+            isabela: [
                 { speaker: 'npc', text: "Every bond you create will eventually break. Time guarantees it." },
                 { speaker: 'player', text: "Then we rebuild. Again and again. That's what Blood does, Victor." }
             ],

@@ -156,6 +156,9 @@ class DialogueManager {
         if (this.currentNPC && !this.isSwitchDialogue) {
             const currentCharacter = this.gameState.getCurrentCharacter();
             this.gameState.completeDialogue(currentCharacter.id, this.currentNPC.id);
+
+            this.checkAndCompleteQuests(currentCharacter.id, this.currentNPC.id);
+
             this.gameState.save();
         }
 
@@ -171,6 +174,14 @@ class DialogueManager {
         }
 
         if (this.pendingSwitch) {
+            const targetNpcId = this.pendingSwitch;
+            const targetNpcIdNormalized = targetNpcId === 'isabela' ? 'isabela' : targetNpcId;
+
+            if (this.game && this.game.questLogic) {
+                const questId = `ask_switch_${targetNpcIdNormalized}`;
+                this.game.questLogic.completeQuest(questId);
+            }
+
             this.performSwitch(this.pendingSwitch);
             this.pendingSwitch = null;
         }
@@ -182,6 +193,67 @@ class DialogueManager {
         this.isSwitchDialogue = false;
 
         return null;
+    }
+
+    // Check and complete relevant quests after dialogue
+    checkAndCompleteQuests(characterId, npcId) {
+        if (!this.game || !this.game.questLogic) return;
+
+        const npcIdNormalized = npcId === 'isabela' ? 'isabela' : npcId;
+
+        const questId = `talk_to_${npcIdNormalized}`;
+        this.game.questLogic.completeQuest(questId);
+
+        if (this.gameState.hasCompletedAllDialogues(characterId)) {
+            this.game.questLogic.completeQuest('talk_to_all');
+        }
+
+        if (characterId === 'tyson' && npcIdNormalized === 'isabela') {
+            this.game.questLogic.completeQuest('give_to_isabela');
+            setTimeout(() => {
+                this.game.questLogic.completeQuest('isabela_create_items');
+            }, 1000);
+        }
+
+        if (characterId === 'tyson' && npcIdNormalized === 'austine') {
+            this.game.questLogic.completeQuest('talk_to_austine_tyson');
+            this.game.questLogic.completeQuest('give_to_austine_tyson');
+        }
+
+        if (characterId === 'nicholas' && npcIdNormalized === 'austine') {
+            this.game.questLogic.completeQuest('give_to_austine_nicholas');
+        }
+
+        if (characterId === 'austine' && npcIdNormalized === 'tyson') {
+            this.game.questLogic.completeQuest('queen_location_austine');
+        }
+
+        if (characterId === 'isabela' && npcIdNormalized === 'alexis') {
+            this.game.questLogic.completeQuest('upgrade_weapon');
+        }
+
+        if (characterId === 'opal' && npcIdNormalized === 'tyson') {
+            this.game.questLogic.completeQuest('opal_ask_tyson');
+        }
+
+        if (characterId === 'opal' && npcIdNormalized === 'austine') {
+            this.game.questLogic.completeQuest('talk_to_austine_opal');
+        }
+
+        const characterQuestChains = [
+            'use_all_fraymotifs',
+            'give_to_austine_tyson',
+            'defeat_boss_alexis',
+            'upgrade_weapon',
+            'give_to_austine_nicholas',
+            'enter_combat_boss',
+            'level_up_100'
+        ];
+        const completedQuests = this.game.questLogic.gameState.completedQuests || new Set();
+        const allCompleted = characterQuestChains.every(q => completedQuests.has(q));
+        if (allCompleted) {
+            this.game.questLogic.completeQuest('finish_all_quests');
+        }
     }
 
     // Cancel dialogue without recording completion (used when user closes the window)
@@ -395,9 +467,59 @@ class DialogueManager {
                 this.performSwitch(targetNpcId);
                 return false;
             } else {
-                console.log('Cannot switch to this character yet');
-                return false;
+                const targetChar = CHARACTERS[targetNpcId];
+                const unlockCriteria = targetChar?.quest?.unlockCriteria;
+                let failureMessage = "You can't switch to this character yet.";
+
+                switch(unlockCriteria) {
+                    case 'defeat3Agents':
+                        failureMessage = "I need you to prove yourself in combat first. Defeat at least 3 agents.";
+                        break;
+                    case 'findPuzzlePiece':
+                        failureMessage = "Find the puzzle piece first, then we can switch.";
+                        break;
+                    case 'bringLostAnimal':
+                        failureMessage = "Bring me the lost animal, and then we can switch.";
+                        break;
+                    case 'talkToAll':
+                        failureMessage = "Talk to everyone first, then come back to me.";
+                        break;
+                    case 'beatMiniGame':
+                        failureMessage = "Let me test your aim first.";
+                        if (targetNpcId === 'nicholas') {
+                            this.showingMenu = false;
+                            this.currentDialogue = normalizeDialogue([
+                                { speaker: 'npc', text: "Hold on. Before we switch, I need to know you can handle my abilities. Let me test your aim." }
+                            ]);
+                            this.currentLineIndex = 0;
+                            this.isActive = true;
+                            this.pendingMiniGame = targetNpcId;
+                            return true;
+                        }
+                        break;
+                    case 'beOpalCompleted':
+                        failureMessage = "Complete Opal's quest first.";
+                        break;
+                    case 'playedAllCharacters':
+                        failureMessage = "Experience all perspectives first, then come back.";
+                        break;
+                }
+
+                this.showingMenu = false;
+                this.currentDialogue = normalizeDialogue([
+                    { speaker: 'npc', text: failureMessage }
+                ]);
+                this.currentLineIndex = 0;
+                this.isActive = true;
+                return true;
             }
+        }
+
+        // Complete ask_switch quest when player asks to switch
+        if (this.game && this.game.questLogic) {
+            const targetNpcIdNormalized = targetNpcId === 'isabela' ? 'isabela' : targetNpcId;
+            const questId = `ask_switch_${targetNpcIdNormalized}`;
+            this.game.questLogic.completeQuest(questId);
         }
 
         let dialogueToShow;

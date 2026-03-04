@@ -98,9 +98,9 @@ export const characterPlanets: Record<string, PlanetData> = {
     name: 'Land of Thorns and Vines',
     description: 'A harsh planet of withered gardens and struggling NPCs, where life clings desperately to survival. As a Rogue of Life, Chloe must learn the hardest lesson of healing: not everything can or should be saved. Her quest involves redistributing vitality wisely, helping NPCs rebuild against impossible odds while understanding that some sacrifices preserve more life than trying to save everything.'
   },
-  isabell: {
+  isabela: {
     name: 'Land of Pillars and Amphitheaters',
-    description: 'A planet of grand classical architecture—incomplete temples, colosseums, and forums with pillars awaiting activation. Each structure requires multiple players physically present at different pillars simultaneously, but each pillar demands unique strengths: one needs combat prowess, another logic puzzles, another spatial manipulation, another precise timing. As a Sylph of Blood, Isabell stands at the central nexus, coordinating different specialists into synchronized action. The pillars represent both literal support structures and her role as the foundation holding the team together.'
+    description: 'A planet of grand classical architecture—incomplete temples, colosseums, and forums with pillars awaiting activation. Each structure requires multiple players physically present at different pillars simultaneously, but each pillar demands unique strengths: one needs combat prowess, another logic puzzles, another spatial manipulation, another precise timing. As a Sylph of Blood, isabela stands at the central nexus, coordinating different specialists into synchronized action. The pillars represent both literal support structures and her role as the foundation holding the team together.'
   },
   nicholas: {
     name: 'Land of Beacons and Wisps',

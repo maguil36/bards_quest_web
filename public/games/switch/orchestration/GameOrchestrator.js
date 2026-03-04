@@ -94,6 +94,7 @@ export class GameOrchestrator extends BaseOrchestrator {
             this.battleOrchestrator.update(deltaTime);
         } else if (this.currentMode === 'dialogue' && this.game.showingDialogue) {
             this.dialogueOrchestrator.update();
+            this.mapOrchestrator.updateNPCAnimations();
         }
     }
 
@@ -141,6 +142,7 @@ export class GameOrchestrator extends BaseOrchestrator {
 
         this.battleOrchestrator.startBattle({
             playerName: currentChar.id,
+            playerLevel: this.game.gameState.levels[currentChar.id] || 100,
             enemyName: agent.type || 'derseAgent',
             agent: agent
         });
@@ -246,6 +248,22 @@ export class GameOrchestrator extends BaseOrchestrator {
                 if (enemyStats && enemyStats.xpDrop) {
                     this.awardXP(playerId, enemyStats.xpDrop);
                 }
+
+                if (this.game.questLogic) {
+                    const isBoss = ['DD', 'SS', 'HB', 'CB'].includes(enemyId);
+                    const isArchagent = enemyId.includes('Archagent') || !isBoss;
+
+                    this.game.questLogic.completeQuest('defeat_enemy_opal');
+
+                    if (isArchagent) {
+                        this.game.questLogic.completeQuest('defeat_archagent');
+                    }
+
+                    if (isBoss) {
+                        this.game.questLogic.completeQuest('defeat_boss_alexis');
+                        this.game.questLogic.completeQuest('enter_combat_boss');
+                    }
+                }
             }
 
             this.game.gameState.save();
@@ -270,6 +288,15 @@ export class GameOrchestrator extends BaseOrchestrator {
 
         if (newXP >= xpForNextLevel && currentLevel < 100) {
             this.levelUp(characterId);
+
+            if (this.game.questLogic && characterId === 'chloe') {
+                const newLevel = currentLevel + 1;
+                if (newLevel === 99) {
+                    this.game.questLogic.completeQuest('level_up_99');
+                } else if (newLevel === 100) {
+                    this.game.questLogic.completeQuest('level_up_100');
+                }
+            }
         }
 
         console.log(`[GameOrchestrator] ${characterId} gained ${xpAmount} XP! Total: ${newXP}`);

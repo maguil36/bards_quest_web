@@ -49,6 +49,9 @@ export class BattleOrchestrator extends BaseOrchestrator {
             enemyData = getCombatantData('derseAgent');
         } else if (combatConfig.playerName && combatConfig.enemyName) {
             playerData = getCombatantData(combatConfig.playerName);
+            if (combatConfig.playerLevel !== undefined) {
+                playerData.level = combatConfig.playerLevel;
+            }
             enemyData = getCombatantData(combatConfig.enemyName);
         } else if (combatConfig.player) {
             if (typeof combatConfig.player === 'string') {

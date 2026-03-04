@@ -8,6 +8,7 @@ class NicholasMiniGame {
     this.active = false;
     this.targets = [];
     this.score = 0;
+    this.baseTargetSpeed = 3;
     this.targetSpeed = 3;
     this.targetLifetime = 3000;
     this.lastSpawnTime = 0;
@@ -22,6 +23,8 @@ class NicholasMiniGame {
       y: 10,
       size: 30
     };
+    this.currentCharacterId = null;
+    this.allowFullTargetHit = false;
   }
 
   start() {
@@ -31,6 +34,23 @@ class NicholasMiniGame {
     this.targets = [];
     this.totalTargetsSpawned = 0;
     this.lastSpawnTime = Date.now();
+
+    this.currentCharacterId = this.gameState.getCurrentCharacter()?.id || 'opal';
+
+    const speedMultipliers = {
+      opal: 1.0,
+      austine: 1.0,
+      isabela: 1.0,
+      chloe: 1.25,
+      tyson: 1.25,
+      alexis: 0.75,
+      nicholas: 0.5
+    };
+
+    const multiplier = speedMultipliers[this.currentCharacterId] || 1.0;
+    this.targetSpeed = this.baseTargetSpeed * multiplier;
+
+    this.allowFullTargetHit = (this.currentCharacterId === 'nicholas');
   }
 
   stop() {
@@ -179,7 +199,7 @@ class CombatSystem {
     this.moves = {
       opal: ['Spatial Tear', 'Teleport Strike', 'Void Beam', 'Cosmic Shield'],
       nicholas: ['Light Ray', 'Illumination', 'Laser Beam', 'Flash Bang'],
-      isabell: ['Blood Bond', 'Vital Strike', 'Life Drain', 'Crimson Blade'],
+      isabela: ['Blood Bond', 'Vital Strike', 'Life Drain', 'Crimson Blade'],
       austine: ['Mind Spike', 'Psychic Blast', 'Thought Shield', 'Mental Crush'],
       chloe: ['Healing Wave', 'Life Force', 'Nature\'s Fury', 'Revitalize'],
       alexis: ['Rage Strike', 'Fury Slash', 'Berserker', 'Stolen Weapon'],

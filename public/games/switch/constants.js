@@ -48,7 +48,7 @@ export const CHARACTER_ASPECTS = {
   alexis: 'rage',
   tyson: 'doom',
   chloe: 'life',
-  isabell: 'blood',
+  isabela: 'blood',
   nicholas: 'light',
   austine: 'mind',
   victor: 'time',

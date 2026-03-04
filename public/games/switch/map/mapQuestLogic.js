@@ -89,4 +89,19 @@ export class MapQuestLogic {
   getAllQuestProgress() {
     return Object.keys(QUESTS).map(questId => this.getQuestProgress(questId));
   }
+
+  completeQuestsUnlockingCharacter(characterId) {
+    const completedQuests = [];
+
+    for (const [questId, quest] of Object.entries(QUESTS)) {
+      if (quest.unlockPlayable === characterId) {
+        const result = this.completeQuest(questId);
+        if (result.success) {
+          completedQuests.push(questId);
+        }
+      }
+    }
+
+    return completedQuests;
+  }
 }

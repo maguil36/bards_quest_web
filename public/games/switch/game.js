@@ -15,14 +15,15 @@ import { EndingManager } from './map/mapEnding.js';
 import { BattleController } from './battle/battleController.js';
 import { BattleUI } from './battle/battleUI.js';
 import { BattleAudio } from './battle/BattleAudio.js';
-import { CHARACTER_STATS, DEFAULT_WEAPONS, WEAPON_DATABASE, ABILITY_DESCRIPTIONS, ABILITIES } from './battle/battleCombatData.js';
 import { MapInteractions } from './map/mapInteractions.js';
 import { MapAI } from './map/mapAI.js';
 import { MapQuests } from './map/mapQuests.js';
 import { MapCharacterStatsUI } from './map/mapCharacterStatsUI.js';
 import { MapQuestUI } from './map/mapQuestUI.js';
+import { MapQuestLogUI } from './map/mapQuestLogUI.js';
 import { MapQuestLogic } from './map/mapQuestLogic.js';
-import { GAME_CONSTANTS, getInteractionRange, CHARACTER_ASPECTS } from './constants.js';
+import { GAME_CONSTANTS, CHARACTER_ASPECTS } from './constants.js';
+import { CHARACTERS } from './map/mapCharacters.js';
 import { GameOrchestrator } from './orchestration/GameOrchestrator.js';
 
  // Main game logic for the Switch game
@@ -81,6 +82,7 @@ class SwitchGame {
 
             this.characterStatsUI = new MapCharacterStatsUI(this.gameState);
             this.questUI = new MapQuestUI(this.gameState);
+            this.questLogUI = new MapQuestLogUI(this.gameState);
             this.questLogic = new MapQuestLogic(this.gameState);
 
             this.mapWidth = GAME_CONSTANTS.MAP_WIDTH;
@@ -204,7 +206,12 @@ class SwitchGame {
             } else {
             }
 
-            this.npcs = NPCS.filter(npc => npc.id !== currentChar.id).map(npc => ({ ...npc }));
+            this.npcs = NPCS.filter(npc => npc.id !== currentChar.id).map(npc => ({
+                ...npc,
+                animationFrame: 0,
+                animationTimer: 0,
+                direction: 'down'
+            }));
             if (this.dialogueManager) {
                 this.dialogueManager.npcs = this.npcs;
             }
@@ -355,8 +362,8 @@ class SwitchGame {
         const viewCharacterStatsBtn = document.getElementById('viewCharacterStatsBtn');
 
         const openStatsModal = () => {
-            if (typeof this.updateStatsModal === 'function') {
-                this.updateStatsModal();
+            if (this.characterStatsUI && typeof this.characterStatsUI.updateStatsModal === 'function') {
+                this.characterStatsUI.updateStatsModal();
             }
             if (statsModal) {
                 statsModal.style.display = 'block';
@@ -378,14 +385,17 @@ class SwitchGame {
         if (viewCharacterStatsBtn) viewCharacterStatsBtn.addEventListener('click', openStatsModal);
         if (statsModalClose) statsModalClose.addEventListener('click', closeStatsModal);
 
-        // E key to open stats modal
+        // E key to toggle stats modal
         document.addEventListener('keydown', (e) => {
             if (e.key === 'e' || e.key === 'E') {
                 if (this.showingDialogue || this.inBattle) return;
                 if (settingsModal && settingsModal.style.display === 'block') return;
-                if (statsModal && statsModal.style.display === 'block') return;
                 e.preventDefault();
-                openStatsModal();
+                if (statsModal && statsModal.style.display === 'block') {
+                    closeStatsModal();
+                } else {
+                    openStatsModal();
+                }
             }
         });
 
@@ -395,6 +405,59 @@ class SwitchGame {
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 closeStatsModal();
+            }
+        });
+
+        // Quest log modal
+        const questLogModal = document.getElementById('questLogModal');
+        const questModalClose = document.getElementById('questLogModalClose');
+        const openQuestLogBtn = document.getElementById('openQuestLogBtn');
+        const viewQuestLogBtn = document.getElementById('viewQuestLogBtn');
+
+        const openQuestLogModal = () => {
+            if (this.questLogUI && typeof this.questLogUI.updateQuestLog === 'function') {
+                this.questLogUI.updateQuestLog();
+            }
+            if (questLogModal) {
+                questLogModal.style.display = 'block';
+                questLogModal.classList.add('show');
+            }
+            if (settingsModal) {
+                settingsModal.style.display = 'none';
+            }
+        };
+
+        const closeQuestLogModal = () => {
+            if (questLogModal) {
+                questLogModal.style.display = 'none';
+                questLogModal.classList.remove('show');
+            }
+        };
+
+        if (openQuestLogBtn) openQuestLogBtn.addEventListener('click', openQuestLogModal);
+        if (viewQuestLogBtn) viewQuestLogBtn.addEventListener('click', openQuestLogModal);
+        if (questModalClose) questModalClose.addEventListener('click', closeQuestLogModal);
+
+        // Q key to toggle quest log modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'q' || e.key === 'Q') {
+                if (this.showingDialogue || this.inBattle) return;
+                if (settingsModal && settingsModal.style.display === 'block') return;
+                e.preventDefault();
+                if (questLogModal && questLogModal.style.display === 'block') {
+                    closeQuestLogModal();
+                } else {
+                    openQuestLogModal();
+                }
+            }
+        });
+
+        // Escape to close quest log modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && questLogModal && questLogModal.style.display === 'block') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                closeQuestLogModal();
             }
         });
 
@@ -524,6 +587,11 @@ class SwitchGame {
 
             if (success) {
                 this.gameState.unlockCharacter('nicholas');
+
+                if (this.questLogic) {
+                    this.questLogic.completeQuest('win_minigame');
+                }
+
                 this.gameState.save();
                 this.dialogueManager.showMinigameResultDialogue('nicholas', true);
                 this.showingDialogue = true;
@@ -583,10 +651,8 @@ class SwitchGame {
     }
 
     updateSettingsPanel() {
-        const current = this.gameState.getCurrentCharacter();
-
         if (this.characterStatsUI) {
-            this.characterStatsUI.updateStatsDisplay(current.id);
+            this.characterStatsUI.updateStatsModal();
         }
 
         if (this.questUI) {
@@ -594,161 +660,7 @@ class SwitchGame {
         }
     }
 
-    updateStatsModal() {
-        const current = this.gameState.getCurrentCharacter();
-        const characterId = current.id;
-        const stats = CHARACTER_STATS[characterId];
-        const character = CHARACTERS[characterId];
-        const weaponId = DEFAULT_WEAPONS[characterId] || 'fist';
-        const weapon = WEAPON_DATABASE[weaponId];
 
-        if (!stats || !character) {
-            const container = document.getElementById('statsModalContent');
-            if (container) {
-                container.innerHTML = '<div style="color: var(--muted);">No character data available</div>';
-            }
-            return;
-        }
-
-        const portraitImg = document.getElementById('statsPortraitImage');
-        const characterNameEl = document.getElementById('statsCharacterName');
-        const characterTitleEl = document.getElementById('statsCharacterTitle');
-
-        if (portraitImg) {
-            portraitImg.src = `sprites/${characterId}_portrait.png`;
-            portraitImg.onerror = () => {
-                portraitImg.style.display = 'none';
-            };
-        }
-
-        if (characterNameEl) {
-            characterNameEl.textContent = character.name;
-            characterNameEl.style.color = character.color;
-        }
-
-        if (characterTitleEl) {
-            characterTitleEl.textContent = character.quest?.description || 'Adventurer';
-        }
-
-        const mapCharacter = this.gameState.characters[characterId];
-        const currentHp = mapCharacter ? mapCharacter.hp : CHARACTER_BASE_HP[characterId];
-        const maxHp = stats.maxHp;
-        const hpPercent = (currentHp / maxHp) * 100;
-
-        const currentLevel = this.gameState.levels?.[characterId] || 1;
-        const currentXp = this.gameState.xp?.[characterId] || 0;
-        const xpForNextLevel = this.calculateXpForLevel(currentLevel + 1);
-        const xpForCurrentLevel = this.calculateXpForLevel(currentLevel);
-        const xpProgress = currentXp - xpForCurrentLevel;
-        const xpNeeded = xpForNextLevel - xpForCurrentLevel;
-        const xpPercent = currentLevel >= 100 ? 100 : (xpProgress / xpNeeded) * 100;
-
-        const statGrowth = mapCharacter?.statGrowth || {
-            hp: 0,
-            attack: 0,
-            defense: 0,
-            specialAttack: 0,
-            specialDefense: 0,
-            speed: 0
-        };
-
-        const displayStats = {
-            attack: stats.attack + statGrowth.attack,
-            defense: stats.defense + statGrowth.defense,
-            specialAttack: stats.specialAttack + statGrowth.specialAttack,
-            specialDefense: stats.specialDefense + statGrowth.specialDefense,
-            speed: stats.speed + statGrowth.speed
-        };
-
-        let html = '';
-
-        html += '<div class="stats-section">';
-        html += '<div class="stats-section-title">Vitality & Experience</div>';
-
-        html += '<div class="stats-vitality-bar-container">';
-        html += '<div class="stats-vitality-label">';
-        html += '<span>Health</span>';
-        html += `<span>${currentHp} / ${maxHp}</span>`;
-        html += '</div>';
-        html += '<div class="stats-vitality-bar">';
-        html += `<div class="stats-vitality-fill" style="width: ${hpPercent}%;"></div>`;
-        html += '</div>';
-        html += '</div>';
-
-        html += '<div class="stats-level-container">';
-        html += '<div class="stats-level-label">';
-        html += '<span>Level</span>';
-        html += `<span>${currentLevel} / 100</span>`;
-        html += '</div>';
-        if (currentLevel < 100) {
-            html += '<div class="stats-xp-bar">';
-            html += `<div class="stats-xp-fill" style="width: ${xpPercent}%;"></div>`;
-            html += '</div>';
-            html += `<div class="stats-xp-text">${xpProgress} / ${xpNeeded} XP to next level</div>`;
-        } else {
-            html += '<div class="stats-xp-bar">';
-            html += `<div class="stats-xp-fill" style="width: 100%;"></div>`;
-            html += '</div>';
-            html += `<div class="stats-xp-text">Max Level!</div>`;
-        }
-        html += '</div>';
-
-        html += '</div>';
-
-        html += '<div class="stats-section">';
-        html += '<div class="stats-section-title">Battle Stats</div>';
-        html += '<div class="stats-grid">';
-        html += `<div class="stat-item"><span class="stat-label">Attack</span><span class="stat-value">${stats.attack}${statGrowth.attack > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.attack}</span>` : ''}</span></div>`;
-        html += `<div class="stat-item"><span class="stat-label">Defense</span><span class="stat-value">${stats.defense}${statGrowth.defense > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.defense}</span>` : ''}</span></div>`;
-        html += `<div class="stat-item"><span class="stat-label">Sp. Atk</span><span class="stat-value">${stats.specialAttack}${statGrowth.specialAttack > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.specialAttack}</span>` : ''}</span></div>`;
-        html += `<div class="stat-item"><span class="stat-label">Sp. Def</span><span class="stat-value">${stats.specialDefense}${statGrowth.specialDefense > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.specialDefense}</span>` : ''}</span></div>`;
-        html += `<div class="stat-item"><span class="stat-label">Speed</span><span class="stat-value">${stats.speed}${statGrowth.speed > 0 ? `<span style="color: #4ade80; margin-left: 4px;">+${statGrowth.speed}</span>` : ''}</span></div>`;
-        html += '</div>';
-        html += '</div>';
-
-        if (weapon) {
-            html += '<div class="stats-section">';
-            html += '<div class="stats-section-title">Equipment</div>';
-            html += '<div class="stats-weapon-info">';
-            html += `<div class="stats-weapon-name">${weapon.name}</div>`;
-            html += `<div class="stats-weapon-desc">${weapon.description || 'A trusty weapon'}</div>`;
-            html += '</div>';
-            html += '</div>';
-        }
-
-        const combatAbility = ABILITIES[characterId];
-        if (combatAbility) {
-            html += '<div class="stats-section">';
-            html += '<div class="stats-section-title">Combat Ability</div>';
-            html += '<div class="stats-ability-combat">';
-            html += `<div class="stats-ability-name">${combatAbility.name}</div>`;
-            html += '</div>';
-            html += '</div>';
-        }
-
-        if (character.abilities && character.abilities.length > 0) {
-            html += '<div class="stats-section">';
-            html += '<div class="stats-section-title">Map Abilities</div>';
-            html += '<ul class="stats-abilities-list">';
-            character.abilities.forEach(abilityId => {
-                const description = ABILITY_DESCRIPTIONS[abilityId];
-                if (description) {
-                    html += `<li class="stats-ability-item">${description}</li>`;
-                }
-            });
-            html += '</ul>';
-            html += '</div>';
-        }
-
-        const container = document.getElementById('statsModalContent');
-        if (container) {
-            container.innerHTML = html;
-        }
-    }
-
-    calculateXpForLevel(level) {
-        return Math.floor(Math.pow(level, 3));
-    }
 
     updateInventoryUI() {
         const itemsEl = document.getElementById('inventoryItems');
@@ -824,27 +736,64 @@ class SwitchGame {
     }
 
 
+    async loadAustineSprites() {
+        const sprites = {
+            forward_still: new Image(),
+            forward_left: new Image(),
+            forward_right: new Image(),
+            back_left: new Image(),
+            back_right: new Image(),
+            side_still: new Image(),
+            side_walk: new Image()
+        };
+
+        sprites.forward_still.src = 'images/map/characters/austine_foward_still.png';
+        sprites.forward_left.src = 'images/map/characters/austine_foward_left.png';
+        sprites.forward_right.src = 'images/map/characters/austine_foward_right.png';
+        sprites.back_left.src = 'images/map/characters/austine_back_left.png';
+        sprites.back_right.src = 'images/map/characters/austine_back_right.png';
+        sprites.side_still.src = 'images/map/characters/austine_side_still.png';
+        sprites.side_walk.src = 'images/map/characters/austine_side_walk.png';
+
+        await Promise.all(
+            Object.values(sprites).map(img => new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = () => {
+                    console.warn('Failed to load Austine sprite:', img.src);
+                    resolve();
+                };
+            }))
+        );
+
+        return sprites;
+    }
+
     async loadSprites() {
-        // Create sprite containers
         this.sprites = {
             characters: {},
             npcs: {},
             backgrounds: {}
         };
 
-        // Build simple 4-frame walking animations per direction for each character
-        // Frames are procedurally drawn stick-figure humans using the theme color
+        const austineSprites = await this.loadAustineSprites();
+
         for (const charId of Object.keys(CHARACTERS)) {
             const color = this.characters[charId].color;
-            this.sprites.characters[charId] = this.createHumanSpriteSheet(color);
+            if (charId === 'austine') {
+                this.sprites.characters[charId] = austineSprites;
+            } else {
+                this.sprites.characters[charId] = this.createHumanSpriteSheet(color);
+            }
         }
 
-        // Load NPC sprites (procedural human in gray or provided color)
         for (const npc of this.npcs) {
-            this.sprites.npcs[npc.id] = this.createHumanSpriteSheet(npc.color || '#888');
+            if (npc.id === 'austine') {
+                this.sprites.npcs[npc.id] = austineSprites;
+            } else {
+                this.sprites.npcs[npc.id] = this.createHumanSpriteSheet(npc.color || '#888');
+            }
         }
 
-        // Generate a procedural background and cache it
         this.sprites.backgrounds.main = this.createBackgroundSprite();
 
         this.spritesLoaded = true;
@@ -1427,7 +1376,12 @@ class SwitchGame {
             const newChar = this.gameState.getCurrentCharacter();
 
             // Rebuild NPCs list: remove new character, add old character
-            this.npcs = NPCS.filter(npc => npc.id !== characterId).map(npc => ({ ...npc }));
+            this.npcs = NPCS.filter(npc => npc.id !== characterId).map(npc => ({
+                ...npc,
+                animationFrame: 0,
+                animationTimer: 0,
+                direction: 'down'
+            }));
 
             // Update NPC positions from saved state
             for (const npc of this.npcs) {
@@ -1456,6 +1410,12 @@ class SwitchGame {
 
             // Unlock the character for future switches
             this.gameState.unlockCharacter(characterId);
+
+            // Complete quests that unlock this character
+            if (this.questLogic) {
+                this.questLogic.completeQuestsUnlockingCharacter(characterId);
+            }
+
             this.gameState.save();
 
             return true;
@@ -1519,7 +1479,7 @@ class SwitchGame {
         }
     }
 
-    transitionToTheme(oldTheme, newTheme) {
+    transitionToTheme(newTheme) {
         const overlay = document.getElementById('themeTransitionOverlay');
         if (!overlay) {
             // Fallback: just change theme instantly if overlay doesn't exist
@@ -1586,7 +1546,13 @@ class SwitchGame {
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        const game = new SwitchGame();
+        new SwitchGame();
     } catch (error) {
+        console.error('❌ Game initialization failed:', error);
+        const errorBox = document.getElementById('errorMessage');
+        if (errorBox) {
+            errorBox.style.display = 'block';
+            errorBox.textContent = 'Game initialization failed:\n' + (error.stack || error.message || error);
+        }
     }
 });

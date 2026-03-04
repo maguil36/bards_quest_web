@@ -17,7 +17,7 @@ export class MapInteractions {
                 }
                 break;
 
-            case 'isabell':
+            case 'isabela':
                 if (currentChar.abilities.includes('gristCreator')) {
                     this.handleGristCreation(worldX, worldY);
                 }
@@ -71,6 +71,26 @@ export class MapInteractions {
             }
         }
 
+        for (const npc of this.game.npcs) {
+            if (newX < npc.x + this.game.tileSize &&
+                newX + this.game.player.width > npc.x &&
+                newY < npc.y + this.game.tileSize &&
+                newY + this.game.player.height > npc.y) {
+                return false;
+            }
+        }
+
+        for (const agent of this.game.agents) {
+            if (!agent.defeated) {
+                if (newX < agent.x + this.game.tileSize &&
+                    newX + this.game.player.width > agent.x &&
+                    newY < agent.y + this.game.tileSize &&
+                    newY + this.game.player.height > agent.y) {
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 
@@ -80,6 +100,11 @@ export class MapInteractions {
             100
         );
         this.game.showFloatingText(worldX - this.game.camera.x, worldY - this.game.camera.y, '+10 Grist', '#d85221');
+
+        if (this.game.questLogic && this.game.gameState.buildProgress.grist >= 100) {
+            this.game.questLogic.completeQuest('obtain_grist');
+        }
+
         this.game.updateQuestUI();
     }
 
@@ -161,6 +186,29 @@ export class MapInteractions {
             this.game.gameState.gameItems.puzzlePiece.found = true;
         }
 
+        if (this.game.questLogic) {
+            if (chest.item === 'guidebook' || chest.item === 'nicholasNotebook') {
+                this.game.questLogic.completeQuest('find_guidebook');
+            }
+            if (chest.item === 'lostPet' || chest.item === 'lostAnimal') {
+                this.game.questLogic.completeQuest('retrieve_lost_pet');
+            }
+            if (chest.item === 'zillium') {
+                this.game.questLogic.completeQuest('obtain_zillium');
+            }
+            if (currentChar.id === 'tyson' && (chest.item === 'item' || chest.item === 'special_item')) {
+                this.game.questLogic.completeQuest('obtain_item_tyson');
+            }
+            if (chest.item && chest.item.includes('weapon')) {
+                const weapons = ['weapon1', 'weapon2', 'weapon3', 'weapon4', 'weapon5', 'weapon6'];
+                const currentCharInventory = this.game.gameState.inventory[currentChar.id] || [];
+                const weaponCount = weapons.filter(w => currentCharInventory.includes(w)).length;
+                if (weaponCount >= 6) {
+                    this.game.questLogic.completeQuest('obtain_weapons');
+                }
+            }
+        }
+
         this.saveChestStates();
         this.game.gameState.save();
         return true;
@@ -226,7 +274,7 @@ export class MapInteractions {
     }
 
     handleChasmInteraction(currentChar, interactionRange) {
-        if (currentChar.id !== 'isabell') return false;
+        if (currentChar.id !== 'isabela') return false;
 
         for (const chasm of this.game.fillableChasms) {
             if (!chasm.filled) {
@@ -402,6 +450,28 @@ export class MapInteractions {
             }
         }
 
+        for (const npc of this.game.npcs) {
+            if (npc && npc.position) {
+                if (x < npc.position.x + this.game.tileSize &&
+                    x + width > npc.position.x &&
+                    y < npc.position.y + this.game.tileSize &&
+                    y + height > npc.position.y) {
+                    return true;
+                }
+            }
+        }
+
+        for (const agent of this.game.agents) {
+            if (agent && !agent.defeated) {
+                if (x < agent.x + this.game.tileSize &&
+                    x + width > agent.x &&
+                    y < agent.y + this.game.tileSize &&
+                    y + height > agent.y) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
@@ -487,6 +557,17 @@ export class MapInteractions {
             }
         }
 
+        for (const npc of this.game.npcs) {
+            if (npc && npc.position) {
+                if (newX < npc.position.x + this.game.tileSize &&
+                    newX + this.game.player.width > npc.position.x &&
+                    newY < npc.position.y + this.game.tileSize &&
+                    newY + this.game.player.height > npc.position.y) {
+                    return;
+                }
+            }
+        }
+
         for (const agent of this.game.agents) {
             if (!agent.defeated) {
                 if (newX < agent.x + this.game.tileSize &&
@@ -559,6 +640,17 @@ export class MapInteractions {
         }
 
         if (closestNPC) {
+            const npcCenterX = closestNPC.position.x + 16;
+            const npcCenterY = closestNPC.position.y + 16;
+            const dx = playerCenterX - npcCenterX;
+            const dy = playerCenterY - npcCenterY;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                closestNPC.direction = dx > 0 ? 'right' : 'left';
+            } else {
+                closestNPC.direction = dy > 0 ? 'down' : 'up';
+            }
+
             this.game.showInteractionMenu(closestNPC.id);
             return true;
         }

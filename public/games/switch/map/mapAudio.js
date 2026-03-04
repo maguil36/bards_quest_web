@@ -262,7 +262,7 @@ const MUSIC_THEMES = {
     alexis: { url: 'audio/alexis.mp3'}, // purple bard
     austine: { url: 'audio/austine.mp3'}, // 
     chloe: { url: 'audio/chloe.mp3'}, // pale rapture
-    isabell: { url: 'audio/isabell.mp3'}, // 
+    isabela: { url: 'audio/isabela.mp3'}, // 
     nicholas: { url: 'audio/nicholas.mp3'}, // checkmate
     opal: { url: 'audio/opal.mp3'}, // pilot light
     tyson: { url: 'audio/tyson.mp3'}, // indigo archer

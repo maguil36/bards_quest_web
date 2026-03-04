@@ -72,13 +72,13 @@ export class BattleAudio {
             },
             'derseGuard': {
                 track: 'vs_derse_agent.mp3',
-                loopStart: 67,
-                loopEnd: 181,
-                loopBackTo: 76
+                loopStart: 12,
+                loopEnd: 68,
+                loopBackTo: 0
             },
             'derseArchagent': {
                 track: 'vs_derse_archagent.mp3',
-                loopStart: 54,
+                loopStart: 48,
                 loopEnd: 176
             },
             'dd': {

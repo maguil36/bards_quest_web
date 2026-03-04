@@ -2,7 +2,7 @@ console.log('mapCharacters.js: File loading started');
 
 // Character definitions now use site CSS variables for colors
 // The 8 characters map 1:1 to CSS variables defined in public/styles.css
-// --alexis, --austine, --chloe, --isabell, --nicholas, --opal, --tyson, --victor
+// --alexis, --austine, --chloe, --isabela, --nicholas, --opal, --tyson, --victor
 
 function getCSSVar(name) {
    const v = getComputedStyle(document.documentElement).getPropertyValue(name);
@@ -15,7 +15,7 @@ console.log('mapCharacters.js: getCSSVar function defined');
    alexis: getCSSVar('--alexis'),
    austine: getCSSVar('--austine'),
    chloe: getCSSVar('--chloe'),
-   isabell: getCSSVar('--isabell'),
+   isabela: getCSSVar('--isabela'),
    nicholas: getCSSVar('--nicholas'),
    opal: getCSSVar('--opal'),
    tyson: getCSSVar('--tyson'),
@@ -23,14 +23,14 @@ console.log('mapCharacters.js: getCSSVar function defined');
  };
 
  const CHARACTER_BASE_HP = {
-   opal: 120,
-   alexis: 100,
-   tyson: 200,
-   chloe: 90,
-   isabell: 80,
-   nicholas: 80,
-   austine: 75,
-   victor: 100
+   opal: 345,
+   alexis: 358,
+   tyson: 311,
+   chloe: 342,
+   isabela: 282,
+   nicholas: 278,
+   austine: 312,
+   victor: 265
  };
 
 // Character definitions based on the 8 persona names from styles.css
@@ -45,11 +45,7 @@ const CHARACTERS = {
        completionCriteria: 'collect10Weapons',
        description: 'Collect 10 strife specium to complete.'
      },
-     abilities: ['weaponSteal', 'invincibleInCombat'],
-     abilityDescriptions: {
-       weaponSteal: 'Can steal and use weapons from other characters',
-       invincibleInCombat: 'Cannot take damage in combat'
-     }
+     abilities: ['weaponSteal', 'invincibleInCombat']
    },
    austine: {
      id: 'austine',
@@ -61,10 +57,7 @@ const CHARACTERS = {
        completionCriteria: 'locateBlackQueen',
        description: 'Locate Black Queen coordinates to complete.'
      },
-     abilities: ['autoSolvePuzzle'],
-     abilityDescriptions: {
-       autoSolvePuzzle: 'Auto-solve any puzzle on click'
-     }
+     abilities: ['autoSolvePuzzle']
    },
    chloe: {
      id: 'chloe',
@@ -74,30 +67,22 @@ const CHARACTERS = {
      quest: {
        unlockCriteria: 'bringLostAnimal',
        completionCriteria: 'getHealingTool',
-       description: 'Get healing tool from Isabell to complete.'
+       description: 'Get healing tool from isabela to complete.'
      },
-     abilities: ['healOthers', 'healSelf'],
-     abilityDescriptions: {
-       healOthers: 'Heal other characters by talking to her',
-       healSelf: 'Can heal herself by clicking on herself'
-     }
+     abilities: ['healOthers', 'healSelf']
    },
-   isabell: {
-     id: 'isabell',
-     name: 'Isabell',
-     color: CHAR_COLORS.isabell,
+   isabela: {
+     id: 'isabela',
+     name: 'isabela',
+     color: CHAR_COLORS.isabela,
      position: { x: 896, y: 768 },
      quest: {
        unlockCriteria: 'talkToAll',
        completionCriteria: 'upgradeWeapon',
        description: 'Upgrade weapon to final state to complete.'
      },
-     abilities: ['gristCreator', 'buildStructures'],
-     abilityDescriptions: {
-       gristCreator: 'Has mini grist creator for alchemization',
-       buildStructures: 'Can build and repair structures like bridges'
-     }
-   },
+     abilities: ['gristCreator', 'buildStructures']
+  },
    nicholas: {
      id: 'nicholas',
      name: 'Nicholas',
@@ -109,11 +94,8 @@ const CHARACTERS = {
        description: 'Reach final level to complete.'
      },
      abilities: ['damageBoost'],
-     abilityDescriptions: {
-       damageBoost: 'Weapon deals 10x damage with no random variance'
-     }
-   },
-   opal: {
+  },
+  opal: {
      id: 'opal',
      name: 'Opal',
      color: CHAR_COLORS.opal,
@@ -123,11 +105,7 @@ const CHARACTERS = {
        completionCriteria: 'getBlackKingCoordinates',
        description: 'Find the Opal Map to complete.'
      },
-     abilities: ['teleport', 'spatialManipulation'],
-     abilityDescriptions: {
-       teleport: 'Can freely teleport around the map',
-       spatialManipulation: 'Can manipulate spatial objects'
-     }
+     abilities: ['teleport', 'spatialManipulation']
    },
    tyson: {
      id: 'tyson',
@@ -140,10 +118,7 @@ const CHARACTERS = {
        description: 'Find Nicholas\'s notebook to complete.',
        onlySwappableBy: ['opal']
      },
-     abilities: ['largeInventory'],
-     abilityDescriptions: {
-       largeInventory: 'Can hold more items than other characters'
-     }
+     abilities: ['largeInventory']
    },
    victor: {
      id: 'victor',
@@ -156,10 +131,7 @@ const CHARACTERS = {
        completionCriteria: 'triggerEnding',
        description: 'Triggers ending when swapped to.'
      },
-     abilities: ['gameBreaker'],
-     abilityDescriptions: {
-       gameBreaker: 'Breaks the game at the end'
-     }
+     abilities: ['gameBreaker']
    },
  };
 
@@ -169,7 +141,7 @@ function refreshCharacterColors() {
     alexis: getCSSVar('--alexis'),
     austine: getCSSVar('--austine'),
     chloe: getCSSVar('--chloe'),
-    isabell: getCSSVar('--isabell'),
+    isabela: getCSSVar('--isabela'),
     nicholas: getCSSVar('--nicholas'),
     opal: getCSSVar('--opal'),
     tyson: getCSSVar('--tyson'),
@@ -204,10 +176,10 @@ const NPCS = [
     color: CHAR_COLORS.chloe,
   },
   {
-    id: 'isabell',
-    name: 'Isabell',
+    id: 'isabela',
+    name: 'isabela',
     position: { x: 2816, y: 4512 },
-    color: CHAR_COLORS.isabell,
+    color: CHAR_COLORS.isabela,
   },
   {
     id: 'nicholas',
@@ -254,7 +226,7 @@ class GameState {
       global: [],
       opal: [],
       nicholas: [],
-      isabell: [],
+      isabela: [],
       austine: [],
       chloe: [],
       alexis: [],
@@ -292,6 +264,7 @@ class GameState {
     this.grist = 50;
     this.chestStates = [];
     this.defeatedAgents = [];
+    this.usedFraymotifs = {};
 
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };
@@ -300,6 +273,7 @@ class GameState {
         completed: false,
         progress: {}
       };
+      this.usedFraymotifs[charId] = new Set();
     });
 
     this.characters = {};
@@ -313,8 +287,13 @@ class GameState {
     this.xp = {};
     this.levels = {};
     Object.keys(CHARACTERS).forEach((charId) => {
-      this.xp[charId] = 0;
-      this.levels[charId] = 1;
+      if (charId === 'chloe') {
+        this.xp[charId] = Math.floor(Math.pow(98, 3));
+        this.levels[charId] = 98;
+      } else {
+        this.xp[charId] = 0;
+        this.levels[charId] = 100;
+      }
     });
 
     this.migrateDefeatedAgents();
@@ -695,7 +674,7 @@ class GameState {
       global: [],
       opal: [],
       nicholas: [],
-      isabell: [],
+      isabela: [],
       austine: [],
       chloe: [],
       alexis: [],

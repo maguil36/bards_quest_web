@@ -360,7 +360,7 @@ class PokemonCombatSystem {
     }
     
     if (move.upgradedPower && attacker.isPlayer) {
-      const hasUpgrade = this.gameState.questProgress.isabellUpgrade === true;
+      const hasUpgrade = this.gameState.questProgress.isabelaUpgrade === true;
       if (hasUpgrade) {
         move.power = move.upgradedPower;
       }

@@ -19,7 +19,7 @@ export const characterWeapons: Record<string, string> = {
   'alexis': 'dagger',
   'austine': 'hammer',
   'chloe': 'spear',
-  'isabell': 'bow',
+  'isabela': 'bow',
   'nicholas': 'axe',
   'opal': 'mace',
   'tyson': 'staff',

@@ -238,7 +238,7 @@ class GameRenderer {
 
   drawNPCs(ctx, canvas, camera, npcs, sprites) {
     const tile = this.tileSize;
-    
+
     if (Array.isArray(npcs)) {
       for (const npc of npcs) {
         if (!npc || !npc.position) continue;
@@ -247,10 +247,42 @@ class GameRenderer {
 
         if (screenX > -tile && screenX < canvas.width &&
             screenY > -tile && screenY < canvas.height) {
-          const frame = 0;
+          const frame = npc.animationFrame || 0;
           const dirRow = 0;
           const sprite = sprites && sprites.npcs && sprites.npcs[npc.id];
-          if (sprite) {
+
+          if (npc.id === 'austine' && sprite && sprite.forward_still) {
+            let spriteImage = null;
+            let shouldFlip = false;
+
+            const direction = npc.direction || 'down';
+
+            if (direction === 'down') {
+              spriteImage = (frame % 2 === 0) ? sprite.forward_left : sprite.forward_right;
+            } else if (direction === 'up') {
+              spriteImage = (frame % 2 === 0) ? sprite.back_left : sprite.back_right;
+            } else if (direction === 'left') {
+              spriteImage = (frame % 2 === 0) ? sprite.side_still : sprite.side_walk;
+            } else if (direction === 'right') {
+              shouldFlip = true;
+              spriteImage = (frame % 2 === 0) ? sprite.side_still : sprite.side_walk;
+            }
+
+            if (spriteImage && spriteImage.complete) {
+              ctx.save();
+              if (shouldFlip) {
+                ctx.translate(screenX + tile, screenY);
+                ctx.scale(-1, 1);
+                ctx.drawImage(spriteImage, 0, 0, tile, tile);
+              } else {
+                ctx.drawImage(spriteImage, screenX, screenY, tile, tile);
+              }
+              ctx.restore();
+            } else {
+              ctx.fillStyle = npc.color || '#888';
+              ctx.fillRect(screenX, screenY, tile, tile);
+            }
+          } else if (sprite && sprite.width) {
             ctx.drawImage(
               sprite,
               frame * tile, dirRow * tile, tile, tile,
@@ -370,7 +402,53 @@ class GameRenderer {
                          player.direction === 'left' ? 1 :
                          player.direction === 'right' ? 2 : 3;
     const charSprite = sprites && sprites.characters && sprites.characters[currentChar.id];
-    if (charSprite) {
+
+    if (currentChar.id === 'austine' && charSprite && charSprite.forward_still) {
+      let spriteImage = null;
+      let shouldFlip = false;
+
+      if (player.direction === 'down') {
+        if (player.isMoving) {
+          spriteImage = (playerFrame % 2 === 0) ? charSprite.forward_left : charSprite.forward_right;
+        } else {
+          spriteImage = charSprite.forward_still;
+        }
+      } else if (player.direction === 'up') {
+        if (player.isMoving) {
+          spriteImage = (playerFrame % 2 === 0) ? charSprite.back_left : charSprite.back_right;
+        } else {
+          spriteImage = charSprite.back_left;
+        }
+      } else if (player.direction === 'left') {
+        if (player.isMoving) {
+          spriteImage = (playerFrame % 2 === 0) ? charSprite.side_still : charSprite.side_walk;
+        } else {
+          spriteImage = charSprite.side_still;
+        }
+      } else if (player.direction === 'right') {
+        shouldFlip = true;
+        if (player.isMoving) {
+          spriteImage = (playerFrame % 2 === 0) ? charSprite.side_still : charSprite.side_walk;
+        } else {
+          spriteImage = charSprite.side_still;
+        }
+      }
+
+      if (spriteImage && spriteImage.complete) {
+        ctx.save();
+        if (shouldFlip) {
+          ctx.translate(playerScreenX + tile, playerScreenY);
+          ctx.scale(-1, 1);
+          ctx.drawImage(spriteImage, 0, 0, tile, tile);
+        } else {
+          ctx.drawImage(spriteImage, playerScreenX, playerScreenY, tile, tile);
+        }
+        ctx.restore();
+      } else {
+        ctx.fillStyle = currentChar.color || '#fff';
+        ctx.fillRect(playerScreenX, playerScreenY, tile, tile);
+      }
+    } else if (charSprite && charSprite.width) {
       ctx.drawImage(
         charSprite,
         playerFrame * tile, playerDirRow * tile, tile, tile,

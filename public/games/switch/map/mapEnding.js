@@ -14,6 +14,10 @@ export class EndingManager {
     }
 
     triggerGlitchEnding() {
+        if (this.game.questLogic) {
+            this.game.questLogic.completeQuest('play_victor_ending');
+        }
+
         const victorChar = CHARACTERS['victor'];
         if (victorChar && this.game.gameState.currentCharacter !== 'victor') {
             this.game.gameState.currentCharacter = 'victor';

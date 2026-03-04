@@ -33,7 +33,7 @@
   --alexis: #6600ff;
   --austine: #5db473;
   --chloe: #9cff86;
-  --isabell: #d85221;
+  --isabela: #d85221;
   --nicholas: #fa8e00;
   --opal: #d5ffe6;
   --tyson: #434c00;
@@ -810,8 +810,8 @@ body.mspa {
 .pesterlog .chloe .handle,
 .pesterlog .chloe .msg { color: var(--chloe); }
 
-.pesterlog .isabell .handle,
-.pesterlog .isabell .msg { color: var(--isabell); }
+.pesterlog .isabela .handle,
+.pesterlog .isabela .msg { color: var(--isabela); }
 
 .pesterlog .nicholas .handle,
 .pesterlog .nicholas .msg { color: var(--nicholas); }
@@ -886,9 +886,9 @@ html[data-contrast="high"] .pesterlog .chloe .msg {
   text-shadow: 0 0 2px rgba(0,0,0,.6);
 }
 
-html[data-contrast="high"] .pesterlog .isabell .handle,
-html[data-contrast="high"] .pesterlog .isabell .msg {
-  color: var(--isabell);
+html[data-contrast="high"] .pesterlog .isabela .handle,
+html[data-contrast="high"] .pesterlog .isabela .msg {
+  color: var(--isabela);
   text-shadow: 0 0 2px rgba(0,0,0,.6);
 }
 
@@ -1545,8 +1545,8 @@ body.mspa {
 .pesterlog .chloe .handle,
 .pesterlog .chloe .msg { color: var(--chloe); }
 
-.pesterlog .isabell .handle,
-.pesterlog .isabell .msg { color: var(--isabell); }
+.pesterlog .isabela .handle,
+.pesterlog .isabela .msg { color: var(--isabela); }
 
 .pesterlog .nicholas .handle,
 .pesterlog .nicholas .msg { color: var(--nicholas); }
@@ -1621,9 +1621,9 @@ html[data-contrast="high"] .pesterlog .chloe .msg {
   text-shadow: 0 0 2px rgba(0,0,0,.6);
 }
 
-html[data-contrast="high"] .pesterlog .isabell .handle,
-html[data-contrast="high"] .pesterlog .isabell .msg {
-  color: var(--isabell);
+html[data-contrast="high"] .pesterlog .isabela .handle,
+html[data-contrast="high"] .pesterlog .isabela .msg {
+  color: var(--isabela);
   text-shadow: 0 0 2px rgba(0,0,0,.6);
 }
 
@@ -2281,8 +2281,8 @@ body.mspa {
 .pesterlog .chloe .handle,
 .pesterlog .chloe .msg { color: var(--chloe); }
 
-.pesterlog .isabell .handle,
-.pesterlog .isabell .msg { color: var(--isabell); }
+.pesterlog .isabela .handle,
+.pesterlog .isabela .msg { color: var(--isabela); }
 
 .pesterlog .nicholas .handle,
 .pesterlog .nicholas .msg { color: var(--nicholas); }
@@ -2357,9 +2357,9 @@ html[data-contrast="high"] .pesterlog .chloe .msg {
   text-shadow: 0 0 2px rgba(0,0,0,.6);
 }
 
-html[data-contrast="high"] .pesterlog .isabell .handle,
-html[data-contrast="high"] .pesterlog .isabell .msg {
-  color: var(--isabell);
+html[data-contrast="high"] .pesterlog .isabela .handle,
+html[data-contrast="high"] .pesterlog .isabela .msg {
+  color: var(--isabela);
   text-shadow: 0 0 2px rgba(0,0,0,.6);
 }
 

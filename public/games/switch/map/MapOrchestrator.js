@@ -37,14 +37,31 @@ export class MapOrchestrator extends BaseOrchestrator {
 
     updateAnimations() {
         const player = this.game.player;
+        const currentChar = this.game.gameState.getCurrentCharacter();
+        const isAustine = currentChar && currentChar.id === 'austine';
+        const animationSpeed = isAustine ? 12.5 : 10;
+
         if (player.isMoving) {
             player.animationTimer++;
-            if (player.animationTimer > 10) {
+            if (player.animationTimer > animationSpeed) {
                 player.animationFrame = (player.animationFrame + 1) % 4;
                 player.animationTimer = 0;
             }
         } else {
             player.animationFrame = 0;
+        }
+
+        this.updateNPCAnimations();
+    }
+
+    updateNPCAnimations() {
+        for (const npc of this.game.npcs) {
+            if (!npc.animationTimer) npc.animationTimer = 0;
+            npc.animationTimer++;
+            if (npc.animationTimer > 30) {
+                npc.animationFrame = (npc.animationFrame + 1) % 2;
+                npc.animationTimer = 0;
+            }
         }
     }
 

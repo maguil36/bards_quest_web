@@ -247,19 +247,19 @@ export const QUESTS = {
     unlockPlayable: 'chloe'
   },
   
-  level_up_archagent: {
-    name: 'Level up by defeating 1 archagent',
-    description: 'Gain experience from defeating an archagent',
+  level_up_99: {
+    name: 'Level up to 99',
+    description: 'Reach level 99 as Chloe',
     characterSpecific: 'chloe',
     prerequisite: 'retrieve_lost_pet',
     unlockPlayable: null
   },
-  
-  level_up_boss: {
-    name: 'Level up again by defeating 1 boss',
-    description: 'Defeat DD, SS, HB, or CB to level up',
+
+  level_up_100: {
+    name: 'Level up to 100',
+    description: 'Reach level 100 as Chloe',
     characterSpecific: 'chloe',
-    prerequisite: 'level_up_archagent',
+    prerequisite: 'level_up_99',
     unlockPlayable: null
   },
   

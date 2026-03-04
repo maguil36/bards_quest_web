@@ -445,6 +445,20 @@ export class BattleController {
 
             const result = this.combatSystem.executeFraymotif(abilityIndex);
 
+            if (this.game && this.game.gameState && player.id === 'opal') {
+                if (!this.game.gameState.usedFraymotifs) {
+                    this.game.gameState.usedFraymotifs = {};
+                }
+                if (!this.game.gameState.usedFraymotifs.opal) {
+                    this.game.gameState.usedFraymotifs.opal = new Set();
+                }
+                this.game.gameState.usedFraymotifs.opal.add(abilityIndex);
+
+                if (this.game.gameState.usedFraymotifs.opal.size >= 5 && this.game.questLogic) {
+                    this.game.questLogic.completeQuest('use_all_fraymotifs');
+                }
+            }
+
             this.battleUI.playAttackAnimationWithResult(true, null, true, () => {
                 if (result.success) {
                     let message = '';
