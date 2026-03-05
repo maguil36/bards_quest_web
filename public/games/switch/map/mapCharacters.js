@@ -265,6 +265,10 @@ class GameState {
     this.chestStates = [];
     this.defeatedAgents = [];
     this.usedFraymotifs = {};
+    this.stolenWeapons = {
+        stolen: [],
+        available: ['austine', 'chloe', 'nicholas', 'opal', 'tyson', 'isabela']
+    };
 
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };

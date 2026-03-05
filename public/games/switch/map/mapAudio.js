@@ -115,10 +115,10 @@ class AudioManager {
                 loopBackTo: 2
             },
             'derseGuard': {
-                track: 'vs_derse_encounter.mp3',
-                loopStart: 0,
-                loopEnd: 41,
-                loopBackTo: 2
+                track: 'vs_derse_agent.mp3',
+                loopStart: 4,
+                loopEnd: 14,
+                loopBackTo: 10
             },
             'derseArchagent': {
                 track: 'vs_derse_encounter.mp3',

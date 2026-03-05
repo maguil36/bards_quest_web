@@ -154,6 +154,7 @@ class SwitchGame {
             this.miniGameForSwitch = false;
             this.inCombat = false;
             this.playerFrozen = false;
+            this.boulderPushing = false;
             this.currentPuzzleChest = null;
 
             this.floatingTexts = [];
@@ -966,8 +967,8 @@ class SwitchGame {
         this.gameOrchestrator.onCombatTriggered(agent);
     }
 
-    checkCollision(x, y, width, height) {
-        return this.mapInteractions.checkCollision(x, y, width, height);
+    checkCollision(x, y, width, height, excludeAgent = null) {
+        return this.mapInteractions.checkCollision(x, y, width, height, excludeAgent);
     }
 
     updateFloatingTexts() {
@@ -1012,8 +1013,8 @@ class SwitchGame {
         const currentChar = this.gameState.getCurrentCharacter();
 
         if (current && npc) {
-            // Back-and-forth visual treatment
-            this.dialogueText.textContent = current.text;
+            const visibleText = this.dialogueManager.getVisibleText();
+            this.dialogueText.textContent = visibleText;
 
             // Determine colors from global theme and character theme
             const playerColor = currentChar.color;
@@ -1150,22 +1151,7 @@ class SwitchGame {
                 this.closeDialogue();
             }
         } else {
-            const current = this.dialogueManager.getCurrentLine();
-            const npc = this.dialogueManager.getCurrentNPC();
-            const currentChar = this.gameState.getCurrentCharacter();
-
-            if (current && npc) {
-                if (this.dialogueText) {
-                    this.dialogueText.textContent = current.text;
-                    this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
-                }
-
-                if (this.dialogueBox) {
-                    this.dialogueBox.classList.toggle('speaker-player', current.speaker === 'player');
-                    this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
-                    this.dialogueBox.style.display = 'block';
-                }
-            }
+            this.showDialogueUI();
         }
     }
 

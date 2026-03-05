@@ -126,20 +126,84 @@ export const QUESTS = {
     prerequisite: 'ask_switch_alexis',
     unlockPlayable: 'alexis'
   },
-  
-  obtain_weapons: {
-    name: 'Obtain more weapons',
-    description: 'Collect all 6 weapons (6 out of 6)',
+
+  steal_weapon_opal: {
+    name: 'Steal Opal\'s weapon',
+    description: 'Take Opal\'s weapon for your collection',
     characterSpecific: 'alexis',
     prerequisite: 'defeat_archagent',
     unlockPlayable: null
   },
-  
+
+  steal_weapon_austine: {
+    name: 'Steal Austine\'s weapon',
+    description: 'Take Austine\'s weapon for your collection',
+    characterSpecific: 'alexis',
+    prerequisite: 'defeat_archagent',
+    unlockPlayable: null
+  },
+
+  steal_weapon_chloe: {
+    name: 'Steal Chloe\'s weapon',
+    description: 'Take Chloe\'s weapon for your collection',
+    characterSpecific: 'alexis',
+    prerequisite: 'defeat_archagent',
+    unlockPlayable: null
+  },
+
+  steal_weapon_nicholas: {
+    name: 'Steal Nicholas\'s weapon',
+    description: 'Take Nicholas\'s weapon for your collection',
+    characterSpecific: 'alexis',
+    prerequisite: 'defeat_archagent',
+    unlockPlayable: null
+  },
+
+  steal_weapon_tyson: {
+    name: 'Steal Tyson\'s weapon',
+    description: 'Take Tyson\'s weapon for your collection',
+    characterSpecific: 'alexis',
+    prerequisite: 'defeat_archagent',
+    unlockPlayable: null
+  },
+
+  alexis_steal_5_weapons: {
+    name: 'Wait for Isabela to complete her quest',
+    description: 'You have 5/6 weapons. Wait for Isabela to finish her weapon upgrade quest before you can take hers.',
+    characterSpecific: 'alexis',
+    prerequisite: 'defeat_archagent',
+    unlockPlayable: null
+  },
+
+  steal_weapon_isabela: {
+    name: 'Steal Isabela\'s weapon',
+    description: 'Take Isabela\'s newly forged weapon for your collection',
+    characterSpecific: 'alexis',
+    prerequisite: 'upgrade_weapon',
+    unlockPlayable: null
+  },
+
+  alexis_steal_all_weapons: {
+    name: 'All weapons collected',
+    description: 'You have stolen all 6 weapons. Time to face a boss.',
+    characterSpecific: 'alexis',
+    prerequisite: 'steal_weapon_isabela',
+    unlockPlayable: null
+  },
+
+  obtain_weapons: {
+    name: 'Obtain more weapons',
+    description: 'Collect all 6 weapons by stealing them from other characters',
+    characterSpecific: 'alexis',
+    prerequisite: 'defeat_archagent',
+    unlockPlayable: null
+  },
+
   defeat_boss_alexis: {
     name: 'Defeat 1 boss',
     description: 'Defeat DD, SS, HB, or CB',
     characterSpecific: 'alexis',
-    prerequisite: 'obtain_weapons',
+    prerequisite: 'alexis_steal_all_weapons',
     unlockPlayable: null
   },
   

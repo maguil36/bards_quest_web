@@ -22,8 +22,12 @@ export class DialogueOrchestrator extends BaseOrchestrator {
         return false;
     }
 
-    update() {
+    update(deltaTime = 16) {
         if (!this.isActive) return;
+
+        if (this.dialogueManager && this.dialogueManager.isActive && !this.dialogueManager.showingMenu) {
+            this.dialogueManager.updateTextCrawl(deltaTime);
+        }
     }
 
     render(ctx) {

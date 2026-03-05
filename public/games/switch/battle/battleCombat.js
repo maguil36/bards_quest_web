@@ -135,7 +135,7 @@ class PokemonCombatSystem {
     }
   }
 
-  getPriority(battler, actionType) {
+  getPriority(battler, actionType, opponentAction = null) {
     let priority = 0;
 
     if (actionType === 'abjure' || actionType === 'apparate') {
@@ -145,7 +145,13 @@ class PokemonCombatSystem {
     if (battler.weapon) {
       const weapon = WEAPON_DATABASE[battler.weapon];
       if (weapon && weapon.ability === 'priority') {
-        priority += 1;
+        if (opponentAction && opponentAction.move) {
+          if (opponentAction.move.type === 'physical') {
+            priority += 1;
+          }
+        } else {
+          priority += 1;
+        }
       }
     }
 
@@ -153,8 +159,8 @@ class PokemonCombatSystem {
   }
 
   determineActionOrder(playerAction, enemyAction) {
-    const playerPriority = this.getPriority(this.player, playerAction.type);
-    const enemyPriority = this.getPriority(this.enemy, enemyAction.type);
+    const playerPriority = this.getPriority(this.player, playerAction.type, enemyAction);
+    const enemyPriority = this.getPriority(this.enemy, enemyAction.type, playerAction);
 
     if (playerPriority !== enemyPriority) {
       return playerPriority > enemyPriority ? 'player' : 'enemy';

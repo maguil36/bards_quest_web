@@ -37,8 +37,13 @@ export class MapInteractions {
             return;
         }
 
-        const clampedX = Math.max(0, Math.min(this.game.mapWidth - this.game.player.width, targetX));
-        const clampedY = Math.max(0, Math.min(this.game.mapHeight - this.game.player.height, targetY));
+        const centerOffsetX = this.game.player.width / 2;
+        const centerOffsetY = this.game.player.height / 2;
+        const targetPlayerX = targetX - centerOffsetX;
+        const targetPlayerY = targetY - centerOffsetY;
+
+        const clampedX = Math.max(0, Math.min(this.game.mapWidth - this.game.player.width, targetPlayerX));
+        const clampedY = Math.max(0, Math.min(this.game.mapHeight - this.game.player.height, targetPlayerY));
 
         if (this.isValidTeleportLocation(clampedX, clampedY)) {
             this.game.player.x = clampedX;
@@ -50,42 +55,76 @@ export class MapInteractions {
     }
 
     isValidTeleportLocation(newX, newY) {
-        const tileX = Math.floor(newX / this.game.tileSize);
-        const tileY = Math.floor(newY / this.game.tileSize);
+        const safetyMargin = 1;
+        const playerRight = newX + this.game.player.width;
+        const playerBottom = newY + this.game.player.height;
 
-        if (tileY < 0 || tileY >= this.game.mapRows || tileX < 0 || tileX >= this.game.mapCols) {
-            return false;
-        }
+        const tileLeft = Math.floor((newX - safetyMargin) / this.game.tileSize);
+        const tileRight = Math.floor((playerRight + safetyMargin - 1) / this.game.tileSize);
+        const tileTop = Math.floor((newY - safetyMargin) / this.game.tileSize);
+        const tileBottom = Math.floor((playerBottom + safetyMargin - 1) / this.game.tileSize);
 
-        const tileType = this.game.mapTiles[tileY][tileX];
-        if (tileType !== 0) {
-            return false;
+        for (let ty = tileTop; ty <= tileBottom; ty++) {
+            for (let tx = tileLeft; tx <= tileRight; tx++) {
+                if (ty < 0 || ty >= this.game.mapRows || tx < 0 || tx >= this.game.mapCols) {
+                    return false;
+                }
+
+                const tileType = this.game.mapTiles[ty][tx];
+                if (tileType !== 0) {
+                    return false;
+                }
+            }
         }
 
         for (const boulder of this.game.boulders) {
-            if (newX < boulder.x + this.game.tileSize &&
-                newX + this.game.player.width > boulder.x &&
-                newY < boulder.y + this.game.tileSize &&
-                newY + this.game.player.height > boulder.y) {
+            if (newX < boulder.x + this.game.tileSize + safetyMargin &&
+                newX + this.game.player.width > boulder.x - safetyMargin &&
+                newY < boulder.y + this.game.tileSize + safetyMargin &&
+                newY + this.game.player.height > boulder.y - safetyMargin) {
                 return false;
             }
         }
 
         for (const npc of this.game.npcs) {
-            if (newX < npc.x + this.game.tileSize &&
-                newX + this.game.player.width > npc.x &&
-                newY < npc.y + this.game.tileSize &&
-                newY + this.game.player.height > npc.y) {
-                return false;
+            if (npc && npc.position) {
+                if (newX < npc.position.x + this.game.tileSize + safetyMargin &&
+                    newX + this.game.player.width > npc.position.x - safetyMargin &&
+                    newY < npc.position.y + this.game.tileSize + safetyMargin &&
+                    newY + this.game.player.height > npc.position.y - safetyMargin) {
+                    return false;
+                }
             }
         }
 
         for (const agent of this.game.agents) {
             if (!agent.defeated) {
-                if (newX < agent.x + this.game.tileSize &&
-                    newX + this.game.player.width > agent.x &&
-                    newY < agent.y + this.game.tileSize &&
-                    newY + this.game.player.height > agent.y) {
+                if (newX < agent.x + this.game.tileSize + safetyMargin &&
+                    newX + this.game.player.width > agent.x - safetyMargin &&
+                    newY < agent.y + this.game.tileSize + safetyMargin &&
+                    newY + this.game.player.height > agent.y - safetyMargin) {
+                    return false;
+                }
+            }
+        }
+
+        for (const chasm of this.game.fillableChasms) {
+            if (!chasm.filled) {
+                if (newX < chasm.x + this.game.tileSize + safetyMargin &&
+                    newX + this.game.player.width > chasm.x - safetyMargin &&
+                    newY < chasm.y + this.game.tileSize + safetyMargin &&
+                    newY + this.game.player.height > chasm.y - safetyMargin) {
+                    return false;
+                }
+            }
+        }
+
+        for (const obstacle of this.game.obstacles) {
+            if (!obstacle.broken) {
+                if (newX < obstacle.x + this.game.tileSize + safetyMargin &&
+                    newX + this.game.player.width > obstacle.x - safetyMargin &&
+                    newY < obstacle.y + this.game.tileSize + safetyMargin &&
+                    newY + this.game.player.height > obstacle.y - safetyMargin) {
                     return false;
                 }
             }
@@ -113,7 +152,6 @@ export class MapInteractions {
         const interactionRange = getInteractionRange();
 
         if (this.handleChestInteraction(currentChar, interactionRange)) return;
-        if (this.handleBoulderInteraction(currentChar, interactionRange)) return;
         if (this.handleObstacleInteraction(currentChar, interactionRange)) return;
         if (this.handleChasmInteraction(currentChar, interactionRange)) return;
     }
@@ -240,7 +278,18 @@ export class MapInteractions {
                 if (boulderTileY >= 0 && boulderTileY < this.game.mapRows &&
                     boulderTileX >= 0 && boulderTileX < this.game.mapCols) {
                     const tileType = this.game.mapTiles[boulderTileY][boulderTileX];
-                    if (tileType === 0) {
+
+                    let boulderBlocked = false;
+                    for (const otherBoulder of this.game.boulders) {
+                        if (otherBoulder !== boulder) {
+                            if (otherBoulder.x === newBoulderX && otherBoulder.y === newBoulderY) {
+                                boulderBlocked = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (tileType === 0 && !boulderBlocked) {
                         boulder.x = newBoulderX;
                         boulder.y = newBoulderY;
                         this.game.showFloatingText(boulder.x + this.game.tileSize/2, boulder.y, 'Pushed!', '#6a5a7a');
@@ -402,7 +451,7 @@ export class MapInteractions {
         }
     }
 
-    checkCollision(x, y, width, height) {
+    checkCollision(x, y, width, height, excludeAgent = null) {
         const tileLeft = Math.floor(x / this.game.tileSize);
         const tileRight = Math.floor((x + width - 1) / this.game.tileSize);
         const tileTop = Math.floor(y / this.game.tileSize);
@@ -462,11 +511,23 @@ export class MapInteractions {
         }
 
         for (const agent of this.game.agents) {
-            if (agent && !agent.defeated) {
+            if (agent && !agent.defeated && agent !== excludeAgent) {
                 if (x < agent.x + this.game.tileSize &&
                     x + width > agent.x &&
                     y < agent.y + this.game.tileSize &&
                     y + height > agent.y) {
+                    return true;
+                }
+            }
+        }
+
+        if (this.game.player) {
+            if (x < this.game.player.x + this.game.player.width &&
+                x + width > this.game.player.x &&
+                y < this.game.player.y + this.game.player.height &&
+                y + height > this.game.player.y) {
+                const isPlayerMoving = (x === this.game.player.x && y === this.game.player.y);
+                if (!isPlayerMoving) {
                     return true;
                 }
             }
@@ -531,6 +592,72 @@ export class MapInteractions {
                 newX + this.game.player.width > boulder.x &&
                 newY < boulder.y + this.game.tileSize &&
                 newY + this.game.player.height > boulder.y) {
+
+                if (this.game.boulderPushing) {
+                    return;
+                }
+
+                let pushX = 0;
+                let pushY = 0;
+
+                if (this.game.player.direction === 'up') pushY = -this.game.tileSize;
+                else if (this.game.player.direction === 'down') pushY = this.game.tileSize;
+                else if (this.game.player.direction === 'left') pushX = -this.game.tileSize;
+                else if (this.game.player.direction === 'right') pushX = this.game.tileSize;
+
+                const newBoulderX = boulder.x + pushX;
+                const newBoulderY = boulder.y + pushY;
+
+                const boulderTileX = Math.floor(newBoulderX / this.game.tileSize);
+                const boulderTileY = Math.floor(newBoulderY / this.game.tileSize);
+
+                if (boulderTileY >= 0 && boulderTileY < this.game.mapRows &&
+                    boulderTileX >= 0 && boulderTileX < this.game.mapCols) {
+                    const tileType = this.game.mapTiles[boulderTileY][boulderTileX];
+
+                    let boulderBlocked = false;
+                    for (const otherBoulder of this.game.boulders) {
+                        if (otherBoulder !== boulder) {
+                            if (otherBoulder.x === newBoulderX && otherBoulder.y === newBoulderY) {
+                                boulderBlocked = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (tileType === 0 && !boulderBlocked) {
+                        this.game.boulderPushing = true;
+                        this.game.playerFrozen = true;
+
+                        const startX = boulder.x;
+                        const startY = boulder.y;
+                        const startTime = Date.now();
+                        const duration = 200;
+
+                        const animatePush = () => {
+                            const elapsed = Date.now() - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+
+                            boulder.x = startX + pushX * progress;
+                            boulder.y = startY + pushY * progress;
+
+                            if (progress < 1) {
+                                requestAnimationFrame(animatePush);
+                            } else {
+                                boulder.x = newBoulderX;
+                                boulder.y = newBoulderY;
+                                this.game.boulderPushing = false;
+                                this.game.playerFrozen = false;
+                                this.game.showFloatingText(boulder.x + this.game.tileSize/2, boulder.y, 'Pushed!', '#6a5a7a');
+                            }
+                        };
+
+                        animatePush();
+                    } else {
+                        this.game.showFloatingText(boulder.x + this.game.tileSize/2, boulder.y, 'Cannot push here', '#ff6666');
+                    }
+                }
+
                 return;
             }
         }

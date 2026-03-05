@@ -88,12 +88,12 @@ export class GameOrchestrator extends BaseOrchestrator {
             return;
         }
 
-        if (this.currentMode === 'map' && !this.game.inCombat && !this.game.showingDialogue) {
+        if (this.currentMode === 'map' && !this.game.inCombat && (!this.game.showingDialogue || this.game.isEncounterDialogue)) {
             this.mapOrchestrator.update(deltaTime);
         } else if (this.currentMode === 'battle' && this.game.inCombat) {
             this.battleOrchestrator.update(deltaTime);
         } else if (this.currentMode === 'dialogue' && this.game.showingDialogue) {
-            this.dialogueOrchestrator.update();
+            this.dialogueOrchestrator.update(deltaTime);
             this.mapOrchestrator.updateNPCAnimations();
         }
     }

@@ -1,5 +1,6 @@
 export class MapAI {
     constructor(config) {
+        console.log('[MapAI] Constructor called, agents:', config.game?.agents?.length || config.agents?.length || 0);
         if (config.game) {
             this.game = config.game;
             this.player = config.game.player;
@@ -8,7 +9,7 @@ export class MapAI {
             this.getInCombat = () => config.game.inCombat;
             this.setPlayerFrozen = (value) => { config.game.playerFrozen = value; };
             this.startAgentCombat = (agent) => config.game.startAgentCombat(agent);
-            this.checkCollision = (x, y, w, h) => config.game.checkCollision(x, y, w, h);
+            this.checkCollision = (x, y, w, h, excludeAgent) => config.game.checkCollision(x, y, w, h, excludeAgent);
             this.playEncounterMusic = (enemyType) => {
                 if (config.game.audioManager && typeof config.game.audioManager.playEncounterMusic === 'function') {
                     config.game.audioManager.playEncounterMusic(enemyType);
@@ -30,10 +31,18 @@ export class MapAI {
             this.playEncounterMusic = config.callbacks?.playEncounterMusic || (() => {});
             this.startEncounterDialogue = config.callbacks?.startEncounterDialogue || (() => {});
         }
+
+        this.debugLogTimer = 0;
     }
 
     updateAgents() {
         if (this.getInCombat()) return;
+
+        this.debugLogTimer++;
+        if (this.debugLogTimer >= 120) {
+            console.log('[MapAI] Agent positions:', this.agents.map(a => ({ x: a.x, y: a.y, defeated: a.defeated })));
+            this.debugLogTimer = 0;
+        }
 
         for (const agent of this.agents) {
             if (agent.defeated) continue;
@@ -51,28 +60,48 @@ export class MapAI {
                 const dy = this.player.y - agent.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                if (distance < this.tileSize * 1.5) {
-                    agent.chasing = false;
+                const minStoppingDistance = this.tileSize * 0.8;
+
+                if (distance > minStoppingDistance) {
+                    const chaseSpeed = agent.speed;
+                    const moveX = dx / distance * chaseSpeed;
+                    const moveY = dy / distance * chaseSpeed;
+
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        agent.direction = dx > 0 ? 'right' : 'left';
+                    } else {
+                        agent.direction = dy > 0 ? 'down' : 'up';
+                    }
+
+                    const newX = agent.x + moveX;
+                    const newY = agent.y + moveY;
+
+                    if (!this.checkCollision(newX, newY, this.tileSize, this.tileSize, agent)) {
+                        agent.x = newX;
+                        agent.y = newY;
+                        isMoving = true;
+                    } else {
+                        const tryX = agent.x + moveX;
+                        const tryY = agent.y;
+                        if (!this.checkCollision(tryX, tryY, this.tileSize, this.tileSize, agent)) {
+                            agent.x = tryX;
+                            agent.y = tryY;
+                            isMoving = true;
+                        } else {
+                            const tryX2 = agent.x;
+                            const tryY2 = agent.y + moveY;
+                            if (!this.checkCollision(tryX2, tryY2, this.tileSize, this.tileSize, agent)) {
+                                agent.x = tryX2;
+                                agent.y = tryY2;
+                                isMoving = true;
+                            }
+                        }
+                    }
+                }
+
+                if (distance < this.tileSize * 1.5 && !agent.encounterStarted) {
+                    agent.encounterStarted = true;
                     this.startEncounterDialogue(agent);
-                    return;
-                }
-
-                const moveX = dx / distance * agent.speed;
-                const moveY = dy / distance * agent.speed;
-
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    agent.direction = dx > 0 ? 'right' : 'left';
-                } else {
-                    agent.direction = dy > 0 ? 'down' : 'up';
-                }
-
-                const newX = agent.x + moveX;
-                const newY = agent.y + moveY;
-
-                if (!this.checkCollision(newX, newY, 32, 32)) {
-                    agent.x = newX;
-                    agent.y = newY;
-                    isMoving = true;
                 }
             } else {
                 const wasMoving = this.updateAgentPatrol(agent);
@@ -93,17 +122,19 @@ export class MapAI {
     }
 
     updateAgentPatrol(agent) {
-        if (agent.patrolPath.length === 0) return false;
-        if (agent.patrolPath.length === 1) {
-            const [targetX, targetY] = agent.patrolPath[0];
-            agent.x = targetX * this.tileSize;
-            agent.y = targetY * this.tileSize;
+        if (!agent.patrolPath || agent.patrolPath.length === 0) {
             return false;
         }
 
-        const currentTarget = agent.patrolPath[agent.patrolIndex];
-        const targetX = currentTarget[0] * this.tileSize;
-        const targetY = currentTarget[1] * this.tileSize;
+        if (!agent.patrolIndex && agent.patrolIndex !== 0) agent.patrolIndex = 0;
+
+        const target = agent.patrolPath[agent.patrolIndex];
+        if (!target) {
+            return false;
+        }
+
+        const targetX = target[0] * this.tileSize;
+        const targetY = target[1] * this.tileSize;
 
         const dx = targetX - agent.x;
         const dy = targetY - agent.y;
@@ -134,9 +165,58 @@ export class MapAI {
                 agent.direction = dy > 0 ? 'down' : 'up';
             }
 
-            agent.x += moveX;
-            agent.y += moveY;
-            return true;
+            const newX = agent.x + moveX;
+            const newY = agent.y + moveY;
+
+            const collisionResult = this.checkCollision(newX, newY, this.tileSize, this.tileSize, agent);
+
+            if (!collisionResult) {
+                agent.x = newX;
+                agent.y = newY;
+                agent.stuckCounter = 0;
+                return true;
+            } else {
+                const tryX = agent.x + moveX;
+                const tryY = agent.y;
+                const tryXCollision = this.checkCollision(tryX, tryY, this.tileSize, this.tileSize, agent);
+
+                if (!tryXCollision) {
+                    agent.x = tryX;
+                    agent.y = tryY;
+                    agent.stuckCounter = 0;
+                    return true;
+                } else {
+                    const tryX2 = agent.x;
+                    const tryY2 = agent.y + moveY;
+                    const tryY2Collision = this.checkCollision(tryX2, tryY2, this.tileSize, this.tileSize, agent);
+
+                    if (!tryY2Collision) {
+                        agent.x = tryX2;
+                        agent.y = tryY2;
+                        agent.stuckCounter = 0;
+                        return true;
+                    } else {
+                        agent.stuckCounter = (agent.stuckCounter || 0) + 1;
+                        if (agent.stuckCounter > 60) {
+                            if (agent.patrolReverse) {
+                                agent.patrolIndex--;
+                                if (agent.patrolIndex < 0) {
+                                    agent.patrolIndex = 1;
+                                    agent.patrolReverse = false;
+                                }
+                            } else {
+                                agent.patrolIndex++;
+                                if (agent.patrolIndex >= agent.patrolPath.length) {
+                                    agent.patrolIndex = agent.patrolPath.length - 2;
+                                    agent.patrolReverse = true;
+                                }
+                            }
+                            agent.stuckCounter = 0;
+                        }
+                        return false;
+                    }
+                }
+            }
         }
     }
 

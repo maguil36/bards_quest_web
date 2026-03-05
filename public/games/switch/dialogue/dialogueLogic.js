@@ -46,6 +46,13 @@ class DialogueManager {
         this.isSwitchDialogue = false;
         this.pendingSwitch = null;
         this.pendingMiniGame = null;
+
+        this.textCrawlEnabled = true;
+        this.textCrawlDuration = 5;
+        this.currentTextProgress = 0;
+        this.fullText = '';
+        this.isTextComplete = false;
+        this.textCrawlSpeed = 0;
     }
 
     // Start a dialogue with an NPC
@@ -102,6 +109,7 @@ class DialogueManager {
         this.currentDialogue = characterDialogue;
         this.currentLineIndex = 0;
         this.isActive = true;
+        this.startTextCrawl();
 
         return true;
     }
@@ -138,22 +146,66 @@ class DialogueManager {
         if (typeof line === 'string') {
             return { speaker: 'npc', text: line };
         }
-        return line; // { speaker: 'npc'|'player', text: string }
+        return line;
+    }
+
+    // Start text crawl for current dialogue line
+    startTextCrawl() {
+        this.currentTextProgress = 0;
+        this.isTextComplete = false;
+        const currentLine = this.getCurrentLine();
+        this.fullText = currentLine ? currentLine.text : '';
+        this.textCrawlSpeed = this.fullText.length / this.textCrawlDuration;
+    }
+
+    // Update text crawl progress based on delta time
+    updateTextCrawl(deltaTime) {
+        if (this.isTextComplete || !this.textCrawlEnabled) {
+            return;
+        }
+
+        this.currentTextProgress += this.textCrawlSpeed * (deltaTime / 1000);
+
+        if (this.currentTextProgress >= this.fullText.length) {
+            this.currentTextProgress = this.fullText.length;
+            this.isTextComplete = true;
+        }
+    }
+
+    // Get the currently visible text for text crawl
+    getVisibleText() {
+        if (!this.textCrawlEnabled || this.isTextComplete) {
+            return this.fullText;
+        }
+        return this.fullText.substring(0, Math.floor(this.currentTextProgress));
+    }
+
+    // Complete text crawl instantly
+    completeTextInstantly() {
+        this.currentTextProgress = this.fullText.length;
+        this.isTextComplete = true;
     }
 
     // Advance to the next line
     nextLine() {
         if (!this.isActive || !this.currentDialogue) return false;
+
+        if (!this.isTextComplete && this.textCrawlEnabled) {
+            this.completeTextInstantly();
+            return true;
+        }
+
         this.currentLineIndex++;
         if (this.currentLineIndex >= this.currentDialogue.length) {
             return this.completeDialogue();
         }
+        this.startTextCrawl();
         return true;
     }
 
     // Complete the current dialogue
     completeDialogue() {
-        if (this.currentNPC && !this.isSwitchDialogue) {
+        if (this.currentNPC && !this.isSwitchDialogue && !this.isEncounterDialogue) {
             const currentCharacter = this.gameState.getCurrentCharacter();
             this.gameState.completeDialogue(currentCharacter.id, this.currentNPC.id);
 
@@ -170,6 +222,7 @@ class DialogueManager {
             this.isActive = false;
             this.currentNPC = null;
             this.isSwitchDialogue = false;
+            this.isEncounterDialogue = false;
             return { action: 'minigame', target: targetNpcId };
         }
 
@@ -191,6 +244,7 @@ class DialogueManager {
         this.isActive = false;
         this.currentNPC = null;
         this.isSwitchDialogue = false;
+        this.isEncounterDialogue = false;
 
         return null;
     }
@@ -313,6 +367,55 @@ class DialogueManager {
         this.currentLineIndex = 0;
         this.isActive = true;
         this.isSwitchDialogue = false;
+        this.startTextCrawl();
+    }
+
+    showStealWeaponDialogue() {
+        const npcId = this.currentNPC.id;
+        const npcName = this.currentNPC.name || npcId;
+
+        if (!this.gameState.stolenWeapons) {
+            this.gameState.stolenWeapons = { stolen: [], available: ['austine', 'chloe', 'nicholas', 'opal', 'tyson', 'isabela'] };
+        }
+
+        this.gameState.stolenWeapons.stolen.push(npcId);
+        this.gameState.save();
+
+        const weaponNames = {
+            austine: 'Austine\'s Tactical Rifle',
+            chloe: 'Chloe\'s Healing Staff',
+            nicholas: 'Nicholas\'s Sniper Bow',
+            opal: 'Opal\'s Mystical Wand',
+            tyson: 'Tyson\'s Battle Hammer',
+            isabela: 'Isabela\'s Forged Blade'
+        };
+
+        const weaponName = weaponNames[npcId] || 'their weapon';
+        const stolenCount = this.gameState.stolenWeapons.stolen.length;
+
+        this.currentDialogue = [
+            { speaker: 'player', text: `Hey ${npcName}, mind if I borrow that weapon?` },
+            { speaker: 'npc', text: 'Wait, what are you doing?' },
+            { speaker: 'player', text: '*Swiftly takes the weapon*' },
+            { speaker: 'player', text: `Got it! ${weaponName} acquired.` },
+            { speaker: 'npc', text: 'Alexis! Give that back!' },
+            { speaker: 'player', text: `Finders keepers. I'll put it to good use. (${stolenCount}/6 weapons collected)` }
+        ];
+
+        this.currentLineIndex = 0;
+        this.isActive = true;
+        this.isSwitchDialogue = false;
+        this.startTextCrawl();
+
+        if (this.game && this.game.questLogic) {
+            this.game.questLogic.completeQuest(`steal_weapon_${npcId}`);
+
+            if (stolenCount === 5) {
+                this.game.questLogic.completeQuest('alexis_steal_5_weapons');
+            } else if (stolenCount === 6) {
+                this.game.questLogic.completeQuest('alexis_steal_all_weapons');
+            }
+        }
     }
 
     // Show minigame result dialogue for Nicholas
@@ -397,6 +500,24 @@ class DialogueManager {
             this.menuOptions.splice(2, 0, { id: 'heal', label: 'Ask for healing', enabled: true });
         }
 
+        if (currentCharacter.id === 'alexis' && npcId !== 'alexis') {
+            const stolenWeapons = this.gameState.stolenWeapons || { stolen: [], available: ['austine', 'chloe', 'nicholas', 'opal', 'tyson', 'isabela'] };
+            const alreadyStolen = stolenWeapons.stolen.includes(npcId);
+            const isIsabela = npcId === 'isabela';
+            const isabelaQuestComplete = this.gameState.completedQuests && this.gameState.completedQuests.has('upgrade_weapon');
+
+            let stealEnabled = !alreadyStolen;
+            if (isIsabela && !isabelaQuestComplete) {
+                stealEnabled = false;
+            }
+
+            this.menuOptions.splice(2, 0, {
+                id: 'steal',
+                label: alreadyStolen ? 'Already stolen weapon' : (isIsabela && !isabelaQuestComplete ? 'Wait for Isabela\'s quest' : 'Steal their weapon'),
+                enabled: stealEnabled
+            });
+        }
+
         return true;
     }
 
@@ -415,6 +536,9 @@ class DialogueManager {
             return this.startSwitchDialogue(this.currentNPC.id);
         } else if (optionId === 'heal') {
             this.showHealingDialogue();
+            return true;
+        } else if (optionId === 'steal') {
+            this.showStealWeaponDialogue();
             return true;
         } else if (optionId === 'cancel') {
             this.cancelDialogue();
