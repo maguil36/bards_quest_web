@@ -48,11 +48,11 @@ class DialogueManager {
         this.pendingMiniGame = null;
 
         this.textCrawlEnabled = true;
-        this.textCrawlDuration = 5;
+        this.charactersPerSecond = 40;
         this.currentTextProgress = 0;
         this.fullText = '';
         this.isTextComplete = false;
-        this.textCrawlSpeed = 0;
+        this.delayTextCrawlStart = false;
     }
 
     // Start a dialogue with an NPC
@@ -109,7 +109,10 @@ class DialogueManager {
         this.currentDialogue = characterDialogue;
         this.currentLineIndex = 0;
         this.isActive = true;
-        this.startTextCrawl();
+
+        if (!this.delayTextCrawlStart) {
+            this.startTextCrawl();
+        }
 
         return true;
     }
@@ -135,6 +138,7 @@ class DialogueManager {
         this.currentLineIndex = 0;
         this.isActive = true;
         this.isEncounterDialogue = true;
+        this.startTextCrawl();
 
         return true;
     }
@@ -155,7 +159,12 @@ class DialogueManager {
         this.isTextComplete = false;
         const currentLine = this.getCurrentLine();
         this.fullText = currentLine ? currentLine.text : '';
-        this.textCrawlSpeed = this.fullText.length / this.textCrawlDuration;
+        // console.log('[DialogueManager] Starting text crawl:', {
+        //     fullText: this.fullText,
+        //     length: this.fullText.length,
+        //     charactersPerSecond: this.charactersPerSecond,
+        //     textCrawlEnabled: this.textCrawlEnabled
+        // });
     }
 
     // Update text crawl progress based on delta time
@@ -164,11 +173,20 @@ class DialogueManager {
             return;
         }
 
-        this.currentTextProgress += this.textCrawlSpeed * (deltaTime / 1000);
+        const cappedDeltaTime = Math.min(deltaTime, 100);
+        // console.log('[DialogueManager] updateTextCrawl called:', {
+        //     deltaTime,
+        //     cappedDeltaTime,
+        //     currentProgress: this.currentTextProgress,
+        //     charactersPerSecond: this.charactersPerSecond
+        // });
+
+        this.currentTextProgress += this.charactersPerSecond * (cappedDeltaTime / 1000);
 
         if (this.currentTextProgress >= this.fullText.length) {
             this.currentTextProgress = this.fullText.length;
             this.isTextComplete = true;
+            // console.log('[DialogueManager] Text crawl complete');
         }
     }
 
@@ -177,7 +195,13 @@ class DialogueManager {
         if (!this.textCrawlEnabled || this.isTextComplete) {
             return this.fullText;
         }
-        return this.fullText.substring(0, Math.floor(this.currentTextProgress));
+        const visibleLength = Math.floor(this.currentTextProgress);
+        // console.log('[DialogueManager] Visible text:', {
+        //     progress: this.currentTextProgress,
+        //     visibleLength: visibleLength,
+        //     fullLength: this.fullText.length
+        // });
+        return this.fullText.substring(0, visibleLength);
     }
 
     // Complete text crawl instantly
@@ -449,6 +473,7 @@ class DialogueManager {
         this.currentLineIndex = 0;
         this.isActive = true;
         this.isSwitchDialogue = false;
+        this.startTextCrawl();
 
         if (success) {
             this.pendingSwitch = npcId;
@@ -618,6 +643,7 @@ class DialogueManager {
                             this.currentLineIndex = 0;
                             this.isActive = true;
                             this.pendingMiniGame = targetNpcId;
+                            this.startTextCrawl();
                             return true;
                         }
                         break;
@@ -635,6 +661,7 @@ class DialogueManager {
                 ]);
                 this.currentLineIndex = 0;
                 this.isActive = true;
+                this.startTextCrawl();
                 return true;
             }
         }
@@ -736,6 +763,7 @@ class DialogueManager {
         this.currentLineIndex = 0;
         this.isActive = true;
         this.isSwitchDialogue = true;
+        this.startTextCrawl();
 
         return true;
     }
@@ -770,6 +798,7 @@ class DialogueManager {
         this.isActive = true;
         this.isSwitchDialogue = true;
         this.pendingSwitch = success ? targetNpcId : null;
+        this.startTextCrawl();
 
         return true;
     }

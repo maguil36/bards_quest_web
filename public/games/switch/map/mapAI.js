@@ -1,6 +1,5 @@
 export class MapAI {
     constructor(config) {
-        console.log('[MapAI] Constructor called, agents:', config.game?.agents?.length || config.agents?.length || 0);
         if (config.game) {
             this.game = config.game;
             this.player = config.game.player;
@@ -31,18 +30,10 @@ export class MapAI {
             this.playEncounterMusic = config.callbacks?.playEncounterMusic || (() => {});
             this.startEncounterDialogue = config.callbacks?.startEncounterDialogue || (() => {});
         }
-
-        this.debugLogTimer = 0;
     }
 
     updateAgents() {
         if (this.getInCombat()) return;
-
-        this.debugLogTimer++;
-        if (this.debugLogTimer >= 120) {
-            console.log('[MapAI] Agent positions:', this.agents.map(a => ({ x: a.x, y: a.y, defeated: a.defeated })));
-            this.debugLogTimer = 0;
-        }
 
         for (const agent of this.agents) {
             if (agent.defeated) continue;

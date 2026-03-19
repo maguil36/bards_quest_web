@@ -1,4 +1,5 @@
 import { BattleAI } from './battleAI.js';
+import { STRIFE_OPTIONS } from './battleCombatData.js';
 
 export class BattleController {
     constructor(config) {
@@ -262,6 +263,10 @@ export class BattleController {
 
             const result = this.combatSystem.executeStrifeOption(action);
 
+            console.log('[STRIFE] Action:', action);
+            console.log('[STRIFE] Result:', result);
+            console.log('[STRIFE] Player ID:', player.id);
+
             if (result.openFraymotif) {
                 if (result.messages) {
                     result.messages.forEach(msg => this.battleUI.addLogMessage(msg, '#0f0'));
@@ -276,59 +281,116 @@ export class BattleController {
                 return;
             }
 
+            const playerAbilities = STRIFE_OPTIONS[player.id] || [];
+            const abilityData = playerAbilities.find(a => a.id === action);
+            const isStatusOnly = abilityData && abilityData.category === 'status' && !result.damage;
+
+            console.log('[STRIFE] Ability data:', abilityData);
+            console.log('[STRIFE] isStatusOnly:', isStatusOnly);
+
             const didHit = !(result.messages && result.messages.some(msg => msg.includes('missed')));
 
-            this.battleUI.playAttackAnimationWithResult(true, null, didHit, () => {
-                if (result.success) {
-                    if (result.multiHitData && result.multiHitData.length > 0) {
-                        const initialMessage = `${playerName} used ${actionName}!`;
-                        this.battleUI.addLogMessage(initialMessage, '#0f0');
-
-                        this.battleUI.waitForInput(() => {
-                            this.battleUI.showMultiHitMessages(playerName, actionName, result.multiHitData, () => {
-                                if (enemy.hp <= 0) {
-                                    this.combatSystem.inCombat = false;
-                                    setTimeout(() => {
-                                        this.battleUI.playVictoryAnimation(() => {
-                                            this.endCombat(true);
-                                        });
-                                    }, 1000);
-                                    return;
-                                }
-
-                                this.executeEnemyTurn();
+            if (isStatusOnly) {
+                console.log('[STRIFE] Taking status-only path');
+                if (result.statChanges) {
+                    console.log('[STRIFE] Has stat changes, playing wave effect');
+                    const target = result.statTarget === 'self' ? player : enemy;
+                    const isPlayer = result.statTarget === 'self';
+                    this.battleUI.animations.playStatWaveEffect(target, result.statChanges, isPlayer, () => {
+                        if (result.enemyStatChanges) {
+                            console.log('[STRIFE] Has enemy stat changes, playing second wave effect');
+                            this.battleUI.animations.playStatWaveEffect(enemy, result.enemyStatChanges, false, () => {
+                                this.continueAfterStrifeAction(result, player, enemy, playerName, actionName);
                             });
-                        }, 5000);
-                        return;
-                    }
-
-                    let message = result.damage > 0
-                        ? `${playerName} used ${actionName} for ${result.damage} damage`
-                        : `${playerName} used ${actionName}!`;
-
-                    this.battleUI.addLogMessage(message, '#0f0');
+                        } else {
+                            this.continueAfterStrifeAction(result, player, enemy, playerName, actionName);
+                        }
+                    });
+                } else {
+                    console.log('[STRIFE] No stat changes, continuing directly');
+                    this.continueAfterStrifeAction(result, player, enemy, playerName, actionName);
                 }
-
-                this.battleUI.updateCombatData({
-                    player: this.combatSystem.player,
-                    enemy: this.combatSystem.enemy
-                });
-
-                if (enemy.hp <= 0) {
-                    this.combatSystem.inCombat = false;
-                    setTimeout(() => {
-                        this.battleUI.playVictoryAnimation(() => {
-                            this.endCombat(true);
+            } else {
+                console.log('[STRIFE] Taking attack animation path');
+                this.battleUI.playAttackAnimationWithResult(true, null, didHit, () => {
+                    if (result.statChanges) {
+                        const target = result.statTarget === 'self' ? player : enemy;
+                        const isPlayer = result.statTarget === 'self';
+                        this.battleUI.animations.playStatWaveEffect(target, result.statChanges, isPlayer, () => {
+                            if (result.enemyStatChanges) {
+                                console.log('[STRIFE] Has enemy stat changes, playing second wave effect');
+                                this.battleUI.animations.playStatWaveEffect(enemy, result.enemyStatChanges, false, () => {
+                                    this.continueAfterStrifeAction(result, player, enemy, playerName, actionName);
+                                });
+                            } else {
+                                this.continueAfterStrifeAction(result, player, enemy, playerName, actionName);
+                            }
                         });
-                    }, 1000);
-                    return;
-                }
+                    } else {
+                        this.continueAfterStrifeAction(result, player, enemy, playerName, actionName);
+                    }
+                });
+            }
+        }, 200);
+    }
+
+    continueAfterStrifeAction(result, player, enemy, playerName, actionName) {
+        if (result.success) {
+            if (result.multiHitData && result.multiHitData.length > 0) {
+                const initialMessage = `${playerName} used ${actionName}!`;
+                this.battleUI.addLogMessage(initialMessage, '#0f0');
 
                 this.battleUI.waitForInput(() => {
-                    this.executeEnemyTurn();
+                    this.battleUI.showMultiHitMessages(playerName, actionName, result.multiHitData, () => {
+                        if (enemy.hp <= 0) {
+                            this.combatSystem.inCombat = false;
+                            setTimeout(() => {
+                                this.battleUI.playVictoryAnimation(() => {
+                                    this.endCombat(true);
+                                });
+                            }, 1000);
+                            return;
+                        }
+
+                        this.executeEnemyTurn();
+                    });
+                }, 5000);
+                return;
+            }
+
+            let message = result.damage > 0
+                ? `${playerName} used ${actionName} for ${result.damage} damage`
+                : `${playerName} used ${actionName}!`;
+
+            this.battleUI.addLogMessage(message, '#0f0');
+
+            if (result.messages && result.messages.length > 0) {
+                result.messages.forEach(msg => {
+                    if (!msg.includes('used ') && !msg.includes('Gained ') && !msg.includes('fraymotif charge')) {
+                        this.battleUI.addLogMessage(msg, '#fff');
+                    }
                 });
-            });
-        }, 200);
+            }
+        }
+
+        this.battleUI.updateCombatData({
+            player: this.combatSystem.player,
+            enemy: this.combatSystem.enemy
+        });
+
+        if (enemy.hp <= 0) {
+            this.combatSystem.inCombat = false;
+            setTimeout(() => {
+                this.battleUI.playVictoryAnimation(() => {
+                    this.endCombat(true);
+                });
+            }, 1000);
+            return;
+        }
+
+        this.battleUI.waitForInput(() => {
+            this.executeEnemyTurn();
+        });
     }
 
     executeEnemyTurn() {

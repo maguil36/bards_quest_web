@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Switch - Character Adventure Game</title>
     <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="battle/battleEffects.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -46,39 +47,56 @@
         }
 
         #dialogueBox {
-            position: absolute;
-            bottom: 20px;
+            position: fixed;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            max-width: 700px;
+            transform: translate(-50%, -50%);
+            width: 75%;
+            max-width: 1000px;
+            min-height: 280px;
             background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            padding: 16px 16px 8px 16px;
+            border: none;
+            padding: 24px;
             display: none;
             z-index: 100;
+            font-size: 14px;
+            line-height: 1.8;
+            transition: none;
+            box-shadow:
+                0 0 0 4px var(--border),
+                4px 0 0 4px var(--border),
+                -4px 0 0 4px var(--border),
+                0 4px 0 4px var(--border),
+                0 -4px 0 4px var(--border),
+                8px 0 0 8px var(--border),
+                -8px 0 0 8px var(--border),
+                0 8px 0 8px var(--border),
+                0 -8px 0 8px var(--border);
         }
 
-        #dialogueText {
-            font-size: 18px;
-            line-height: 1.6;
-            margin-bottom: 8px;
-            padding: 8px 10px;
-            border-radius: 6px;
-            background: var(--surface);
-            transition: background 2s ease-in-out, background-color 2s ease-in-out, border-color 2s ease-in-out !important;
+        #dialogueBox.encounter-mode {
+            top: auto;
+            bottom: 20px;
+            transform: translateX(-50%);
+            min-height: 100px;
+            max-height: 25vh;
+            width: 90%;
         }
 
-        .speaker-player #dialogueText {
-            box-shadow: 0 0 0 2px var(--accent);
+        #dialogueBox.speaker-player {
+            text-align: left;
+            padding-left: 24px;
+            padding-right: 25%;
         }
-        .speaker-npc #dialogueText {
-            box-shadow: 0 0 0 2px var(--border);
+
+        #dialogueBox.speaker-npc {
+            text-align: left;
+            padding-left: 25%;
+            padding-right: 24px;
         }
 
         #dialoguePrompt {
-            font-size: 14px;
+            font-size: 10px;
             color: var(--muted);
             text-align: right;
         }
@@ -1088,178 +1106,44 @@
             animation: slideDown 0.2s ease;
         }
 
-        /* Battle UI Animations */
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        @keyframes bounce {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.1);
-            }
-        }
-
-        @keyframes damage-shake {
-            0%, 100% {
-                transform: translateX(0);
-            }
-            25% {
-                transform: translateX(-10px);
-            }
-            75% {
-                transform: translateX(10px);
-            }
-        }
-
-        .damage-shake {
-            animation: damage-shake 0.5s;
-        }
-
-        .battle-flash {
-            animation: battle-flash 0.6s;
-        }
-
-        @keyframes battle-flash {
-            0% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.9);
-            }
-            50% {
-                opacity: 1;
-                background: white;
-            }
-            100% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-            }
-        }
-
-        .victory-flash {
-            animation: victory-flash 1.5s;
-        }
-
-        @keyframes victory-flash {
-            0%, 100% {
-                filter: brightness(1);
-            }
-            25%, 75% {
-                filter: brightness(1.5);
-            }
-            50% {
-                filter: brightness(2);
-            }
-        }
-
-        .metallic-flash {
-            animation: metallic-flash 0.6s ease-out;
-        }
-
-        @keyframes metallic-flash {
-            0% {
-                filter: brightness(1) contrast(1);
-            }
-            25% {
-                filter: brightness(1.8) contrast(1.3);
-            }
-            50% {
-                filter: brightness(2.2) contrast(1.5) saturate(0.5);
-            }
-            75% {
-                filter: brightness(1.5) contrast(1.2);
-            }
-            100% {
-                filter: brightness(1) contrast(1);
-            }
-        }
-
-        /* STRIFE Title Animations */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0;
-            }
-        }
-
-        @keyframes strifeZoom {
-            0% {
-                transform: scale(0.5);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        /* Combat UI Styling */
-        #combatUI {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 700px;
-            height: 500px;
+        #interactionMenu {
+            position: absolute;
             background: var(--card);
-            border: 3px solid var(--accent);
-            border-radius: 0;
-            z-index: 110;
+            border: none;
+            padding: 8px 12px;
             display: none;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            overflow: hidden;
+            z-index: 99;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            min-width: 150px;
+            box-shadow:
+                0 0 0 2px var(--border),
+                0 0 0 4px var(--card),
+                2px 0 0 2px var(--border),
+                -2px 0 0 2px var(--border),
+                0 2px 0 2px var(--border),
+                0 -2px 0 2px var(--border);
         }
+
+        #interactionMenu .menu-option {
+            padding: 4px 0;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        #interactionMenu .menu-option:hover {
+            opacity: 0.8;
+        }
+
+        #interactionMenu .menu-hint {
+            font-size: 8px;
+            color: var(--muted);
+            margin-top: 6px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 4px;
+        }
+
     </style>
 </head>
 <body>
@@ -1333,10 +1217,11 @@
             </div>
         </div>
 
-        <div id="dialogueBox">
-            <div id="dialogueText"></div>
-            <div id="dialoguePrompt">Press SPACE to continue...</div>
+        <div id="interactionMenu">
+            <div id="interactionMenuContent"></div>
         </div>
+
+        <div id="dialogueBox"></div>
 
         <div id="switchPrompt">
             <h3>Switch Character?</h3>
@@ -1466,6 +1351,7 @@
     <script src="dialogue/dialogueSwitchCharacter.js"></script>
     <script src="dialogue/dialogueEncounter.js"></script>
     <script src="dialogue/dialogueSpecial.js"></script>
+    <script src="dialogue/dialoguePortraitLogic.js"></script>
     <script src="dialogue/dialogueLogic.js"></script>
     <script src="map/mapMiniGames.js"></script>
     <script src="map/mapAudio.js"></script>

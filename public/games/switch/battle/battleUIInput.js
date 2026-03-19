@@ -1,15 +1,15 @@
 export class BattleUIInput {
   constructor(battleUI) {
     this.battleUI = battleUI;
-    this.keyboardEventListener = null;
+    this.keydownListener = null;
   }
 
   setupKeyboardNavigation() {
-    if (this.keyboardEventListener) {
-      document.removeEventListener('keydown', this.keyboardEventListener);
+    if (this.keydownListener) {
+      document.removeEventListener('keydown', this.keydownListener);
     }
 
-    this.keyboardEventListener = (e) => {
+    this.keydownListener = (e) => {
       if (!this.battleUI.keyboardNavigationEnabled) return;
 
       const buttons = this.getNavigableButtons();
@@ -23,15 +23,34 @@ export class BattleUIInput {
         e.preventDefault();
         this.battleUI.focusedButtonIndex = (this.battleUI.focusedButtonIndex + 1) % buttons.length;
         this.updateButtonFocus(buttons);
-      } else if (e.key === ' ' || e.key === 'Enter') {
+      } else if (e.key === ' ') {
         e.preventDefault();
+
+        if (e.repeat) {
+          return;
+        }
+
+        if (this.battleUI.buttonCooldownActive) {
+          console.log('[INPUT] Spacebar pressed during cooldown - action blocked');
+          return;
+        }
+
         if (buttons[this.battleUI.focusedButtonIndex]) {
+          console.log('[INPUT] Spacebar pressed - clicking focused button:', buttons[this.battleUI.focusedButtonIndex].dataset.action);
           buttons[this.battleUI.focusedButtonIndex].click();
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!this.battleUI.buttonCooldownActive && buttons[this.battleUI.focusedButtonIndex]) {
+          console.log('[INPUT] Enter pressed - clicking focused button:', buttons[this.battleUI.focusedButtonIndex].dataset.action);
+          buttons[this.battleUI.focusedButtonIndex].click();
+        } else if (this.battleUI.buttonCooldownActive) {
+          console.log('[INPUT] Enter pressed during cooldown - action blocked');
         }
       }
     };
 
-    document.addEventListener('keydown', this.keyboardEventListener);
+    document.addEventListener('keydown', this.keydownListener);
 
     const buttons = this.getNavigableButtons();
     if (buttons.length > 0) {
@@ -64,9 +83,9 @@ export class BattleUIInput {
   }
 
   cleanup() {
-    if (this.keyboardEventListener) {
-      document.removeEventListener('keydown', this.keyboardEventListener);
-      this.keyboardEventListener = null;
+    if (this.keydownListener) {
+      document.removeEventListener('keydown', this.keydownListener);
+      this.keydownListener = null;
     }
   }
 }

@@ -587,6 +587,8 @@ export class MapInteractions {
             }
         }
 
+        const currentChar = this.game.gameState.getCurrentCharacter();
+
         for (const boulder of this.game.boulders) {
             if (newX < boulder.x + this.game.tileSize &&
                 newX + this.game.player.width > boulder.x &&
@@ -594,6 +596,10 @@ export class MapInteractions {
                 newY + this.game.player.height > boulder.y) {
 
                 if (this.game.boulderPushing) {
+                    return;
+                }
+
+                if (currentChar.id !== 'opal') {
                     return;
                 }
 
@@ -632,7 +638,7 @@ export class MapInteractions {
                         const startX = boulder.x;
                         const startY = boulder.y;
                         const startTime = Date.now();
-                        const duration = 200;
+                        const duration = 500;
 
                         const animatePush = () => {
                             const elapsed = Date.now() - startTime;
@@ -709,7 +715,6 @@ export class MapInteractions {
         this.game.player.x = newX;
         this.game.player.y = newY;
 
-        const currentChar = this.game.gameState.getCurrentCharacter();
         if (currentChar && currentChar.id) {
             this.game.gameState.characterPositions[currentChar.id] = { x: this.game.player.x, y: this.game.player.y };
         }
@@ -778,7 +783,7 @@ export class MapInteractions {
                 closestNPC.direction = dy > 0 ? 'down' : 'up';
             }
 
-            this.game.showInteractionMenu(closestNPC.id);
+            this.game.gameOrchestrator.showInteractionMenu(closestNPC.id);
             return true;
         }
 

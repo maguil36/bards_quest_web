@@ -6,6 +6,8 @@ import {
   STRIFE_CATEGORIES,
   ABILITIES
 } from './battleCombatData.js';
+import { createFraymotifExecutor } from './battleCombatFrayMotif.js';
+import { getFraymotifAbilities } from './battleFraymotifData.js';
 
 function createStageModifier(stat, stages, duration = 3) {
   return {
@@ -52,6 +54,8 @@ class PokemonCombatSystem {
 
     this.pendingActions = [];
     this.currentTurnData = null;
+
+    this.fraymotifExecutor = createFraymotifExecutor(this);
   }
 
   initBattler(isPlayer, characterId, customEnemy = null) {
@@ -752,6 +756,9 @@ class PokemonCombatSystem {
     const statMessages = this.changeStats(this.enemy, { specialDefense: -1 });
     results.messages.push(...statMessages);
 
+    results.statChanges = { specialDefense: -1 };
+    results.statTarget = 'enemy';
+
     return results;
   }
 
@@ -792,6 +799,9 @@ class PokemonCombatSystem {
 
     const statMessages = this.changeStats(this.player, { defense: -1 });
     results.messages.push(...statMessages);
+
+    results.statChanges = { defense: -1 };
+    results.statTarget = 'self';
 
     return results;
   }
@@ -855,6 +865,9 @@ class PokemonCombatSystem {
     const statMessages = this.changeStats(this.player, { accuracy: -1 });
     results.messages.push(...statMessages);
 
+    results.statChanges = { accuracy: -1 };
+    results.statTarget = 'self';
+
     return results;
   }
 
@@ -866,6 +879,9 @@ class PokemonCombatSystem {
     const statMessages = this.changeStats(this.enemy, { defense: -1 });
     results.messages.push(...statMessages);
 
+    results.statChanges = { defense: -1 };
+    results.statTarget = 'enemy';
+
     return results;
   }
 
@@ -876,6 +892,9 @@ class PokemonCombatSystem {
 
     const statMessages = this.changeStats(this.enemy, { attack: -1 });
     results.messages.push(...statMessages);
+
+    results.statChanges = { attack: -1 };
+    results.statTarget = 'enemy';
 
     return results;
   }
@@ -891,6 +910,10 @@ class PokemonCombatSystem {
     const enemyMessages = this.changeStats(this.enemy, { attack: 1 });
     results.messages.push(...enemyMessages);
 
+    results.statChanges = { attack: 2 };
+    results.statTarget = 'self';
+    results.enemyStatChanges = { attack: 1 };
+
     return results;
   }
 
@@ -901,6 +924,9 @@ class PokemonCombatSystem {
 
     const statMessages = this.changeStats(this.enemy, { specialDefense: -1 });
     results.messages.push(...statMessages);
+
+    results.statChanges = { specialDefense: -1 };
+    results.statTarget = 'enemy';
 
     return results;
   }
@@ -916,6 +942,9 @@ class PokemonCombatSystem {
     this.player.fraymotifCharge = Math.min(1000, this.player.fraymotifCharge + this.player.attack);
     results.messages.push(`Gained ${this.player.attack} fraymotif charge!`);
 
+    results.statChanges = { attack: 1 };
+    results.statTarget = 'self';
+
     return results;
   }
 
@@ -926,6 +955,9 @@ class PokemonCombatSystem {
 
     const statMessages = this.changeStats(this.player, { specialAttack: 1 });
     results.messages.push(...statMessages);
+
+    results.statChanges = { specialAttack: 1 };
+    results.statTarget = 'self';
 
     return results;
   }
@@ -938,6 +970,9 @@ class PokemonCombatSystem {
     const statMessages = this.changeStats(this.player, { accuracy: 1 });
     results.messages.push(...statMessages);
 
+    results.statChanges = { accuracy: 1 };
+    results.statTarget = 'self';
+
     return results;
   }
 
@@ -949,6 +984,9 @@ class PokemonCombatSystem {
     const statMessages = this.changeStats(this.player, { evasion: 1 });
     results.messages.push(...statMessages);
 
+    results.statChanges = { evasion: 1 };
+    results.statTarget = 'self';
+
     return results;
   }
 
@@ -959,6 +997,9 @@ class PokemonCombatSystem {
 
     this.player.critStage = Math.min(3, this.player.critStage + 1);
     results.messages.push(`${this.player.id}'s critical hit ratio rose!`);
+
+    results.statChanges = { critical: 1 };
+    results.statTarget = 'self';
 
     return results;
   }
@@ -973,6 +1014,10 @@ class PokemonCombatSystem {
 
     const enemyMessages = this.changeStats(this.enemy, { attack: -1, specialAttack: -1 });
     results.messages.push(...enemyMessages);
+
+    results.statChanges = { attack: -1 };
+    results.statTarget = 'self';
+    results.enemyStatChanges = { attack: -1, specialAttack: -1 };
 
     return results;
   }
@@ -1375,6 +1420,46 @@ class PokemonCombatSystem {
 
     return {
       ...result,
+      playerHp: this.player.hp,
+      enemyHp: this.enemy.hp
+    };
+  }
+
+  executeFraymotif(abilityIndex) {
+    if (!this.inCombat || !this.player) {
+      return { success: false, message: 'Not in combat!' };
+    }
+
+    const abilities = getFraymotifAbilities(this.player.id);
+    const ability = abilities[abilityIndex];
+
+    if (!ability) {
+      return { success: false, message: 'Fraymotif not found!' };
+    }
+
+    if (this.player.fraymotifCharge < ability.cost) {
+      return { success: false, message: 'Not enough charge!' };
+    }
+
+    const result = this.fraymotifExecutor.executeFraymotif(ability.id, this.player, this.enemy);
+
+    if (!result.success) {
+      return result;
+    }
+
+    this.playerTurn = false;
+
+    const enemyResult = this.executeMove(this.enemy, this.player, Math.floor(Math.random() * this.enemy.moves.length));
+
+    if (this.player.hp <= 0) {
+      return this.endCombat(false, [...(result.result?.messages || []), ...enemyResult.messages]);
+    }
+
+    this.playerTurn = true;
+
+    return {
+      success: true,
+      ...result.result,
       playerHp: this.player.hp,
       enemyHp: this.enemy.hp
     };

@@ -1,271 +1,468 @@
 const FRAYMOTIF_BACKGROUNDS = {
-  opal: 'fraymotif_space.png',
-  isabela: 'fraymotif_blood.png',
-  tyson: 'fraymotif_doom.png',
-  chloe: 'fraymotif_life.png',
-  austine: 'fraymotif_mind.png',
-  nicholas: 'fraymotif_light.png',
-  alexis: 'fraymotif_rage.png'
+  opal: 'fraymotifs/fraymotif_space.png',
+  isabela: 'fraymotifs/fraymotif_blood.png',
+  tyson: 'fraymotifs/fraymotif_doom.png',
+  chloe: 'fraymotifs/fraymotif_life.png',
+  austine: 'fraymotifs/fraymotif_mind.png',
+  nicholas: 'fraymotifs/fraymotif_light.png',
+  alexis: 'fraymotifs/fraymotif_rage.png'
 };
 
 const FRAYMOTIF_ABILITIES = {
-  opal: [
+  alexis: [
     {
-      id: 'space_teleport',
-      name: 'Spatial Symphony',
-      description: 'Teleport behind enemy. Next attack is guaranteed critical hit.',
+      id: 'fury_fugue',
+      name: 'Fury Fugue',
+      description: 'Multi-hit attack (2-5 hits based on user HP). Lower HP = more hits.',
+      category: 'physical',
       cost: 1000,
-      effect: { type: 'guaranteedCrit', duration: 1 }
+      power: { type: 'weapon', multiplier: 0.8 },
+      effect: {
+        type: 'multiHit',
+        hitsBasedOnHP: true,
+        hpThresholds: [
+          { maxHP: 0.25, hits: 5 },
+          { maxHP: 0.50, hits: 4 },
+          { maxHP: 0.75, hits: 3 },
+          { maxHP: 1.00, hits: 2 }
+        ],
+        doubleHitBonus: 1
+      }
     },
     {
-      id: 'space_warp',
-      name: 'Warp Waltz',
-      description: 'Distort space around enemy. Lower all enemy stats by 2 stages.',
+      id: 'tempest_tonic',
+      name: 'Tempest Tonic',
+      description: 'High priority physical attack. 1.25x weapon power, +2 priority.',
+      category: 'physical',
       cost: 1000,
-      effect: { type: 'lowerAllStats', target: 'enemy', stages: -2 }
+      power: { type: 'weapon', multiplier: 1.25 },
+      effect: { type: 'priorityBoost', bonus: 2 }
     },
     {
-      id: 'space_clone',
-      name: 'Echo Chamber',
-      description: 'Create a clone. Next 3 attacks hit twice.',
+      id: 'vengeful_vibrato',
+      name: 'Vengeful Vibrato',
+      description: 'Raises Attack and Sp. Attack by 2 stages for 4 turns.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'doubleAttack', duration: 3 }
+      effect: {
+        type: 'statBoost',
+        target: 'self',
+        stats: { attack: 2, specialAttack: 2 },
+        duration: 4
+      }
     },
     {
-      id: 'space_void',
-      name: 'Silent Stanza',
-      description: 'Trap enemy in void. Enemy cannot move for 2 turns.',
+      id: 'raucous_ritardando',
+      name: 'Raucous Ritardando',
+      description: 'Lowers enemy Defense, Sp. Defense, and Speed by 1 stage for 4 turns.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'skipTurns', target: 'enemy', duration: 2 }
+      effect: {
+        type: 'statLower',
+        target: 'enemy',
+        stats: { defense: -1, specialDefense: -1, speed: -1 },
+        duration: 4
+      }
     },
     {
-      id: 'space_collapse',
-      name: 'Crescendo Collapse',
-      description: 'Collapse space on enemy. Deal damage equal to 50% of enemy max HP.',
+      id: 'discordant_crescendo',
+      name: 'Discordant Crescendo',
+      description: 'Escalating attack over 3 turns (1x → 2x → 4x power). Locks user into move.',
+      category: 'physical',
       cost: 1000,
-      effect: { type: 'percentDamage', target: 'enemy', percent: 0.5 }
-    }
-  ],
-  isabela: [
-    {
-      id: 'blood_bond',
-      name: 'Siphon Song',
-      description: 'Create blood link. Drain 25% of enemy HP each turn for 3 turns.',
-      cost: 1000,
-      effect: { type: 'lifeDrain', percent: 0.25, duration: 3 }
-    },
-    {
-      id: 'blood_rage',
-      name: 'Crimson Crescendo',
-      description: 'Channel blood power. +3 ATK and +2 SPD for 5 turns.',
-      cost: 1000,
-      effect: { type: 'statBoost', stats: { attack: 3, speed: 2 }, duration: 5 }
-    },
-    {
-      id: 'blood_sacrifice',
-      name: 'Sacrifice Serenade',
-      description: 'Sacrifice 30% HP. Next attack deals 3x damage.',
-      cost: 1000,
-      effect: { type: 'sacrificePower', hpCost: 0.3, multiplier: 3 }
-    },
-    {
-      id: 'blood_barrier',
-      name: 'Hemlock Harmony',
-      description: 'Create protective barrier. Block all damage for 1 turn.',
-      cost: 1000,
-      effect: { type: 'invincible', duration: 1 }
-    },
-    {
-      id: 'blood_explosion',
-      name: 'Scarlet Scream',
-      description: 'Explosive blood attack. Deal 200 fixed damage, ignore defense.',
-      cost: 1000,
-      effect: { type: 'fixedDamage', amount: 200 }
+      power: { type: 'weapon', multiplier: 1 },
+      effect: {
+        type: 'crescendo',
+        duration: 3,
+        locked: true,
+        powerMultipliers: [1, 2, 4]
+      }
     }
   ],
   tyson: [
     {
-      id: 'doom_inevitability',
-      name: 'Requiem\'s End',
-      description: 'Mark enemy for doom. Enemy loses 15% max HP each turn for 4 turns.',
+      id: 'oblivion_oratorio',
+      name: 'Oblivion Oratorio',
+      description: 'Special attack that deals more damage based on missing HP. 1.25x multiplier.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'doomMark', percent: 0.15, duration: 4 }
+      power: { type: 'damageScaling', multiplier: 1.25 },
+      effect: { type: 'damageBasedOnMissingHP' }
     },
     {
-      id: 'doom_rewind',
-      name: 'Tempo Rewind',
-      description: 'Rewind time. Restore your HP to full.',
+      id: 'dire_dissonance',
+      name: 'Dire Dissonance',
+      description: 'Lowers enemy Defense and Sp. Defense by 2 stages for 4 turns.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'fullHeal', target: 'self' }
+      effect: {
+        type: 'statLower',
+        target: 'enemy',
+        stats: { defense: -2, specialDefense: -2 },
+        duration: 4
+      }
     },
     {
-      id: 'doom_accelerate',
-      name: 'Accelerando of Doom',
-      description: 'Speed up time. Take 3 turns in a row.',
+      id: 'final_fugato',
+      name: 'Final Fugato',
+      description: 'Fixed 200 damage special attack. Lowers enemy Defense by 1 stage for 4 turns.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'extraTurns', count: 2 }
+      power: { type: 'fixed', amount: 200 },
+      effect: {
+        type: 'statLower',
+        target: 'enemy',
+        stats: { defense: -1 },
+        duration: 4
+      }
     },
     {
-      id: 'doom_sacrifice',
-      name: 'Funeral March',
-      description: 'Accept doom. Set enemy HP to 1, but you also take heavy damage.',
+      id: 'sombre_syncopation',
+      name: 'Sombre Syncopation',
+      description: 'Lowers enemy Attack and Sp. Attack by 2 stages for 4 turns.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'mutualDoom', enemyHp: 1, selfDamage: 0.5 }
+      effect: {
+        type: 'statLower',
+        target: 'enemy',
+        stats: { attack: -2, specialAttack: -2 },
+        duration: 4
+      }
     },
     {
-      id: 'doom_paradox',
-      name: 'Bombastic Beat',
-      description: 'Detonate all bombs instantly with 2x power, ignoring timer.',
+      id: 'crisis_chaconne',
+      name: 'Crisis Chaconne',
+      description: 'Multi-hit attack (2 base + 1 per enemy debuff). 0.8x weapon power per hit.',
+      category: 'physical',
       cost: 1000,
-      effect: { type: 'megaBomb', multiplier: 2 }
+      power: { type: 'weapon', multiplier: 0.8 },
+      effect: {
+        type: 'multiHit',
+        hitsBasedOnEnemyDebuffs: true,
+        baseHits: 2
+      }
     }
   ],
   chloe: [
     {
-      id: 'life_regeneration',
-      name: 'Vital Verse',
-      description: 'Channel life energy. Restore 50% of max HP.',
+      id: 'vital_variation',
+      name: 'Vital Variation',
+      description: 'Equalizes HP between user and enemy (average of both).',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'healPercent', target: 'self', percent: 0.5 }
+      effect: {
+        type: 'hpEqualize',
+        description: 'Sum up the remaining hp of both the enemy and the rogue of life. Split it in half, and both go with what remains.'
+      }
     },
     {
-      id: 'life_growth',
-      name: 'Flourish Forte',
-      description: 'Grow stronger. +2 to all your stats for 5 turns.',
+      id: 'lush_legato',
+      name: 'Lush Legato',
+      description: 'Lowers enemy Attack/Sp. Attack by 1. Raises user Defense/Sp. Defense by 1. 4 turns.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'allStatBoost', target: 'self', stages: 2, duration: 5 }
+      effect: {
+        type: 'dualStatChange',
+        target: 'enemy',
+        enemyStats: { attack: -1, specialAttack: -1 },
+        selfStats: { defense: 1, specialDefense: 1 },
+        duration: 4
+      }
     },
     {
-      id: 'life_leech',
-      name: 'Vitality Vibrato',
-      description: 'Absorb life force. Next 4 attacks heal you for 100% damage dealt.',
+      id: 'rejuvenating_recitative',
+      name: 'Rejuvenating Recitative',
+      description: 'Fixed 100 damage special attack. Heals user for 50% of damage dealt.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'lifeSteal', percent: 1.0, duration: 4 }
+      power: { type: 'fixed', amount: 100 },
+      effect: { type: 'lifeSteal', percent: 0.5 }
     },
     {
-      id: 'life_resurrect',
-      name: 'Encore of Life',
-      description: 'Grant resurrection. If you fall to 0 HP, revive with 50% HP once.',
+      id: 'breathless_beat',
+      name: 'Breathless Beat',
+      description: 'Fixed 200 damage special attack. Damage scales with missing HP (10% minimum).',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'revive', percent: 0.5 }
+      power: { type: 'fixed', amount: 200 },
+      effect: {
+        type: 'damageScaledByMissingHP',
+        minPercent: 0.1
+      }
     },
     {
-      id: 'life_wither',
-      name: 'Withering Waltz',
-      description: 'Drain enemy vitality. Set enemy HP to 50% of current.',
+      id: 'resonant_rise',
+      name: 'Resonant Rise',
+      description: 'Animal companion attack (3x power). Always hits. Disables companion for 4 turns.',
+      category: 'physical',
       cost: 1000,
-      effect: { type: 'percentCurrentDamage', target: 'enemy', percent: 0.5 }
+      power: { type: 'animalCompanion', multiplier: 3 },
+      effect: {
+        type: 'disableAnimalCompanion',
+        duration: 4,
+        alwaysHits: true
+      }
     }
   ],
-  austine: [
+  isabela: [
     {
-      id: 'mind_predict',
-      name: 'Prescient Prelude',
-      description: 'See enemy moves. Perfect evasion for 3 turns.',
+      id: 'crimson_cantata',
+      name: 'Crimson Cantata',
+      description: 'Fixed 150 damage special attack. Doubles stat stages for damage calculation.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'perfectEvasion', duration: 3 }
+      power: { type: 'fixed', amount: 150 },
+      effect: { type: 'doubleStages' }
     },
     {
-      id: 'mind_confuse',
-      name: 'Discord Duet',
-      description: 'Confuse enemy. Enemy attacks itself for 2 turns.',
+      id: 'vein_vibrato',
+      name: 'Vein Vibrato',
+      description: 'Choose target: Lower Defense/Sp. Def by 2 OR raise Atk/Sp. Atk by 2 + Speed by 1. 4 turns.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'confusion', duration: 2 }
+      effect: {
+        type: 'complexStatChange',
+        targetSelection: true,
+        negativeStats: { defense: -2, specialDefense: -2 },
+        positiveStats: { attack: 2, specialAttack: 2, speed: 1 },
+        duration: 4
+      }
     },
     {
-      id: 'mind_amplify',
-      name: 'Mental Melody',
-      description: 'Focus mental power. +5 SP.ATK and +3 critical ratio.',
+      id: 'pulse_pizzicato',
+      name: 'Pulse Pizzicato',
+      description: '3-hit physical attack. 1.2x weapon power. Disables weapon abilities.',
+      category: 'physical',
       cost: 1000,
-      effect: { type: 'mentalBoost', specialAttack: 5, critStage: 3 }
+      power: { type: 'weapon', multiplier: 1.2 },
+      effect: {
+        type: 'multiHit',
+        hits: 3,
+        disableWeaponAbilities: true
+      }
     },
     {
-      id: 'mind_copy',
-      name: 'Mimic\'s Motif',
-      description: 'Copy enemy stats. Match all enemy stat stages.',
+      id: 'scarlet_serenade',
+      name: 'Scarlet Serenade',
+      description: 'Choose target: Heal self or enemy for 50% of their max HP.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'copyStats', target: 'enemy' }
+      effect: {
+        type: 'heal',
+        targetSelection: true,
+        percent: 0.5
+      }
     },
     {
-      id: 'mind_shatter',
-      name: 'Shattered Sonata',
-      description: 'Shatter mind. Deal 150 fixed damage + your SP.ATK as bonus damage.',
+      id: 'bloodborne_ballad',
+      name: 'Bloodborne Ballad',
+      description: 'Regeneration: Heals 12.5% HP per turn for 5 turns. Protects from stat changes.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'psychicBlast', baseDamage: 150 }
+      effect: {
+        type: 'regeneration',
+        healPerTurn: 0.125,
+        statProtection: true,
+        duration: 5
+      }
+    }
+  ],
+  opal: [
+    {
+      id: 'celestial_cadenza',
+      name: 'Celestial Cadenza',
+      description: 'Fixed 130 damage special attack. Raises Sp. Attack and Sp. Defense by 1 for 4 turns.',
+      category: 'special',
+      cost: 1000,
+      power: { type: 'fixed', amount: 130 },
+      effect: {
+        type: 'statBoost',
+        target: 'self',
+        stats: { specialAttack: 1, specialDefense: 1 },
+        duration: 4
+      }
+    },
+    {
+      id: 'spatial_sonata',
+      name: 'Spatial Sonata',
+      description: 'Doubles Defense and Sp. Defense for damage calculations for 5 turns.',
+      category: 'status',
+      cost: 1000,
+      effect: {
+        type: 'defenseDouble',
+        duration: 5
+      }
+    },
+    {
+      id: 'vortex_valse',
+      name: 'Vortex Valse',
+      description: 'Fixed 90 damage special attack. Inflicts 6.25% residual damage per turn for 5 turns.',
+      category: 'special',
+      cost: 1000,
+      power: { type: 'fixed', amount: 90 },
+      effect: {
+        type: 'residualDamage',
+        damagePerTurn: 0.0625,
+        duration: 5
+      }
+    },
+    {
+      id: 'quantum_quasi',
+      name: 'Quantum Quasi',
+      description: '1.5x weapon power physical attack. Lowers enemy Attack and Defense by 1 for 4 turns.',
+      category: 'physical',
+      cost: 1000,
+      power: { type: 'weapon', multiplier: 1.5 },
+      effect: {
+        type: 'statLower',
+        target: 'enemy',
+        stats: { attack: -1, defense: -1 },
+        duration: 4
+      }
+    },
+    {
+      id: 'cosmic_canon',
+      name: 'Cosmic Canon',
+      description: 'Fixed 250 damage physical attack. Lowers enemy Speed by 1 for 4 turns.',
+      category: 'physical',
+      cost: 1000,
+      power: { type: 'fixed', amount: 250 },
+      effect: {
+        type: 'statLower',
+        target: 'enemy',
+        stats: { speed: -1 },
+        duration: 4
+      }
     }
   ],
   nicholas: [
     {
-      id: 'light_illuminate',
-      name: 'Luminous Lullaby',
-      description: 'Flash of light. Enemy accuracy drops to 0 for 2 turns.',
+      id: 'blinding_bolero',
+      name: 'Blinding Bolero',
+      description: 'Fixed 30 damage special attack. +3 priority. Lowers enemy Accuracy by 3 and causes flinch for 4 turns.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'blind', duration: 2 }
+      power: { type: 'fixed', amount: 30 },
+      effect: {
+        type: 'accuracyLowerAndFlinch',
+        target: 'enemy',
+        accuracy: -3,
+        flinch: true,
+        priority: 3,
+        duration: 4
+      }
     },
     {
-      id: 'light_laser',
-      name: 'Laser Legato',
-      description: 'Focused laser. Deal 250 fixed damage, cannot miss.',
+      id: 'lucid_lament',
+      name: 'Lucid Lament',
+      description: '1x weapon power special attack. Temporarily raises Accuracy by 2 and guarantees critical hit.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'fixedDamage', amount: 250, pierce: true }
+      power: { type: 'weapon', multiplier: 1 },
+      effect: {
+        type: 'temporaryAccuracyCrit',
+        accuracyBoost: 2,
+        guaranteedCrit: true
+      }
     },
     {
-      id: 'light_reflect',
-      name: 'Radiant Refrain',
-      description: 'Reflective shield. Reflect all damage back to enemy for 2 turns.',
+      id: 'radiant_rhapsody',
+      name: 'Radiant Rhapsody',
+      description: '1x weapon power special attack. Raises Sp. Attack by 3 stages for 4 turns.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'reflect', duration: 2 }
+      power: { type: 'weapon', multiplier: 1 },
+      effect: {
+        type: 'statBoost',
+        target: 'self',
+        stats: { specialAttack: 3 },
+        duration: 4
+      }
     },
     {
-      id: 'light_fortune',
-      name: 'Lucky Lyric',
-      description: 'Lucky blessing. All attacks are critical hits for 3 turns.',
+      id: 'solar_sforzando',
+      name: 'Solar Sforzando',
+      description: 'Fixed 300 damage special attack. Always hits.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'alwaysCrit', duration: 3 }
+      power: { type: 'fixed', amount: 300 },
+      effect: { type: 'alwaysHits' }
     },
     {
-      id: 'light_destruction',
-      name: 'Brilliant Blast',
-      description: 'Ultimate destruction. Deal damage equal to 75% of enemy current HP.',
+      id: 'flare_fugue',
+      name: 'Flare Fugue',
+      description: '10-hit special attack. 0.25x weapon power per hit. Each hit has independent accuracy.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'percentCurrentDamage', target: 'enemy', percent: 0.75 }
+      power: { type: 'weapon', multiplier: 0.25 },
+      effect: {
+        type: 'multiHit',
+        hits: 10,
+        independentAccuracy: true
+      }
     }
   ],
-  alexis: [
+  austine: [
     {
-      id: 'rage_berserk',
-      name: 'Furious Fortissimo',
-      description: 'Unstoppable fury. +4 ATK, +3 SPD, -2 DEF for 4 turns.',
+      id: 'cerebral_coda',
+      name: 'Cerebral Coda',
+      description: '1.5x weapon power special attack. Uses Defense stat instead of Sp. Attack for damage.',
+      category: 'special',
       cost: 1000,
-      effect: { type: 'berserk', attack: 4, speed: 3, defense: -2, duration: 4 }
+      power: { type: 'weapon', multiplier: 1.5 },
+      effect: {
+        type: 'alternateStatCalculation',
+        useDefenseForAttack: true,
+        special: true
+      }
     },
     {
-      id: 'rage_fury',
-      name: 'Rage Rhapsody',
-      description: 'Release pure rage. Next attack deals 4x damage.',
+      id: 'perceptive_pizzicato',
+      name: 'Perceptive Pizzicato',
+      description: '3-hit physical attack. 0.75x weapon power. Uses Defense stat instead of Attack.',
+      category: 'physical',
       cost: 1000,
-      effect: { type: 'ragePower', multiplier: 4, duration: 1 }
+      power: { type: 'weapon', multiplier: 0.75 },
+      effect: {
+        type: 'multiHitDefensive',
+        hits: 3,
+        useDefenseForAttack: true
+      }
     },
     {
-      id: 'rage_intimidate',
-      name: 'Howling Harmony',
-      description: 'Intimidate enemy. Lower enemy ATK and SP.ATK by 3 stages.',
+      id: 'intellectual_interval',
+      name: 'Intellectual Interval',
+      description: 'Raises all stats (Attack, Defense, Sp. Attack, Sp. Defense, Speed) by 1 for 4 turns.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'intimidate', target: 'enemy', attack: -3, specialAttack: -3 }
+      effect: {
+        type: 'statBoost',
+        target: 'self',
+        stats: { attack: 1, defense: 1, specialAttack: 1, specialDefense: 1, speed: 1 },
+        duration: 4
+      }
     },
     {
-      id: 'rage_rampage',
-      name: 'Chaotic Chorus',
-      description: 'Chaotic assault. Hit enemy 5 times with moderate damage.',
+      id: 'cognitive_cadence',
+      name: 'Cognitive Cadence',
+      description: 'Swaps Defense and Sp. Defense stats between user and enemy.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'multiHit', hits: 5, power: 60 }
+      effect: {
+        type: 'statSwap',
+        swapDefenseStats: true
+      }
     },
     {
-      id: 'rage_vengeful',
-      name: 'Vengeance Verse',
-      description: 'Revenge attack. Deal damage equal to HP you\'ve lost.',
+      id: 'harmonic_hypothesis',
+      name: 'Harmonic Hypothesis',
+      description: 'Swaps Attack and Sp. Attack stats between user and enemy.',
+      category: 'status',
       cost: 1000,
-      effect: { type: 'vengeance' }
+      effect: {
+        type: 'statSwap',
+        swapAttackStats: true
+      }
     }
   ]
 };
@@ -284,3 +481,8 @@ export {
   getFraymotifAbilities,
   getFraymotifBackground
 };
+
+if (typeof window !== 'undefined') {
+  window.getFraymotifAbilities = getFraymotifAbilities;
+  window.getFraymotifBackground = getFraymotifBackground;
+}

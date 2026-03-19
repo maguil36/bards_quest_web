@@ -248,10 +248,9 @@ class GameRenderer {
         if (screenX > -tile && screenX < canvas.width &&
             screenY > -tile && screenY < canvas.height) {
           const frame = npc.animationFrame || 0;
-          const dirRow = 0;
           const sprite = sprites && sprites.npcs && sprites.npcs[npc.id];
 
-          if (npc.id === 'austine' && sprite && sprite.forward_still) {
+          if (sprite && sprite.forward_still) {
             let spriteImage = null;
             let shouldFlip = false;
 
@@ -283,6 +282,7 @@ class GameRenderer {
               ctx.fillRect(screenX, screenY, tile, tile);
             }
           } else if (sprite && sprite.width) {
+            const dirRow = 0;
             ctx.drawImage(
               sprite,
               frame * tile, dirRow * tile, tile, tile,
@@ -304,7 +304,7 @@ class GameRenderer {
 
   drawAgents(ctx, canvas, camera, agents, sprites) {
     const tile = this.tileSize;
-    
+
     for (const agent of agents) {
       if (!agent.defeated) {
         const screenX = agent.x - camera.x;
@@ -314,20 +314,36 @@ class GameRenderer {
             screenY > -tile && screenY < canvas.height) {
 
           const frame = agent.animationFrame || 0;
-          const dirRow = agent.direction === 'down' ? 0 :
-                         agent.direction === 'left' ? 1 :
-                         agent.direction === 'right' ? 2 : 3;
+          const agentSprites = sprites && sprites.characters && sprites.characters['opal'];
 
-          const agentSprite = sprites && sprites.characters && sprites.characters['opal'];
+          let spriteImage = null;
+          let shouldFlip = false;
 
-          if (agentSprite) {
+          if (agentSprites) {
+            const direction = agent.direction || 'down';
+
+            if (direction === 'down') {
+              spriteImage = (frame % 2 === 0) ? agentSprites.forward_left : agentSprites.forward_right;
+            } else if (direction === 'up') {
+              spriteImage = (frame % 2 === 0) ? agentSprites.back_left : agentSprites.back_right;
+            } else if (direction === 'left') {
+              spriteImage = (frame % 2 === 0) ? agentSprites.side_still : agentSprites.side_walk;
+            } else if (direction === 'right') {
+              shouldFlip = true;
+              spriteImage = (frame % 2 === 0) ? agentSprites.side_still : agentSprites.side_walk;
+            }
+          }
+
+          if (spriteImage && spriteImage.complete) {
             ctx.save();
             ctx.filter = 'brightness(0)';
-            ctx.drawImage(
-              agentSprite,
-              frame * tile, dirRow * tile, tile, tile,
-              screenX, screenY, tile, tile
-            );
+            if (shouldFlip) {
+              ctx.translate(screenX + tile, screenY);
+              ctx.scale(-1, 1);
+              ctx.drawImage(spriteImage, 0, 0, tile, tile);
+            } else {
+              ctx.drawImage(spriteImage, screenX, screenY, tile, tile);
+            }
             ctx.restore();
           } else {
             ctx.fillStyle = '#000000';
@@ -403,7 +419,7 @@ class GameRenderer {
                          player.direction === 'right' ? 2 : 3;
     const charSprite = sprites && sprites.characters && sprites.characters[currentChar.id];
 
-    if (currentChar.id === 'austine' && charSprite && charSprite.forward_still) {
+    if (charSprite && charSprite.forward_still) {
       let spriteImage = null;
       let shouldFlip = false;
 

@@ -163,7 +163,7 @@ const WEAPON_DATABASE = {
   fist: {
     id: 'fist',
     name: 'Fist Kind',
-    power: 30,
+    power: 25,
     accuracy: 95,
     type: 'physical',
     ability: null,
@@ -194,15 +194,15 @@ const WEAPON_DATABASE = {
     accuracy: 100,
     type: 'physical',
     ability: 'priority',
-    description: 'Attacks have priority +1'
+    description: 'Attacks have priority +1 if the enemy uses a physical attack'
   },
   inferiorRifle: {
     id: 'inferiorRifle',
     name: 'Inferior Rifle',
     power: 80,
     accuracy: 90,
-    type: 'physical',
-    ability: 'doubleHit',
+    type: 'special',
+    ability: 'sniper',
     description: 'Inferior rifle from Nicholas'
   },
   rifle: {
@@ -211,26 +211,35 @@ const WEAPON_DATABASE = {
     power: 120,
     accuracy: 100,
     type: 'special',
-    ability: 'hitsSpecialDef',
-    description: 'Hits against special defense'
+    ability: 'sniper',
+    description: '1.5x power on critical hits'
   },
   inferiorWhip: {
     id: 'inferiorWhip',
     name: 'Inferior Whip',
-    power: 65,
-    accuracy: 95,
-    type: 'physical',
-    ability: 'doubleHit',
-    description: 'Inferior whip from Chloe'
-  },
-  whip: {
-    id: 'whip',
-    name: 'Whip',
-    power: 80,
+    power: 45,
     accuracy: 95,
     type: 'physical',
     ability: 'lowerSpeed',
     description: 'Decreases enemy speed by 1 stage on hit'
+  },
+  whip: {
+    id: 'whip',
+    name: 'Whip',
+    power: 60,
+    accuracy: 95,
+    type: 'physical',
+    ability: 'lowerSpeed',
+    description: 'Decreases enemy speed by 1 stage on hit'
+  },
+  animalCompanion: {
+    id: 'animalCompanion',
+    name: 'Animal Companion',
+    power: 130,
+    accuracy: 85,
+    type: 'physical',
+    ability: 'awaitingCommand',
+    description: '-1 priority'
   },
   inferiorHatchet: {
     id: 'inferiorHatchet',
@@ -238,17 +247,17 @@ const WEAPON_DATABASE = {
     power: 70,
     accuracy: 100,
     type: 'physical',
-    ability: 'doubleHit',
+    ability: 'critDefHalved',
     description: 'Inferior hatchet from Isabela'
   },
   hatchet: {
     id: 'hatchet',
     name: 'Hatchet',
-    power: 90,
+    power: 80,
     accuracy: 100,
     type: 'physical',
-    ability: 'critDefHalved',
-    description: 'Defense halved on critical hits'
+    ability: 'decreaseDef',
+    description: '20% chance to decrease def on hit'
   },
   inferiorCrossbow: {
     id: 'inferiorCrossbow',
@@ -409,57 +418,57 @@ const STRIFE_OPTIONS = {
   alexis: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
     { id: 'alternate', name: 'ALTERNATE', category: 'item', tooltip: 'Swap weapon in strife deck.' },
-    { id: 'antagonize', name: 'ANTAGONIZE', category: 'status', tooltip: '+2 ATK for you, +1 ATK for enemy for 3 turns.' },
-    { id: 'abuse', name: 'ABUSE', category: 'status', tooltip: 'Decrease enemy DEF by 1 stage for 3 turns.' },
-    { id: 'avenge', name: 'AVENGE', category: 'damage', tooltip: '0.5x power, hits 2-5 times. Lower enemy SP.DEF by 1 stage for 3 turns.' },
+    { id: 'antagonize', name: 'ANTAGONIZE', category: 'status', tooltip: '+2 ATK for you, +1 ATK for enemy for 4 turns.' },
+    { id: 'abuse', name: 'ABUSE', category: 'status', tooltip: 'Decrease enemy DEF by 1 stage for 4 turns.' },
+    { id: 'avenge', name: 'AVENGE', category: 'damage', tooltip: 'x2 damage. Lower your DEF and SP.DEF by 1 stage for 4 turns.' },
     { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   opal: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
-    { id: 'aggress', name: 'AGGRESS', category: 'status', tooltip: '+1 ATK for 3 turns. Gain your ATK stat as fraymotif points.' },
-    { id: 'apparate', name: 'APPARATE', category: 'combat', tooltip: 'Priority 4. Block next attack, +1 crit ratio next turn.' },
-    { id: 'accost', name: 'ACCOST', category: 'status', tooltip: 'Lower enemy ATK by 1 stage for 3 turns.' },
-    { id: 'assail', name: 'ASSAIL', category: 'damage', tooltip: '0.5x power, hits 2-5 times. Lower DEF by 1 stage for 3 turns.' },
+    { id: 'aggress', name: 'AGGRESS', category: 'status', tooltip: '+1 ATK for 4 turns. Gain your ATK stat as fraymotif points.' },
+    { id: 'accost', name: 'ACCOST', category: 'status', tooltip: 'Lower enemy ATK by 1 stage for 4 turns.' },
+    { id: 'assail', name: 'ASSAIL', category: 'damage', tooltip: '0.5x power, hits 2-5 times. Lower DEF by 1 stage for 4 turns.' },
+    { id: 'apparate', name: 'APPARATE', category: 'combat', tooltip: 'Priority 3. Leave combat immidately and turn to starting location.' },
     { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   nicholas: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
-    { id: 'align', name: 'ALIGN', category: 'status', tooltip: '+1 accuracy for 3 turns.' },
-    { id: 'accuse', name: 'ACCUSE', category: 'status', tooltip: '+1 SP.ATK for 3 turns.' },
-    { id: 'afflict', name: 'AFFLICT', category: 'status', tooltip: 'Lower enemy SP.DEF by 1 stage for 3 turns.' },
-    { id: 'annihilate', name: 'ANNIHILATE', category: 'damage', tooltip: '3x damage but -1 accuracy for 3 turns.' },
+    { id: 'align', name: 'ALIGN', category: 'status', tooltip: '+1 accuracy for 4 turns.' },
+    { id: 'accuse', name: 'ACCUSE', category: 'status', tooltip: '+1 SP.ATK for 4 turns.' },
+    { id: 'afflict', name: 'AFFLICT', category: 'status', tooltip: 'Lower enemy SP.DEF by 1 stage for 4 turns.' },
+    { id: 'annihilate', name: 'ANNIHILATE', category: 'damage', tooltip: '2x damage but lower SP.ATK and accuracy by 1 stage for 4 turns.' },
     { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   chloe: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
-    { id: 'aggress', name:'AGGRESS', category: 'status', tooltip: '+1 ATK for 3 turns. Gain your ATK stat as fraymotif points.' },
-    { id: 'ameliorate', name: 'AMELIORATE', category: 'combat', tooltip: 'Heal 1/16 HP per turn for 5 turns.' },
-    { id: 'avoid', name: 'AVOID', category: 'status', tooltip: '+1 evasion for 3 turns.' },
-    { id: 'adjudge', name: 'ADJUDGE', category: 'damage', tooltip: '120 power but speed halved this turn.' },
+    { id: 'aggress', name:'AGGRESS', category: 'status', tooltip: '+1 ATK for 4 turns. Gain your ATK stat as fraymotif points.' },
+    { id: 'ameliorate', name: 'AMELIORATE', category: 'combat', tooltip: 'Removes all negative stages' },
+    { id: 'avoid', name: 'AVOID', category: 'status', tooltip: '+1 evasion for 4 turns.' },
+    { id: 'adjudge', name: 'ADJUDGE', category: 'damage', tooltip: 'Removes -1 priority on animal companion weapon.' },
     { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   tyson: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
     { id: 'abstain', name: 'ABSTAIN', category: 'combat', tooltip: 'Skip turn to charge bomb for next ACTIVATE.' },
-    { id: 'apologize', name: 'APOLOGIZE', category: 'status', tooltip: '-1 your ATK, -1 enemy ATK and SP.ATK for 3 turns.' },
+    { id: 'apologize', name: 'APOLOGIZE', category: 'status', tooltip: '-1 your ATK, -1 enemy ATK and SP.ATK for 4 turns.' },
     { id: 'activate', name: 'ACTIVATE', category: 'item', tooltip: 'Detonate thrown bomb (100 power per turn).' },
-    { id: 'abscond', name: 'ABSCOND', category: 'abscond', tooltip: 'Flee from battle.' },
+    { id: 'abscond', name: 'ABSCOND', category: 'abscond', tooltip: 'Leave combat immidately and turn to starting location.' },
     { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   isabela: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
-    { id: 'abjure', name: 'ABJURE', category: 'combat', tooltip: 'Priority 4. Block next attack, take no damage.' },
+    { id: 'abjure', name: 'ABJURE', category: 'combat', tooltip: 'Priority 3. Block next attack, take no damage.' },
     { id: 'alchemize', name: 'ALCHEMIZE', category: 'item', tooltip: 'Spend grist for stat boosts or quest weapon.' },
-    { id: 'analyze', name: 'ANALYZE', category: 'status', tooltip: '+1 critical hit ratio for 3 turns.' },
-    { id: 'assault', name: 'ASSAULT', category: 'damage', tooltip: '2x power, -1 speed for 3 turns.' },
+    { id: 'analyze', name: 'ANALYZE', category: 'status', tooltip: '+1 critical hit ratio for 4 turns.' },
+    { id: 'assault', name: 'ASSAULT', category: 'damage', tooltip: '2x power, -1 speed for 4 turns.' },
     { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 300 charge).' }
   ],
   austine: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
-    { id: 'aggress', name: 'AGGRESS', category: 'status', tooltip: '+1 ATK for 3 turns. Gain your ATK stat as fraymotif points.' },
+    { id: 'aggress', name: 'AGGRESS', category: 'status', tooltip: '+1 ATK for 4 turns. Gain your ATK stat as fraymotif points.' },
     { id: 'alternate', name: 'ALTERNATE', category: 'item', tooltip: 'Switch crossbow bolt type.' },
-    { id: 'accuse', name: 'ACCUSE', category: 'status', tooltip: '+1 SP.ATK for 3 turns.' },
-    { id: 'analyze', name: 'ANALYZE', category: 'status', tooltip: '+1 critical hit ratio for 3 turns.' },
+    { id: 'accuse', name: 'ACCUSE', category: 'status', tooltip: '+1 SP.ATK for 4 turns.' },
+    { id: 'analyze', name: 'ANALYZE', category: 'status', tooltip: '+1 critical hit ratio for 4 turns.' },
     { id: 'anthem', name: 'ANTHEM', category: 'fraymotif', tooltip: 'Activate fraymotif (requires 1000 charge).' }
   ],
   derseGuard: [
@@ -496,13 +505,13 @@ const STRIFE_CATEGORIES = {
 
 
 const ABILITIES = {
-  opal: { name: 'Teleport', effect: 'evasionBoost', value: 1 },
-  tyson: { name: 'Doomed', effect: 'noCrits' },
-  nicholas: { name: 'Light Destroyer', effect: 'lowAccuracyHighDamage' },
-  alexis: { name: 'Adaptation', effect: 'defenseOnHit' },
-  isabela: { name: 'Singer', effect: 'endTurnHeal' },
-  chloe: { name: 'Life Player', effect: 'startCombatLowerAttack' },
-  austine: { name: 'Tactician', effect: 'doubleStatChanges' }
+  opal: { name: 'Teleport', effect: 'evasionBoost', value: 1, description: '10% less likely to be hit' },
+  tyson: { name: 'Doomed', effect: 'noCrits', description: 'Prevents critical hits' },
+  nicholas: { name: 'Light Destroyer', effect: 'lowAccuracyHighDamage', description: 'Doubles damage when using rifle weapon, but halves accuracy' },
+  alexis: { name: 'Adaptation', effect: 'defenseOnHit', description: 'Everytime hit by physical damage increase def by 1 stage, every time hit by special damage increase sp.def by 1 stage' },
+  isabela: { name: 'blood alchemy', effect: 'endturnheal', description: 'Heals 1/16 fo damage at end of the battle sequence' },
+  chloe: { name: 'Animal Companion', effect: 'pairbond', description: 'Second attack is made by Chloe with animalCompanion weapon.' },
+  austine: { name: 'Tactician', effect: 'doubleStatChanges', description: 'Doubles the effect of stat changes.' }
 };
 
 export function getCombatantData(characterId) {

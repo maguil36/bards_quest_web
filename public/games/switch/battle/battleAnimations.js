@@ -1,11 +1,18 @@
 class BattleAnimations {
   constructor() {
     this.container = null;
+    this.battleUI = null;
   }
 
   setContainer(container) {
     this.container = container;
   }
+
+  setBattleUI(battleUI) {
+    this.battleUI = battleUI;
+  }
+
+
 
   playIntroAnimation(callback, commandPromptCallback, playerName) {
     if (!this.container) return;
@@ -31,6 +38,7 @@ class BattleAnimations {
 
     const fadeToBlack = document.createElement('div');
     fadeToBlack.id = 'fadeToBlack';
+    const fadeInDuration = 0.3;
     fadeToBlack.style.cssText = `
       position: fixed;
       top: 0;
@@ -41,7 +49,7 @@ class BattleAnimations {
       z-index: 198;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.5s ease-in;
+      transition: opacity ${fadeInDuration}s ease-in;
     `;
     document.body.appendChild(fadeToBlack);
     console.log('[INTRO] Fade to black element created at z-index 198');
@@ -53,6 +61,7 @@ class BattleAnimations {
 
     let blackBackground;
     setTimeout(() => {
+      const fadeOutDuration = 0.3;
       blackBackground = document.createElement('div');
       blackBackground.id = 'blackBackground';
       blackBackground.style.cssText = `
@@ -65,7 +74,7 @@ class BattleAnimations {
         z-index: 199;
         pointer-events: none;
         opacity: 1;
-        transition: opacity 0.5s ease-out;
+        transition: opacity ${fadeOutDuration}s ease-out;
       `;
       document.body.appendChild(blackBackground);
       console.log('[INTRO] Black background created after fade complete');
@@ -74,7 +83,7 @@ class BattleAnimations {
         document.body.removeChild(fadeToBlack);
         console.log('[INTRO] Fade to black element removed (covered by black background)');
       }
-    }, 500);
+    }, 300);
 
     const strifeContainer = document.createElement('div');
     strifeContainer.id = 'strifeContainer';
@@ -112,7 +121,7 @@ class BattleAnimations {
       strifeImage.style.opacity = '1';
       this.container.style.opacity = '1';
       console.log('[INTRO] STRIFE and background revealed after fade complete');
-    }, 500);
+    }, 300);
 
     const playerSprite = this.container.querySelector('.player-sprite-container');
     const enemySprite = this.container.querySelector('.enemy-sprite-container');
@@ -149,55 +158,59 @@ class BattleAnimations {
     console.log('[INTRO] Elements positioned off-screen');
 
     setTimeout(() => {
-      console.log('[INTRO] 1800ms: Starting STRIFE slide to top');
-      strifeImage.style.transition = 'top 2s ease-in-out, transform 2s ease-in-out';
+      console.log('[INTRO] 1000ms: Starting STRIFE slide to top');
+      const strifeSlideDuration = 1.2;
+      strifeImage.style.transition = `top ${strifeSlideDuration}s ease-in-out, transform ${strifeSlideDuration}s ease-in-out`;
       strifeImage.style.top = '10%';
       strifeImage.style.transform = 'translate(-50%, 0)';
 
       setTimeout(() => {
-        console.log('[INTRO] 2300ms: Fading out black background');
+        console.log('[INTRO] 1300ms: Fading out black background');
         blackBackground.style.opacity = '0';
         console.log('[INTRO] Set black background opacity to 0');
-      }, 500);
+      }, 300);
 
-      console.log('[INTRO] 1800ms: Starting character slide in');
+      console.log('[INTRO] 1000ms: Starting character slide in');
+      const characterSlideDuration = 0.7;
       if (playerSprite) {
-        playerSprite.style.transition = 'transform 1s ease-out';
+        playerSprite.style.transition = `transform ${characterSlideDuration}s ease-out`;
         playerSprite.style.transform = 'translateX(0)';
       }
       if (enemySprite) {
-        enemySprite.style.transition = 'transform 1s ease-out';
+        enemySprite.style.transition = `transform ${characterSlideDuration}s ease-out`;
         enemySprite.style.transform = 'translateX(0)';
       }
       if (enemyPanel) {
-        enemyPanel.style.transition = 'transform 1s ease-out';
+        enemyPanel.style.transition = `transform ${characterSlideDuration}s ease-out`;
         enemyPanel.style.transform = 'translateX(0)';
       }
-    }, 1800);
+    }, 1000);
 
     setTimeout(() => {
-      console.log('[INTRO] 4300ms: Fading out STRIFE image after 0.5s pause');
-      strifeImage.style.transition = 'opacity 0.5s ease-out';
+      console.log('[INTRO] 2500ms: Fading out STRIFE image after 0.5s pause');
+      const strifeFadeOutDuration = 0.3;
+      strifeImage.style.transition = `opacity ${strifeFadeOutDuration}s ease-out`;
       strifeImage.style.opacity = '0';
-    }, 4300);
+    }, 2500);
 
     setTimeout(() => {
-      console.log('[INTRO] 4800ms: Starting action buttons slide-in animation');
+      console.log('[INTRO] 2800ms: Starting action buttons slide-in animation');
       const actionsContainer = this.container.querySelector('.actions');
       console.log('[INTRO] actionsContainer at slide-in:', actionsContainer);
       if (actionsContainer) {
         console.log('[INTRO] Before slide-in - transform:', actionsContainer.style.transform, 'opacity:', actionsContainer.style.opacity);
-        actionsContainer.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
+        const actionsSlideDuration = 0.5;
+        actionsContainer.style.transition = `transform ${actionsSlideDuration}s ease-out, opacity ${actionsSlideDuration}s ease-out`;
         actionsContainer.style.transform = 'translateX(0)';
         actionsContainer.style.opacity = '1';
         console.log('[INTRO] After slide-in - transform:', actionsContainer.style.transform, 'opacity:', actionsContainer.style.opacity);
       } else {
         console.warn('[INTRO] actionsContainer NOT FOUND at slide-in time!');
       }
-    }, 4800);
+    }, 2800);
 
     setTimeout(() => {
-      console.log('[INTRO] 5400ms: Playing glossy shine effect');
+      console.log('[INTRO] 3200ms: Playing glossy shine effect');
       const actionsContainer = this.container.querySelector('.actions');
       console.log('[INTRO] actionsContainer at shine:', actionsContainer);
       if (actionsContainer) {
@@ -223,12 +236,15 @@ class BattleAnimations {
         shine.style.cssText = `
           position: absolute;
           top: 0;
-          left: ${-rect.width}px;
-          width: ${rect.width * 0.5}px;
+          left: ${-rect.width * 2}px;
+          width: ${rect.width * 2}px;
           height: 100%;
           background: linear-gradient(90deg,
             rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.9) 50%,
+            rgba(255, 255, 255, 0.3) 25%,
+            rgba(255, 255, 255, 0.9) 30%,
+            rgba(255, 255, 255, 0.9) 70%,
+            rgba(255, 255, 255, 0.3) 75%,
             rgba(255, 255, 255, 0) 100%);
           pointer-events: none;
           transform: skewX(-20deg);
@@ -238,11 +254,29 @@ class BattleAnimations {
         clipWrapper.appendChild(shine);
         document.body.appendChild(clipWrapper);
         console.log('[INTRO] Shine element created with clipping wrapper');
+        console.log('[INTRO] Button container width:', rect.width + 'px');
+        console.log('[INTRO] Shine width:', (rect.width * 2) + 'px');
+        console.log('[INTRO] Shine start position:', (-rect.width * 2) + 'px');
+        console.log('[INTRO] Shine end position:', (rect.width * 2) + 'px');
+        console.log('[INTRO] Total distance to travel:', (rect.width * 4) + 'px');
 
         requestAnimationFrame(() => {
-          shine.style.transition = 'left 1.2s ease-in-out';
-          shine.style.left = `${rect.width}px`;
+          shine.style.transition = `left 1.2s ease-in-out`;
+          shine.style.left = `${rect.width * 2}px`;
           console.log('[INTRO] Shine animation started');
+
+          const trackShinePosition = setInterval(() => {
+            const shineRect = shine.getBoundingClientRect();
+            const shineLeft = shineRect.left - rect.left;
+            const shineRight = shineLeft + shineRect.width;
+            const coverage = Math.min(100, Math.max(0, (Math.min(shineRight, rect.width) - Math.max(shineLeft, 0)) / rect.width * 100));
+            console.log('[SHINE] Position:', shineLeft.toFixed(0) + 'px', '| Coverage:', coverage.toFixed(1) + '%', '| Shine Right Edge:', shineRight.toFixed(0) + 'px / ' + rect.width + 'px');
+          }, 100);
+
+          setTimeout(() => {
+            clearInterval(trackShinePosition);
+            console.log('[INTRO] Shine position tracking stopped');
+          }, 1300);
         });
 
         setTimeout(() => {
@@ -261,13 +295,13 @@ class BattleAnimations {
       }
 
       setTimeout(() => {
-        console.log('[INTRO] 6400ms: Removing layers and calling completion callback');
+        console.log('[INTRO] 4500ms: Removing layers and calling completion callback');
         document.body.removeChild(blackBackground);
         document.body.removeChild(strifeContainer);
         this.container.style.background = '';
         if (callback) callback();
-      }, 1000);
-    }, 5400);
+      }, 1300);
+    }, 3200);
   }
 
   playAttackAnimation(isPlayer = false, moveData = null, callback) {
@@ -774,5 +808,107 @@ class BattleAnimations {
     };
 
     requestAnimationFrame(animate);
+  }
+
+  playStatWaveEffect(target, statChange, isPlayer, callback) {
+    console.log('[STAT WAVE] Called with:', { target, statChange, isPlayer });
+
+    if (!this.container) {
+      console.log('[STAT WAVE] No container found, exiting early');
+      if (callback) callback();
+      return;
+    }
+
+    const spriteElement = isPlayer ?
+      this.container.querySelector('.player-sprite-container .player-sprite') :
+      this.container.querySelector('.enemy-sprite-container .enemy-sprite');
+
+    console.log('[STAT WAVE] Sprite element:', spriteElement);
+
+    if (!spriteElement) {
+      console.log('[STAT WAVE] No sprite element found, exiting early');
+      if (callback) callback();
+      return;
+    }
+
+    const spriteImg = spriteElement.querySelector('img');
+    if (!spriteImg) {
+      console.log('[STAT WAVE] No img element found in sprite, exiting early');
+      if (callback) callback();
+      return;
+    }
+
+    const spriteSrc = spriteImg.src;
+    console.log('[STAT WAVE] Sprite image src:', spriteSrc);
+
+    const statColorMap = {
+      'attack': '#ff0000',
+      'defense': '#4caf50',
+      'specialAttack': '#ff0000',
+      'specialDefense': '#4caf50',
+      'speed': '#2196f3',
+      'accuracy': '#2196f3',
+      'evasion': '#2196f3',
+      'criticalHit': '#ffeb3b'
+    };
+
+    for (const [stat, change] of Object.entries(statChange)) {
+      const waveCount = Math.min(Math.abs(change), 3);
+      const direction = change > 0 ? 'up' : 'down';
+      const color = statColorMap[stat] || '#ffffff';
+      const colorEncoded = encodeURIComponent(color);
+
+      console.log('[STAT WAVE] Creating waves:', { stat, change, waveCount, direction, color });
+
+      const waveContainer = document.createElement('div');
+      waveContainer.style.cssText = `
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+        mask-image: url(${spriteSrc});
+        -webkit-mask-image: url(${spriteSrc});
+        mask-size: contain;
+        -webkit-mask-size: contain;
+        mask-repeat: no-repeat;
+        -webkit-mask-repeat: no-repeat;
+        mask-position: center;
+        -webkit-mask-position: center;
+      `;
+
+      const originalPosition = window.getComputedStyle(spriteElement).position;
+      if (originalPosition === 'static') {
+        spriteElement.style.position = 'relative';
+      }
+
+      for (let i = 0; i < waveCount; i++) {
+        const wave = document.createElement('div');
+        wave.className = `stat-wave stat-wave-${direction} stat-wave-${i + 1}`;
+        const svgDataUrl = `url("data:image/svg+xml,%3Csvg width='100' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 0 20 Q 12.5 8 25 20 T 50 20 T 75 20 T 100 20' stroke='${colorEncoded}' stroke-width='12' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`;
+        wave.style.backgroundImage = svgDataUrl;
+
+        console.log('[STAT WAVE] Creating wave element:', { className: wave.className, color, svgDataUrl });
+        waveContainer.appendChild(wave);
+      }
+
+      console.log('[STAT WAVE] Appending wave container to sprite element');
+      spriteElement.appendChild(waveContainer);
+
+      setTimeout(() => {
+        if (spriteElement.contains(waveContainer)) {
+          spriteElement.removeChild(waveContainer);
+          if (originalPosition === 'static') {
+            spriteElement.style.position = originalPosition;
+          }
+        }
+      }, 2500);
+    }
+
+    if (callback) {
+      setTimeout(callback, 2300);
+    }
   }
 }

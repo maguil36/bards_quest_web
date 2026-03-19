@@ -93,6 +93,7 @@ export class GameOrchestrator extends BaseOrchestrator {
         } else if (this.currentMode === 'battle' && this.game.inCombat) {
             this.battleOrchestrator.update(deltaTime);
         } else if (this.currentMode === 'dialogue' && this.game.showingDialogue) {
+            // console.log('[GameOrchestrator] In dialogue mode, calling dialogueOrchestrator.update with deltaTime:', deltaTime);
             this.dialogueOrchestrator.update(deltaTime);
             this.mapOrchestrator.updateNPCAnimations();
         }
@@ -103,13 +104,13 @@ export class GameOrchestrator extends BaseOrchestrator {
     }
 
     switchToMapMode() {
-        console.log('[GameOrchestrator] switchToMapMode called');
+        // console.log('[GameOrchestrator] switchToMapMode called');
         this.currentMode = 'map';
         this.game.inCombat = false;
         this.game.showingDialogue = false;
         this.game.inMiniGame = false;
 
-        console.log('[GameOrchestrator] Pausing battle and dialogue, resuming map');
+        // console.log('[GameOrchestrator] Pausing battle and dialogue, resuming map');
         this.battleOrchestrator.pause();
         this.dialogueOrchestrator.pause();
         this.mapOrchestrator.resume();
@@ -123,7 +124,7 @@ export class GameOrchestrator extends BaseOrchestrator {
             this.game.audioManager.playCharacterMusic(currentChar.id);
         }
 
-        console.log('[GameOrchestrator] Map resumed. isActive:', this.mapOrchestrator.isActive);
+        // console.log('[GameOrchestrator] Map resumed. isActive:', this.mapOrchestrator.isActive);
         this.emit('modeChanged', 'map');
     }
 
@@ -133,7 +134,7 @@ export class GameOrchestrator extends BaseOrchestrator {
         this.mapOrchestrator.pause();
         this.dialogueOrchestrator.pause();
 
-        console.log('[GameOrchestrator] Stopping map audio');
+        // console.log('[GameOrchestrator] Stopping map audio');
         if (this.game.audioManager) {
             this.game.audioManager.stopMusic();
         }
@@ -151,13 +152,39 @@ export class GameOrchestrator extends BaseOrchestrator {
     }
 
     switchToDialogueMode(npcId) {
+        // console.log('[GameOrchestrator] switchToDialogueMode called for npcId:', npcId);
         this.currentMode = 'dialogue';
         this.game.showingDialogue = true;
-        
+
         this.mapOrchestrator.pause();
         this.dialogueOrchestrator.startDialogue(npcId);
-        
+
         this.emit('modeChanged', 'dialogue');
+        // console.log('[GameOrchestrator] Switched to dialogue mode. currentMode:', this.currentMode);
+    }
+
+    showInteractionMenu(npcId) {
+        // console.log('[GameOrchestrator] showInteractionMenu called for npcId:', npcId);
+        this.currentMode = 'dialogue';
+        this.game.showingDialogue = true;
+
+        this.mapOrchestrator.pause();
+        this.dialogueOrchestrator.showInteractionMenuMode(npcId);
+
+        this.emit('modeChanged', 'dialogue');
+        // console.log('[GameOrchestrator] Showing interaction menu. currentMode:', this.currentMode);
+    }
+
+    switchToEncounterDialogueMode(agent) {
+        // console.log('[GameOrchestrator] switchToEncounterDialogueMode called for agent:', agent.type);
+        this.currentMode = 'dialogue';
+        this.game.showingDialogue = true;
+
+        this.mapOrchestrator.pause();
+        this.dialogueOrchestrator.startEncounterDialogue(agent);
+
+        this.emit('modeChanged', 'dialogue');
+        // console.log('[GameOrchestrator] Switched to encounter dialogue mode. currentMode:', this.currentMode);
     }
 
     switchToMinigameMode(gameType) {
@@ -226,7 +253,7 @@ export class GameOrchestrator extends BaseOrchestrator {
     }
 
     onCombatEnded(result) {
-        console.log('[GameOrchestrator] onCombatEnded called:', result);
+        // console.log('[GameOrchestrator] onCombatEnded called:', result);
         const { won, resetOnly, summary } = result;
 
         if (won && !resetOnly) {
@@ -272,7 +299,7 @@ export class GameOrchestrator extends BaseOrchestrator {
         this.game.playerFrozen = false;
         this.game.isEncounterDialogue = false;
 
-        console.log('[GameOrchestrator] Calling switchToMapMode');
+        // console.log('[GameOrchestrator] Calling switchToMapMode');
         this.switchToMapMode();
         this.emit('combatEnded', { won, resetOnly });
     }
@@ -299,7 +326,7 @@ export class GameOrchestrator extends BaseOrchestrator {
             }
         }
 
-        console.log(`[GameOrchestrator] ${characterId} gained ${xpAmount} XP! Total: ${newXP}`);
+        // console.log(`[GameOrchestrator] ${characterId} gained ${xpAmount} XP! Total: ${newXP}`);
     }
 
     calculateXpForLevel(level) {
@@ -344,7 +371,7 @@ export class GameOrchestrator extends BaseOrchestrator {
             this.game.gameState.characters[characterId].statGrowth.speed += statGrowth.speed;
         }
 
-        console.log(`[GameOrchestrator] ${characterId} leveled up to level ${newLevel}!`);
+        // console.log(`[GameOrchestrator] ${characterId} leveled up to level ${newLevel}!`);
     }
 
     onDialogueStarted(npcId) {
@@ -353,7 +380,16 @@ export class GameOrchestrator extends BaseOrchestrator {
 
     onDialogueEnded() {
         this.game.showingDialogue = false;
-        this.switchToMapMode();
+
+        if (this.game.isEncounterDialogue && this.game.encounteringAgent) {
+            const agent = this.game.encounteringAgent;
+            this.game.encounteringAgent = null;
+            this.game.isEncounterDialogue = false;
+            this.switchToBattleMode(agent);
+        } else {
+            this.switchToMapMode();
+        }
+
         this.emit('dialogueEnded');
     }
 

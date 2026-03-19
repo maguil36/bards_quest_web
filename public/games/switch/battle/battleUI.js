@@ -16,6 +16,8 @@ class BattleUI {
     this.lastEnemyHP = null;
     this.messageDisplayTimeout = null;
     this.waitingForSpace = false;
+    this.buttonCooldownActive = false;
+    this.cooldownDuration = 4500;
 
     this.textRenderer = new BattleTextRenderer();
     this.animations = new BattleAnimations();
@@ -84,6 +86,7 @@ class BattleUI {
   }
   
   playIntroAnimation(callback) {
+    this.animations.setBattleUI(this);
     this.animations.playIntroAnimation(
       callback,
       (prompt) => {
@@ -115,6 +118,7 @@ class BattleUI {
     this.attachMoveHandlers();
     this.renderHealthVitals(player, enemy);
     this.inputHandler.setupKeyboardNavigation();
+    this.startButtonCooldown();
   }
 
   renderHealthVitals(player, enemy) {
@@ -219,10 +223,9 @@ class BattleUI {
           align-items: flex-end;
         ">
           <div class="enemy-sprite" style="
-            font-size: 128px;
             animation: float 2s ease-in-out infinite;
           ">
-            👾
+            <img src="/games/switch/images/battleUI/battle_sprites/${enemy.id}_idle_0.png" alt="Enemy" style="width: 128px; height: auto; display: block;">
           </div>
         </div>
 
@@ -311,10 +314,9 @@ class BattleUI {
           align-items: flex-start;
         ">
           <div class="player-sprite" style="
-            font-size: 128px;
             animation: bounce 1s ease-in-out infinite;
           ">
-            👾
+            <img src="/games/switch/images/battleUI/battle_sprites/${player.id}_idle_0.png" alt="Player" style="width: 128px; height: auto; display: block;">
           </div>
         </div>
 
@@ -397,7 +399,7 @@ class BattleUI {
     return `
       <div style="
         flex: 1;
-        background-image: url('/games/switch/images/battleUI/fraymotif_${heroAspect}.png');
+        background-image: url('/games/switch/images/battleUI/fraymotifs/fraymotif_${heroAspect}.png');
         background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
@@ -604,7 +606,7 @@ class BattleUI {
       id: option.id,
       label: option.name,
       description: option.tooltip,
-      image: `${option.id}.png`
+      image: `strife_options/${option.id}.png`
     }));
 
     setTimeout(() => {
@@ -938,7 +940,18 @@ class BattleUI {
     const actionButtons = this.container.querySelectorAll('.action-button');
     actionButtons.forEach((button, index) => {
       button.addEventListener('click', (e) => {
+        if (this.buttonCooldownActive) {
+          const remainingMs = this.cooldownDuration - this.cooldownElapsed;
+          const remainingSec = (remainingMs / 1000).toFixed(2);
+          console.log('[COOLDOWN] ❌ Button click BLOCKED - cooldown still active');
+          console.log('[COOLDOWN] Remaining time:', remainingSec + 's');
+          console.log('[COOLDOWN] Action attempted:', e.currentTarget.dataset.action);
+          return;
+        }
+
         const action = e.currentTarget.dataset.action;
+        console.log('[COOLDOWN] ✅ Button click ALLOWED - cooldown inactive');
+        console.log('[COOLDOWN] Action selected:', action);
 
         if (action === 'anthem') {
           this.showFraymotifUI();
@@ -1199,6 +1212,18 @@ class BattleUI {
     };
 
     this.textRenderer.showMultiHitMessages(attackerName, moveName, hitData, finalCallback, context);
+  }
+
+  startButtonCooldown() {
+    this.buttonCooldownActive = true;
+    console.log('[COOLDOWN] Button cooldown started - Duration: 4.5s');
+    console.log('[COOLDOWN] Cooldown active:', this.buttonCooldownActive);
+
+    setTimeout(() => {
+      this.buttonCooldownActive = false;
+      console.log('[COOLDOWN] Button cooldown ended!');
+      console.log('[COOLDOWN] Cooldown active:', this.buttonCooldownActive);
+    }, this.cooldownDuration);
   }
 
 }
