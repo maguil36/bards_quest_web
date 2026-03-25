@@ -137,6 +137,7 @@ export class GameOrchestrator extends BaseOrchestrator {
         // console.log('[GameOrchestrator] Stopping map audio');
         if (this.game.audioManager) {
             this.game.audioManager.stopMusic();
+            this.game.audioManager.stopEncounterMusic();
         }
 
         const currentChar = this.game.gameState.getCurrentCharacter();
@@ -278,17 +279,34 @@ export class GameOrchestrator extends BaseOrchestrator {
 
                 if (this.game.questLogic) {
                     const isBoss = ['DD', 'SS', 'HB', 'CB'].includes(enemyId);
-                    const isArchagent = enemyId.includes('Archagent') || !isBoss;
 
-                    this.game.questLogic.completeQuest('defeat_enemy_opal');
-
-                    if (isArchagent) {
-                        this.game.questLogic.completeQuest('defeat_archagent');
+                    if (!this.game.gameState.enemiesDefeatedBy) {
+                        this.game.gameState.enemiesDefeatedBy = {};
                     }
+                    if (!this.game.gameState.enemiesDefeatedBy[playerId]) {
+                        this.game.gameState.enemiesDefeatedBy[playerId] = 0;
+                    }
+                    this.game.gameState.enemiesDefeatedBy[playerId]++;
 
                     if (isBoss) {
-                        this.game.questLogic.completeQuest('defeat_boss_alexis');
-                        this.game.questLogic.completeQuest('enter_combat_boss');
+                        if (!this.game.gameState.bossesDefeated) {
+                            this.game.gameState.bossesDefeated = {};
+                        }
+                        const bossKey = enemyId.toLowerCase();
+                        this.game.gameState.bossesDefeated[bossKey] = true;
+
+                        if (!this.game.gameState.bossesEntered) {
+                            this.game.gameState.bossesEntered = {};
+                        }
+                        this.game.gameState.bossesEntered[bossKey] = true;
+                    }
+
+                    this.game.questLogic.autoCompleteHistoricalActions('opal');
+                    this.game.questLogic.autoCompleteHistoricalActions('alexis');
+                    this.game.questLogic.autoCompleteHistoricalActions('tyson');
+
+                    if (this.game.updateQuestUI) {
+                        this.game.updateQuestUI();
                     }
                 }
             }
@@ -318,10 +336,14 @@ export class GameOrchestrator extends BaseOrchestrator {
 
             if (this.game.questLogic && characterId === 'chloe') {
                 const newLevel = currentLevel + 1;
-                if (newLevel === 99) {
-                    this.game.questLogic.completeQuest('level_up_99');
-                } else if (newLevel === 100) {
-                    this.game.questLogic.completeQuest('level_up_100');
+                if (!this.game.gameState.characterLevels) {
+                    this.game.gameState.characterLevels = {};
+                }
+                this.game.gameState.characterLevels[characterId] = newLevel;
+                this.game.questLogic.autoCompleteHistoricalActions('chloe');
+
+                if (this.game.updateQuestUI) {
+                    this.game.updateQuestUI();
                 }
             }
         }

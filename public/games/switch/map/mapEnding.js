@@ -15,7 +15,11 @@ export class EndingManager {
 
     triggerGlitchEnding() {
         if (this.game.questLogic) {
-            this.game.questLogic.completeQuest('play_victor_ending');
+            this.game.questLogic.autoCompleteHistoricalActions('victor');
+
+            if (this.game.updateQuestUI) {
+                this.game.updateQuestUI();
+            }
         }
 
         const victorChar = CHARACTERS['victor'];

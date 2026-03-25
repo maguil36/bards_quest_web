@@ -132,15 +132,15 @@ export const fillableChasmPositions = [
 
 export const chestPositions = [
     { x: 82, y: 87, opened: false, item: 'puzzlePiece' },
-    { x: 22, y: 87, opened: false, item: 'lostAnimal' },
-    { x: 82, y: 142, opened: false, item: 'notebook' },
+    { x: 22, y: 87, opened: false, item: 'lost_pet' },
+    { x: 82, y: 142, opened: false, item: 'guidebook' },
     { x: 82, y: 27, opened: false, item: 'opalMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
     { x: 152, y: 37, opened: false, item: 'austineMap', requiresPuzzle: true, restrictedTo: ['opal', 'austine'] },
-    { x: 122, y: 87, opened: false, item: 'ancientArtifact' },
-    { x: 20, y: 42, opened: false, item: 'magicalCrystal' },
+    { x: 122, y: 87, opened: false, item: 'necessary_item' },
+    { x: 20, y: 42, opened: false, item: 'zillian_zillium' },
     { x: 147, y: 142, opened: false, item: 'heroicSword' },
     { x: 17, y: 135, opened: false, item: 'shieldOfValor' },
-    { x: 122, y: 42, opened: false, item: 'mysticalOrb' },
+    { x: 122, y: 42, opened: false, item: 'queen_map' },
 ];
 
 export const agentConfigs = [

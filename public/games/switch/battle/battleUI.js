@@ -937,6 +937,11 @@ class BattleUI {
   }
   
   attachMoveHandlers() {
+    if (!this.container) {
+      console.warn('attachMoveHandlers: container is null or undefined');
+      return;
+    }
+
     const actionButtons = this.container.querySelectorAll('.action-button');
     actionButtons.forEach((button, index) => {
       button.addEventListener('click', (e) => {

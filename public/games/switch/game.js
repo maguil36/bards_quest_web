@@ -23,7 +23,7 @@ import { MapQuestUI } from './map/mapQuestUI.js';
 import { MapQuestLogUI } from './map/mapQuestLogUI.js';
 import { MapQuestLogic } from './map/mapQuestLogic.js';
 import { GAME_CONSTANTS, CHARACTER_ASPECTS } from './constants.js';
-import { CHARACTERS } from './map/mapCharacters.js';
+import { CHARACTERS, GameState } from './map/mapCharacters.js';
 import { GameOrchestrator } from './orchestration/GameOrchestrator.js';
 
  // Main game logic for the Switch game
@@ -589,8 +589,17 @@ class SwitchGame {
             if (success) {
                 this.gameState.unlockCharacter('nicholas');
 
+                if (!this.gameState.miniGameScores) {
+                    this.gameState.miniGameScores = {};
+                }
+                this.gameState.miniGameScores.nicholas = score;
+
                 if (this.questLogic) {
-                    this.questLogic.completeQuest('win_minigame');
+                    this.questLogic.autoCompleteHistoricalActions('nicholas');
+
+                    if (this.updateQuestUI) {
+                        this.updateQuestUI();
+                    }
                 }
 
                 this.gameState.save();
@@ -1404,7 +1413,7 @@ class SwitchGame {
 
             // Complete quests that unlock this character
             if (this.questLogic) {
-                this.questLogic.completeQuestsUnlockingCharacter(characterId);
+                this.questLogic.completeQuestsUnlockingCharacter?.(characterId);
             }
 
             this.gameState.save();

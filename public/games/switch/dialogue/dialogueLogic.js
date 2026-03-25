@@ -251,14 +251,6 @@ class DialogueManager {
         }
 
         if (this.pendingSwitch) {
-            const targetNpcId = this.pendingSwitch;
-            const targetNpcIdNormalized = targetNpcId === 'isabela' ? 'isabela' : targetNpcId;
-
-            if (this.game && this.game.questLogic) {
-                const questId = `ask_switch_${targetNpcIdNormalized}`;
-                this.game.questLogic.completeQuest(questId);
-            }
-
             this.performSwitch(this.pendingSwitch);
             this.pendingSwitch = null;
         }
@@ -279,58 +271,44 @@ class DialogueManager {
 
         const npcIdNormalized = npcId === 'isabela' ? 'isabela' : npcId;
 
-        const questId = `talk_to_${npcIdNormalized}`;
-        this.game.questLogic.completeQuest(questId);
+        if (!this.gameState.interactions) {
+            this.gameState.interactions = {};
+        }
+        if (!this.gameState.interactions[npcIdNormalized]) {
+            this.gameState.interactions[npcIdNormalized] = 0;
+        }
+        this.gameState.interactions[npcIdNormalized]++;
 
-        if (this.gameState.hasCompletedAllDialogues(characterId)) {
-            this.game.questLogic.completeQuest('talk_to_all');
+        if (!this.gameState.dialogues) {
+            this.gameState.dialogues = {};
         }
 
-        if (characterId === 'tyson' && npcIdNormalized === 'isabela') {
-            this.game.questLogic.completeQuest('give_to_isabela');
-            setTimeout(() => {
-                this.game.questLogic.completeQuest('isabela_create_items');
-            }, 1000);
+        const dialogueKey = `${npcIdNormalized}_ask_switch`;
+        if (this.isSwitchDialogue) {
+            this.gameState.dialogues[dialogueKey] = true;
         }
 
         if (characterId === 'tyson' && npcIdNormalized === 'austine') {
-            this.game.questLogic.completeQuest('talk_to_austine_tyson');
-            this.game.questLogic.completeQuest('give_to_austine_tyson');
+            if (!this.gameState.itemsGiven) this.gameState.itemsGiven = {};
+            this.gameState.itemsGiven['tyson_necessary_item_austine'] = true;
         }
 
         if (characterId === 'nicholas' && npcIdNormalized === 'austine') {
-            this.game.questLogic.completeQuest('give_to_austine_nicholas');
+            if (!this.gameState.itemsGiven) this.gameState.itemsGiven = {};
+            this.gameState.itemsGiven['nicholas_guidebook_austine'] = true;
         }
 
-        if (characterId === 'austine' && npcIdNormalized === 'tyson') {
-            this.game.questLogic.completeQuest('queen_location_austine');
-        }
+        this.game.questLogic.autoCompleteHistoricalActions('austine');
+        this.game.questLogic.autoCompleteHistoricalActions('isabela');
+        this.game.questLogic.autoCompleteHistoricalActions('alexis');
+        this.game.questLogic.autoCompleteHistoricalActions('nicholas');
+        this.game.questLogic.autoCompleteHistoricalActions('tyson');
+        this.game.questLogic.autoCompleteHistoricalActions('chloe');
+        this.game.questLogic.autoCompleteHistoricalActions('opal');
+        this.game.questLogic.autoCompleteHistoricalActions('victor');
 
-        if (characterId === 'isabela' && npcIdNormalized === 'alexis') {
-            this.game.questLogic.completeQuest('upgrade_weapon');
-        }
-
-        if (characterId === 'opal' && npcIdNormalized === 'tyson') {
-            this.game.questLogic.completeQuest('opal_ask_tyson');
-        }
-
-        if (characterId === 'opal' && npcIdNormalized === 'austine') {
-            this.game.questLogic.completeQuest('talk_to_austine_opal');
-        }
-
-        const characterQuestChains = [
-            'use_all_fraymotifs',
-            'give_to_austine_tyson',
-            'defeat_boss_alexis',
-            'upgrade_weapon',
-            'give_to_austine_nicholas',
-            'enter_combat_boss',
-            'level_up_100'
-        ];
-        const completedQuests = this.game.questLogic.gameState.completedQuests || new Set();
-        const allCompleted = characterQuestChains.every(q => completedQuests.has(q));
-        if (allCompleted) {
-            this.game.questLogic.completeQuest('finish_all_quests');
+        if (this.game.mapQuests) {
+            this.game.mapQuests.updateQuestUI();
         }
     }
 
@@ -432,12 +410,10 @@ class DialogueManager {
         this.startTextCrawl();
 
         if (this.game && this.game.questLogic) {
-            this.game.questLogic.completeQuest(`steal_weapon_${npcId}`);
+            this.game.questLogic.autoCompleteHistoricalActions('alexis');
 
-            if (stolenCount === 5) {
-                this.game.questLogic.completeQuest('alexis_steal_5_weapons');
-            } else if (stolenCount === 6) {
-                this.game.questLogic.completeQuest('alexis_steal_all_weapons');
+            if (this.game.updateQuestUI) {
+                this.game.updateQuestUI();
             }
         }
     }
@@ -605,6 +581,12 @@ class DialogueManager {
 
     startSwitchDialogue(targetNpcId) {
         const currentCharacter = this.gameState.getCurrentCharacter();
+
+        if (!currentCharacter) {
+            console.warn('startSwitchDialogue: currentCharacter is null or undefined');
+            return false;
+        }
+
         const switchKey = `${currentCharacter.id}->${targetNpcId}`;
         const hasShownFirst = this.switchDialogueShown[switchKey];
 
@@ -668,9 +650,14 @@ class DialogueManager {
 
         // Complete ask_switch quest when player asks to switch
         if (this.game && this.game.questLogic) {
-            const targetNpcIdNormalized = targetNpcId === 'isabela' ? 'isabela' : targetNpcId;
-            const questId = `ask_switch_${targetNpcIdNormalized}`;
-            this.game.questLogic.completeQuest(questId);
+            const currentChar = this.game.gameState.getCurrentCharacter();
+            if (currentChar) {
+                this.game.questLogic.autoCompleteHistoricalActions(currentChar.id);
+
+                if (this.game.updateQuestUI) {
+                    this.game.updateQuestUI();
+                }
+            }
         }
 
         let dialogueToShow;
@@ -706,7 +693,7 @@ class DialogueManager {
                     break;
 
                 case 'talkToAll':
-                    criteriaMetNow = this.gameState.hasCompletedAllDialogues(currentCharacter.id);
+                    criteriaMetNow = this.gameState.hasCompletedAllDialogues?.(currentCharacter.id) ?? false;
                     break;
 
                 case 'beatMiniGame':
@@ -732,7 +719,7 @@ class DialogueManager {
                             Object.keys(CHARACTERS)
                                 .filter(id => id !== 'victor')
                                 .every(id => this.gameState.playedCharacters?.has(id)) : false;
-                        criteriaMetNow = hasPlayedAll && this.gameState.hasCompletedAllDialogues(currentCharacter.id);
+                        criteriaMetNow = hasPlayedAll && (this.gameState.hasCompletedAllDialogues?.(currentCharacter.id) ?? false);
                     }
                     break;
 
@@ -775,6 +762,12 @@ class DialogueManager {
     handleMiniGameComplete(success, targetNpcId) {
         this.requiresMiniGame = false;
         const currentCharacter = this.gameState.getCurrentCharacter();
+
+        if (!currentCharacter) {
+            console.warn('handleMiniGameComplete: currentCharacter is null or undefined');
+            return false;
+        }
+
         const switchData = SWITCH_DIALOGUES[currentCharacter.id]?.[targetNpcId];
 
         if (!switchData) {

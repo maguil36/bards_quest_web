@@ -1,4 +1,4 @@
-import { QUESTS } from './mapQuestData.js';
+import { CHARACTER_QUESTS } from './mapQuestData.js';
 
 export class MapQuestUI {
   constructor(gameState) {
@@ -6,44 +6,46 @@ export class MapQuestUI {
   }
 
   renderQuestLog() {
-    const completedQuests = this.gameState.completedQuests || new Set();
     const currentCharacter = this.gameState.currentCharacter;
 
     let html = '<div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">';
 
-    Object.entries(QUESTS).forEach(([questId, quest]) => {
-      const isCompleted = completedQuests.has(questId);
-      const isAvailable = this.isQuestAvailable(questId);
-      const isCurrentCharacter = !quest.characterSpecific || quest.characterSpecific === currentCharacter;
+    Object.entries(CHARACTER_QUESTS).forEach(([characterId, questData]) => {
+      const progress = this.getQuestProgress(characterId);
+      const isCurrentCharacter = characterId === currentCharacter;
 
-      if (!isCurrentCharacter && !isCompleted) return;
+      if (!progress.activeStep && !progress.completed) return;
 
-      const statusIcon = isCompleted ? '✓' : isAvailable ? '○' : '●';
-      const statusColor = isCompleted ? 'var(--success)' : isAvailable ? 'var(--primary)' : 'var(--muted)';
+      const statusIcon = progress.completed ? '✓' : progress.activeStep ? '○' : '●';
+      const statusColor = progress.completed ? 'var(--success)' : progress.activeStep ? 'var(--primary)' : 'var(--muted)';
 
-      html += `<div style="display: flex; align-items: flex-start; gap: 8px; opacity: ${isCompleted ? 0.6 : 1};">`;
+      html += `<div style="display: flex; align-items: flex-start; gap: 8px; opacity: ${progress.completed ? 0.6 : 1};">`;
       html += `<span style="color: ${statusColor}; min-width: 16px;">${statusIcon}</span>`;
       html += '<div style="flex: 1;">';
-      
-      let questName = quest.name;
-      if (quest.prerequisite) {
-        const prereqQuest = QUESTS[quest.prerequisite];
-        questName = `${prereqQuest?.name || quest.prerequisite} → ${questName}`;
-      }
-      
+
       const tags = [];
-      if (quest.characterSpecific) tags.push(quest.characterSpecific);
-      if (quest.unlockPlayable) tags.push('p');
-      if (!quest.characterSpecific) tags.push('g');
-      
+      if (progress.activeStep?.characterRequired) tags.push(progress.activeStep.characterRequired);
+      if (progress.activeStep?.unlockPlayable) tags.push('p');
+      if (!progress.activeStep?.characterRequired) tags.push('g');
+
       const tagString = tags.length > 0 ? ` (${tags.join(', ')})` : '';
-      
-      html += `<div style="font-weight: ${isAvailable && !isCompleted ? 'bold' : 'normal'};">${questName}${tagString}</div>`;
-      
-      if (quest.description && isAvailable && !isCompleted) {
-        html += `<div style="color: var(--muted); font-size: 11px; margin-top: 2px;">${quest.description}</div>`;
+
+      html += `<div style="font-weight: ${progress.activeStep && !progress.completed ? 'bold' : 'normal'};">${questData.name}${tagString}</div>`;
+
+      if (progress.activeStep && !progress.completed) {
+        let stepDescription = progress.activeStep.description;
+
+        if (progress.activeStep.checkType === 'fraymotifs' && characterId === 'opal') {
+          const fraymotifsUsed = this.gameState.fraymotifsUsed?.opal?.size || 0;
+          const fraymotifsNeeded = progress.activeStep.checkData?.count || 5;
+          stepDescription += ` (${fraymotifsUsed}/${fraymotifsNeeded})`;
+        }
+
+        html += `<div style="color: var(--muted); font-size: 11px; margin-top: 2px;">Step ${progress.currentStep + 1}/${progress.totalSteps}: ${stepDescription}</div>`;
+      } else if (progress.completed) {
+        html += `<div style="color: var(--success); font-size: 11px; margin-top: 2px;">Quest Complete (${progress.totalSteps}/${progress.totalSteps})</div>`;
       }
-      
+
       html += '</div></div>';
     });
 
@@ -51,22 +53,33 @@ export class MapQuestUI {
     return html;
   }
 
-  isQuestAvailable(questId) {
-    const quest = QUESTS[questId];
-    if (!quest) return false;
-
-    const completedQuests = this.gameState.completedQuests || new Set();
-    if (completedQuests.has(questId)) return false;
-
-    if (quest.prerequisite && !completedQuests.has(quest.prerequisite)) {
-      return false;
+  getQuestProgress(characterId) {
+    if (!this.gameState.questProgress) {
+      this.gameState.questProgress = {};
     }
 
-    if (quest.characterSpecific && quest.characterSpecific !== this.gameState.currentCharacter) {
-      return false;
+    if (!this.gameState.questProgress[characterId]) {
+      this.gameState.questProgress[characterId] = {
+        currentStep: 0,
+        completed: false
+      };
     }
 
-    return true;
+    const progress = this.gameState.questProgress[characterId];
+    const questData = CHARACTER_QUESTS[characterId];
+
+    if (!questData) {
+      return { activeStep: null, completed: false, currentStep: 0, totalSteps: 0 };
+    }
+
+    const activeStep = progress.completed ? null : questData.steps[progress.currentStep];
+
+    return {
+      activeStep,
+      completed: progress.completed,
+      currentStep: progress.currentStep,
+      totalSteps: questData.steps.length
+    };
   }
 
   updateQuestDisplay() {

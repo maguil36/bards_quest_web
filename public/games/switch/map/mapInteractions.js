@@ -140,10 +140,6 @@ export class MapInteractions {
         );
         this.game.showFloatingText(worldX - this.game.camera.x, worldY - this.game.camera.y, '+10 Grist', '#d85221');
 
-        if (this.game.questLogic && this.game.gameState.buildProgress.grist >= 100) {
-            this.game.questLogic.completeQuest('obtain_grist');
-        }
-
         this.game.updateQuestUI();
     }
 
@@ -196,12 +192,23 @@ export class MapInteractions {
 
             if (chest.item === 'opalMap' && this.game.gameState.gameItems?.opalMap) {
                 this.game.gameState.gameItems.opalMap.found = true;
-                if (this.game.gameState.checkQuestCompletion('opal')) {
-                    this.game.gameState.completeQuest('opal');
-                    this.game.showFloatingText(chest.x + this.game.tileSize/2, chest.y - 40, 'Quest Complete!', '#00ff00');
-                }
             } else if (chest.item === 'austineMap' && this.game.gameState.gameItems?.austineMap) {
                 this.game.gameState.gameItems.austineMap.found = true;
+            }
+
+            if (this.game.questLogic) {
+                this.game.questLogic.autoCompleteHistoricalActions('austine');
+                this.game.questLogic.autoCompleteHistoricalActions('isabela');
+                this.game.questLogic.autoCompleteHistoricalActions('alexis');
+                this.game.questLogic.autoCompleteHistoricalActions('nicholas');
+                this.game.questLogic.autoCompleteHistoricalActions('tyson');
+                this.game.questLogic.autoCompleteHistoricalActions('chloe');
+                this.game.questLogic.autoCompleteHistoricalActions('opal');
+                this.game.questLogic.autoCompleteHistoricalActions('victor');
+
+                if (this.game.updateQuestUI) {
+                    this.game.updateQuestUI();
+                }
             }
 
             this.saveChestStates();
@@ -225,25 +232,17 @@ export class MapInteractions {
         }
 
         if (this.game.questLogic) {
-            if (chest.item === 'guidebook' || chest.item === 'nicholasNotebook') {
-                this.game.questLogic.completeQuest('find_guidebook');
-            }
-            if (chest.item === 'lostPet' || chest.item === 'lostAnimal') {
-                this.game.questLogic.completeQuest('retrieve_lost_pet');
-            }
-            if (chest.item === 'zillium') {
-                this.game.questLogic.completeQuest('obtain_zillium');
-            }
-            if (currentChar.id === 'tyson' && (chest.item === 'item' || chest.item === 'special_item')) {
-                this.game.questLogic.completeQuest('obtain_item_tyson');
-            }
-            if (chest.item && chest.item.includes('weapon')) {
-                const weapons = ['weapon1', 'weapon2', 'weapon3', 'weapon4', 'weapon5', 'weapon6'];
-                const currentCharInventory = this.game.gameState.inventory[currentChar.id] || [];
-                const weaponCount = weapons.filter(w => currentCharInventory.includes(w)).length;
-                if (weaponCount >= 6) {
-                    this.game.questLogic.completeQuest('obtain_weapons');
-                }
+            this.game.questLogic.autoCompleteHistoricalActions('austine');
+            this.game.questLogic.autoCompleteHistoricalActions('isabela');
+            this.game.questLogic.autoCompleteHistoricalActions('alexis');
+            this.game.questLogic.autoCompleteHistoricalActions('nicholas');
+            this.game.questLogic.autoCompleteHistoricalActions('tyson');
+            this.game.questLogic.autoCompleteHistoricalActions('chloe');
+            this.game.questLogic.autoCompleteHistoricalActions('opal');
+            this.game.questLogic.autoCompleteHistoricalActions('victor');
+
+            if (this.game.updateQuestUI) {
+                this.game.updateQuestUI();
             }
         }
 

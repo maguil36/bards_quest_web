@@ -508,16 +508,20 @@ export class BattleController {
             const result = this.combatSystem.executeFraymotif(abilityIndex);
 
             if (this.game && this.game.gameState && player.id === 'opal') {
-                if (!this.game.gameState.usedFraymotifs) {
-                    this.game.gameState.usedFraymotifs = {};
+                if (!this.game.gameState.fraymotifsUsed) {
+                    this.game.gameState.fraymotifsUsed = {};
                 }
-                if (!this.game.gameState.usedFraymotifs.opal) {
-                    this.game.gameState.usedFraymotifs.opal = new Set();
+                if (!this.game.gameState.fraymotifsUsed.opal) {
+                    this.game.gameState.fraymotifsUsed.opal = new Set();
                 }
-                this.game.gameState.usedFraymotifs.opal.add(abilityIndex);
+                this.game.gameState.fraymotifsUsed.opal.add(abilityIndex);
 
-                if (this.game.gameState.usedFraymotifs.opal.size >= 5 && this.game.questLogic) {
-                    this.game.questLogic.completeQuest('use_all_fraymotifs');
+                if (this.updateQuestUI) {
+                    this.updateQuestUI();
+                }
+
+                if (this.game.gameState.fraymotifsUsed.opal.size >= 5 && this.game.questLogic) {
+                    this.game.questLogic.autoCompleteHistoricalActions('opal');
                 }
             }
 
