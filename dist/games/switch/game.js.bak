@@ -1,0 +1,1529 @@
+import {
+    initializeMapTiles,
+    createRoom,
+    createGap,
+    roomDefinitions,
+    boulderPositions,
+    obstaclePositions,
+    fillableChasmPositions,
+    chestPositions,
+    agentConfigs
+} from './map/mapData.js';
+
+import { PokemonCombatSystem } from './battle/battleCombat.js';
+import { EndingManager } from './map/mapEnding.js';
+import { BattleController } from './battle/battleController.js';
+import { BattleUI } from './battle/battleUI.js';
+import { MapInteractions } from './map/mapInteractions.js';
+import { MapAI } from './map/mapAI.js';
+import { MapQuests } from './map/mapQuests.js';
+import { GAME_CONSTANTS, getInteractionRange, CHARACTER_ASPECTS } from './constants.js';
+
+ // Main game logic for the Switch game
+class SwitchGame {
+    constructor() {
+        console.log('🎮 SwitchGame constructor started');
+
+        try {
+            console.log('📺 Getting canvas element...');
+            this.canvas = document.getElementById('gameCanvas');
+            if (!this.canvas) {
+                throw new Error('❌ Canvas element not found! Check HTML for id="gameCanvas"');
+            }
+            console.log('✅ Canvas found:', this.canvas);
+
+            console.log('🎨 Getting 2D context...');
+            this.ctx = this.canvas.getContext('2d');
+            if (!this.ctx) {
+                throw new Error('❌ Could not get 2D context from canvas');
+            }
+            console.log('✅ 2D context obtained');
+
+            console.log('⚙️ Setting context properties...');
+            this.ctx.imageSmoothingEnabled = false;
+            console.log('✅ Context properties set');
+
+            console.log('💾 Creating GameState...');
+            this.gameState = new GameState();
+            console.log('✅ GameState created:', this.gameState);
+
+            console.log('📋 Initializing NPC and character lists...');
+            this.npcs = []; // will be built dynamically in init()
+            this.characters = CHARACTERS;
+            console.log('✅ Character list loaded with', Object.keys(CHARACTERS).length, 'characters');
+
+            console.log('💬 Creating DialogueManager...');
+            this.dialogueManager = new DialogueManager(this.gameState, this.npcs, this);
+            console.log('✅ DialogueManager created');
+
+            console.log('🔊 Creating AudioManager...');
+            this.audioManager = new AudioManager();
+            console.log('✅ AudioManager created');
+
+            console.log('🎮 Creating mini-games and combat systems...');
+            this.miniGame = new NicholasMiniGame(
+                this.canvas,
+                this.ctx,
+                this.gameState,
+                (success) => this.onMiniGameComplete(success)
+            );
+            console.log('  ✅ NicholasMiniGame created');
+
+            this.logicPuzzle = new LogicPuzzleMiniGame(
+                this.canvas,
+                this.ctx,
+                this.gameState,
+                (success) => this.onLogicPuzzleComplete(success)
+            );
+            console.log('  ✅ LogicPuzzleMiniGame created');
+
+            this.combatSystem = new PokemonCombatSystem(this.gameState);
+            this.gameState.combatSystem = this.combatSystem;
+            console.log('  ✅ PokemonCombatSystem created');
+
+            this.battleUI = new BattleUI(this.gameState);
+            console.log('  ✅ BattleUI created');
+
+            console.log('✅ All mini-games and combat systems created');
+
+            console.log('🖼️ Creating GameRenderer...');
+            this.renderer = new GameRenderer();
+            console.log('✅ GameRenderer created');
+
+            console.log('🎬 Creating EndingManager...');
+            this.endingManager = new EndingManager(this);
+            console.log('✅ EndingManager created');
+
+            console.log('⚔️ Creating BattleController...');
+            this.battleController = new BattleController(this);
+            this.gameState.battleController = this.battleController;
+            console.log('✅ BattleController created');
+
+            console.log('🌍 Setting up game world settings...');
+            this.mapWidth = GAME_CONSTANTS.MAP_WIDTH;
+            this.mapHeight = GAME_CONSTANTS.MAP_HEIGHT;
+            this.tileSize = GAME_CONSTANTS.TILE_SIZE;
+            console.log('✅ World settings: mapWidth=', this.mapWidth, 'mapHeight=', this.mapHeight, 'tileSize=', this.tileSize);
+
+            console.log('📷 Initializing camera...');
+            this.camera = {
+                x: 0,
+                y: 0,
+                width: this.canvas.width,
+                height: this.canvas.height
+            };
+            console.log('✅ Camera initialized:', this.camera);
+
+            console.log('👤 Initializing player...');
+            this.player = {
+                x: GAME_CONSTANTS.PLAYER_START_X,
+                y: GAME_CONSTANTS.PLAYER_START_Y,
+                width: GAME_CONSTANTS.PLAYER_WIDTH,
+                height: GAME_CONSTANTS.PLAYER_HEIGHT,
+                speed: GAME_CONSTANTS.PLAYER_SPEED,
+                direction: 'down',
+                isMoving: false,
+                animationFrame: 0,
+                animationTimer: 0
+            };
+            console.log('✅ Player initialized at', this.player.x, this.player.y);
+
+            console.log('⌨️ Setting up input handling...');
+            this.keys = {};
+            this.lastInteractionTime = 0;
+            console.log('✅ Input handling initialized');
+
+            console.log('🖼️ Initializing sprite system...');
+            this.sprites = {};
+            this.spritesLoaded = false;
+            console.log('✅ Sprite system initialized');
+
+            console.log('🎨 Getting UI elements from DOM...');
+            this.dialogueBox = document.getElementById('dialogueBox');
+            this.dialogueText = document.getElementById('dialogueText');
+            this.switchPrompt = document.getElementById('switchPrompt');
+            this.miniGamePrompt = document.getElementById('miniGamePrompt');
+            this.glitchOverlay = document.getElementById('glitchOverlay');
+            this.errorMessage = document.getElementById('errorMessage');
+            this.characterName = document.getElementById('characterName');
+            this.inventoryUI = document.getElementById('inventoryUI');
+            this.questUI = document.getElementById('questUI');
+            this.abilitiesUI = document.getElementById('abilitiesUI');
+            this.combatUI = document.getElementById('combatUI');
+            console.log('✅ UI elements retrieved:');
+            console.log('  - dialogueBox:', !!this.dialogueBox);
+            console.log('  - dialogueText:', !!this.dialogueText);
+            console.log('  - switchPrompt:', !!this.switchPrompt);
+            console.log('  - miniGamePrompt:', !!this.miniGamePrompt);
+            console.log('  - glitchOverlay:', !!this.glitchOverlay);
+            console.log('  - errorMessage:', !!this.errorMessage);
+            console.log('  - characterName:', !!this.characterName);
+            console.log('  - inventoryUI:', !!this.inventoryUI);
+            console.log('  - questUI:', !!this.questUI);
+            console.log('  - abilitiesUI:', !!this.abilitiesUI);
+            console.log('  - combatUI:', !!this.combatUI);
+
+            console.log('👁️ Hiding UI overlays and prompts initially...');
+            if (this.glitchOverlay) {
+                this.glitchOverlay.style.display = 'none';
+                console.log('  ✅ glitchOverlay hidden');
+            } else {
+                console.warn('  ⚠️ glitchOverlay element not found');
+            }
+            if (this.switchPrompt) {
+                this.switchPrompt.style.display = 'none';
+                console.log('  ✅ switchPrompt hidden');
+            } else {
+                console.warn('  ⚠️ switchPrompt element not found');
+            }
+            if (this.miniGamePrompt) {
+                this.miniGamePrompt.style.display = 'none';
+                console.log('  ✅ miniGamePrompt hidden');
+            } else {
+                console.warn('  ⚠️ miniGamePrompt element not found');
+            }
+            if (this.dialogueBox) {
+                this.dialogueBox.style.display = 'none';
+                console.log('  ✅ dialogueBox hidden');
+            } else {
+                console.warn('  ⚠️ dialogueBox element not found');
+            }
+            if (this.combatUI) {
+                this.combatUI.style.display = 'none';
+                console.log('  ✅ combatUI hidden');
+            } else {
+                console.warn('  ⚠️ combatUI element not found');
+            }
+
+            console.log('🎮 Initializing game state flags...');
+            this.isGameRunning = true;
+            this.showingDialogue = false;
+            this.showingSwitchPrompt = false;
+            this.inMiniGame = false;
+            this.miniGameForSwitch = false;
+            this.inCombat = false;
+            this.playerFrozen = false;
+            this.currentPuzzleChest = null;
+            console.log('✅ Game state flags initialized');
+
+            console.log('💬 Initializing floating text system...');
+            this.floatingTexts = [];
+            console.log('✅ Floating text system initialized');
+
+            console.log('🗺️ Initializing map system...');
+            this.mapTiles = [];
+            this.mapCols = Math.floor(this.mapWidth / this.tileSize);
+            this.mapRows = Math.floor(this.mapHeight / this.tileSize);
+            console.log('✅ Map grid initialized: cols=', this.mapCols, 'rows=', this.mapRows);
+
+            console.log('🏗️ Initializing map objects...');
+            this.chests = [];
+            this.boulders = [];
+            this.obstacles = [];
+            this.fillableChasms = [];
+            this.walls = [];
+            this.agents = [];
+            console.log('✅ Map object arrays initialized');
+
+            console.log('💾 Loading saved game state...');
+            this.gameState.load();
+            console.log('✅ Game state loaded');
+
+            console.log('🗺️ Initializing map layout...');
+            this.initializeMap();
+            console.log('✅ Map layout initialized');
+
+            console.log('🎮 Initializing map interactions...');
+            this.mapInteractions = new MapInteractions(this);
+            console.log('✅ Map interactions initialized');
+
+            console.log('🤖 Initializing map AI...');
+            this.mapAI = new MapAI(this);
+            console.log('✅ Map AI initialized');
+
+            console.log('📋 Initializing quest system...');
+            this.mapQuests = new MapQuests(this);
+            console.log('✅ Quest system initialized');
+
+            console.log('🚀 Calling async init()...');
+            this.init();
+            console.log('✅ async init() called');
+
+            console.log('✅ Constructor completed successfully!');
+        } catch (error) {
+            console.error('❌ ERROR in constructor:', error);
+            console.error('❌ Error message:', error.message);
+            console.error('❌ Error stack:', error.stack);
+            throw error;
+        }
+    }
+
+    async init() {
+        try {
+            console.log('🚀 === INIT() STARTED ===');
+
+            console.log('🎨 Refreshing character colors...');
+            if (typeof refreshCharacterColors === 'function') {
+                refreshCharacterColors();
+                console.log('✅ Character colors refreshed');
+            } else {
+                console.warn('⚠️ refreshCharacterColors function not found');
+            }
+
+            console.log('📦 Restoring chest states...');
+            this.restoreChestStates();
+            console.log('✅ Chest states restored');
+
+            console.log('👤 Setting player position...');
+            const currentChar = this.gameState.getCurrentCharacter();
+            console.log('  Current character:', currentChar);
+            const savedPos = this.gameState.characterPositions[currentChar.id];
+            if (savedPos) {
+                this.player.x = savedPos.x;
+                this.player.y = savedPos.y;
+                console.log(`  ✅ Player positioned at (${savedPos.x}, ${savedPos.y})`);
+            } else {
+                console.log(`  ℹ️ No saved position, using default (${this.player.x}, ${this.player.y})`);
+            }
+
+            console.log('🤖 Building NPC list...');
+            this.npcs = NPCS.filter(npc => npc.id !== currentChar.id).map(npc => ({ ...npc }));
+            console.log(`  ✅ ${this.npcs.length} NPCs created`);
+            if (this.dialogueManager) {
+                this.dialogueManager.npcs = this.npcs;
+                console.log('  ✅ NPCs linked to DialogueManager');
+            }
+
+            console.log('📍 Restoring NPC positions...');
+            for (const npc of this.npcs) {
+                const saved = this.gameState.characterPositions[npc.id];
+                if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') {
+                    npc.position = { x: saved.x, y: saved.y };
+                }
+            }
+            console.log('✅ NPC positions restored');
+
+            console.log('🖥️ Updating UI...');
+            this.updateCharacterUI();
+            console.log('✅ UI updated');
+
+            console.log('🎧 Setting up event listeners...');
+            this.setupEventListeners();
+            console.log('✅ Event listeners set up');
+
+            console.log('👁️ Hiding overlays...');
+            if (this.glitchOverlay) this.glitchOverlay.style.display = 'none';
+            if (this.switchPrompt) this.switchPrompt.style.display = 'none';
+            if (this.miniGamePrompt) this.miniGamePrompt.style.display = 'none';
+            if (this.dialogueBox) this.dialogueBox.style.display = 'none';
+            if (this.combatUI) this.combatUI.style.display = 'none';
+            console.log('✅ Overlays hidden');
+
+            console.log('🎮 Setting game state flags...');
+            this.isGameRunning = true;
+            this.showingDialogue = false;
+            this.showingSwitchPrompt = false;
+            this.inMiniGame = false;
+            this.miniGameForSwitch = false;
+            this.inCombat = false;
+            this.abilityMode = null;
+            console.log('✅ Game state flags set');
+
+            console.log('🖼️ Loading sprites...');
+            await this.loadSprites();
+            console.log('✅ Sprites loaded successfully!');
+
+            console.log('🎵 Starting background music...');
+            if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+                this.audioManager.playCharacterMusic(currentChar.id);
+                console.log('✅ Background music started');
+            } else {
+                console.warn('⚠️ AudioManager or playCharacterMusic not available');
+            }
+
+            console.log('🎨 Applying character theme...');
+            this.applyCharacterTheme(currentChar);
+            console.log('✅ Theme applied');
+
+            console.log('🎬 Starting game loop...');
+            this.gameLoop();
+            console.log('✅ === INIT() COMPLETED SUCCESSFULLY ===');
+        } catch (error) {
+            console.error('❌ === CRITICAL ERROR IN INIT() ===');
+            console.error('Error:', error);
+            console.error('Stack:', error.stack);
+            throw error;
+        }
+    }
+
+    setupEventListeners() {
+        // Keyboard input
+        document.addEventListener('keydown', (e) => {
+            // Attempt to unlock audio on first interaction (for autoplay policies)
+            if (!this._audioUnlocked) {
+                const currentChar = this.gameState.getCurrentCharacter();
+
+                // Refresh CSS variable-driven character colors in case styles are applied after load
+                if (typeof refreshCharacterColors === 'function') {
+                    refreshCharacterColors();
+                }
+
+                if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+                    this.audioManager.playCharacterMusic(currentChar.id);
+                }
+                this._audioUnlocked = true;
+                // Apply theme in case styles loaded later
+                this.applyCharacterTheme(currentChar);
+            }
+            this.keys[e.code] = true;
+            this.handleKeyPress(e);
+        });
+
+        document.addEventListener('keyup', (e) => {
+            this.keys[e.code] = false;
+        });
+
+        // Switch prompt buttons
+        const switchYes = document.getElementById('switchYes');
+        const switchNo = document.getElementById('switchNo');
+        if (switchYes) {
+            switchYes.addEventListener('click', () => {
+                this.handleCharacterSwitch(true);
+            });
+        }
+        if (switchNo) {
+            switchNo.addEventListener('click', () => {
+                this.handleCharacterSwitch(false);
+            });
+        }
+
+        // Mini-game prompt buttons
+        const miniGameYes = document.getElementById('miniGameYes');
+        const miniGameNo = document.getElementById('miniGameNo');
+        if (miniGameYes) {
+            miniGameYes.addEventListener('click', () => {
+                this.handleMiniGamePrompt(true);
+            });
+        }
+        if (miniGameNo) {
+            miniGameNo.addEventListener('click', () => {
+                this.handleMiniGamePrompt(false);
+            });
+        }
+
+        // Settings UI
+        const settingsBtn = document.getElementById('settingsButton');
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsClose = document.getElementById('settingsClose');
+        const volSlider = document.getElementById('volumeSlider');
+        const volValue = document.getElementById('volumeValue');
+        const restartBtn = document.getElementById('restartGameBtn');
+
+        const openSettings = () => {
+            if (typeof this.updateSettingsPanel === 'function') {
+                this.updateSettingsPanel();
+            }
+            if (settingsModal) settingsModal.style.display = 'block';
+        };
+        const closeSettings = () => {
+            if (settingsModal) settingsModal.style.display = 'none';
+        };
+
+        if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+        if (settingsClose) settingsClose.addEventListener('click', closeSettings);
+
+        // Restart game (hard reset)
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => {
+                const confirmed = confirm('This will permanently erase your progress and restart the game. Continue?');
+                if (!confirmed) return;
+
+                // Reset game state if available
+                if (this.gameState && typeof this.gameState.reset === 'function') {
+                    this.gameState.reset();
+                }
+
+                // Clear saved audio settings
+                localStorage.removeItem('switchAudioSettings');
+                localStorage.removeItem('switchGameState');
+
+                // Reload page to reinitialize everything cleanly
+                window.location.reload();
+            });
+        }
+
+        // Close settings with Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && settingsModal && settingsModal.style.display === 'block') {
+                // Prevent other Escape handlers from re-opening settings in the same keypress
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                closeSettings();
+            }
+        });
+
+        // Global Escape behavior:
+        // - If any in-game window is open (dialogue or switch prompt), close it
+        // - Otherwise, open the options/settings window
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+
+            // If settings already open, the previous listener will close it; don't double-handle
+            if (settingsModal && settingsModal.style.display === 'block') return;
+
+            // If a minigame is active, close it
+            if (this.inMiniGame && this.miniGame && this.miniGame.active) {
+                e.preventDefault();
+                this.miniGame.stop();
+                if (this.miniGame.onComplete) {
+                    this.miniGame.onComplete(false);
+                }
+                return;
+            }
+
+            // If logic puzzle is active, close it
+            if (this.logicPuzzle && this.logicPuzzle.active) {
+                e.preventDefault();
+                this.logicPuzzle.stop();
+                if (this.logicPuzzle.onComplete) {
+                    this.logicPuzzle.onComplete(false);
+                }
+                return;
+            }
+
+            // If dialogue is currently open, close it without marking completion
+            if (this.showingDialogue && this.dialogueManager && typeof this.dialogueManager.cancelDialogue === 'function') {
+                e.preventDefault();
+                this.dialogueManager.cancelDialogue();
+                this.closeDialogue();
+                return;
+            }
+
+            // If switch prompt is open, close it
+            if (this.showingSwitchPrompt) {
+                e.preventDefault();
+                this.showingSwitchPrompt = false;
+                if (this.switchPrompt) this.switchPrompt.style.display = 'none';
+                return;
+            }
+
+            // Otherwise, open settings/options
+            e.preventDefault();
+            if (typeof this.updateSettingsPanel === 'function') {
+                this.updateSettingsPanel();
+            }
+            if (settingsModal) settingsModal.style.display = 'block';
+        });
+
+        // Initialize slider from audio manager
+        if (volSlider && volValue && this.audioManager && typeof this.audioManager.getVolume === 'function') {
+            const v = Math.round(this.audioManager.getVolume() * 100);
+            volSlider.value = String(v);
+            volValue.textContent = `${v}%`;
+
+            volSlider.addEventListener('input', () => {
+                const pct = parseInt(volSlider.value, 10) || 0;
+                if (this.audioManager && typeof this.audioManager.setVolume === 'function') {
+                    this.audioManager.setVolume(pct / 100);
+                }
+                if (volValue) volValue.textContent = `${pct}%`;
+            });
+        }
+
+        if (this.canvas) {
+            this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+        }
+    }
+
+    handleCanvasClick(e) {
+        this.mapInteractions.handleCanvasClick(e);
+    }
+
+    checkItemPickup(x, y) {
+        this.mapInteractions.checkItemPickup(x, y);
+    }
+
+    checkAbilityUsage(x, y) {
+        const currentChar = this.gameState.getCurrentCharacter();
+        if (!currentChar || !currentChar.abilities) return;
+
+        this.mapInteractions.handleClickAbility(x, y);
+    }
+
+    showFloatingText(x, y, text, color) {
+        const floatingText = {
+            x: x,
+            y: y,
+            text: text,
+            color: color,
+            alpha: 1.0,
+            lifetime: 60
+        };
+
+        if (!this.floatingTexts) this.floatingTexts = [];
+        this.floatingTexts.push(floatingText);
+    }
+
+    onMiniGameComplete(success) {
+        console.log('🎮 [MINIGAME] Minigame completed with result:', success ? 'SUCCESS ✅' : 'FAILURE ❌');
+        this.inMiniGame = false;
+
+        const targetNpcId = this.dialogueManager.pendingSwitch;
+        const isNicholasUnlock = targetNpcId === 'nicholas' && !this.gameState.unlockedCharacters.has('nicholas');
+
+        console.log('🔍 [MINIGAME] Target NPC:', targetNpcId, '| Nicholas unlocked:', this.gameState.unlockedCharacters.has('nicholas'));
+        console.log('🔍 [MINIGAME] miniGameForSwitch:', this.miniGameForSwitch, '| isNicholasUnlock:', isNicholasUnlock);
+
+        if (isNicholasUnlock) {
+            console.log('👤 [MINIGAME] Nicholas UNLOCK minigame detected');
+            this.miniGameForSwitch = false;
+
+            if (success) {
+                console.log('✅ [MINIGAME] SUCCESS - Unlocking Nicholas and showing success dialogue');
+                this.gameState.unlockCharacter('nicholas');
+                this.gameState.save();
+                console.log('💬 [DIALOGUE] Calling showMinigameResultDialogue for Nicholas (success)');
+                this.dialogueManager.showMinigameResultDialogue('nicholas', true);
+                this.showingDialogue = true;
+                console.log('💬 [DIALOGUE] Calling showDialogueUI to display dialogue');
+                this.showDialogueUI();
+                console.log('💬 [DIALOGUE] showDialogueUI completed');
+            } else {
+                console.log('❌ [MINIGAME] FAILURE - Showing failure dialogue');
+                console.log('💬 [DIALOGUE] Calling showMinigameResultDialogue for Nicholas (failure)');
+                this.dialogueManager.showMinigameResultDialogue('nicholas', false);
+                this.showingDialogue = true;
+                console.log('💬 [DIALOGUE] Calling showDialogueUI to display dialogue');
+                this.showDialogueUI();
+                console.log('💬 [DIALOGUE] showDialogueUI completed');
+            }
+        } else if (this.miniGameForSwitch) {
+            this.miniGameForSwitch = false;
+            console.log('🔄 [MINIGAME] Switch minigame for:', targetNpcId);
+
+            if (this.dialogueManager.handleMiniGameComplete(success, targetNpcId)) {
+                this.showingDialogue = true;
+                this.showDialogueUI();
+            }
+        }
+    }
+
+    startSwitchMiniGame() {
+        console.log('🎮 [MINIGAME START] Starting switch minigame (miniGameForSwitch=true)');
+        this.miniGameForSwitch = true;
+        this.inMiniGame = true;
+        this.miniGame.start();
+    }
+
+    saveChestStates() {
+        this.mapInteractions.saveChestStates();
+    }
+
+    restoreChestStates() {
+        this.mapInteractions.restoreChestStates();
+    }
+
+    onLogicPuzzleComplete(success) {
+        this.mapInteractions.onLogicPuzzleComplete(success);
+    }
+
+    showMiniGamePrompt() {
+        this.showingSwitchPrompt = true;
+        if (this.miniGamePrompt) {
+            this.miniGamePrompt.style.display = 'block';
+        }
+    }
+
+    handleMiniGamePrompt(accepted) {
+        console.log('🎯 [MINIGAME PROMPT] User response:', accepted ? 'ACCEPTED ✅' : 'REJECTED ❌');
+        if (this.miniGamePrompt) {
+            this.miniGamePrompt.style.display = 'none';
+        }
+        this.showingSwitchPrompt = false;
+
+        if (accepted) {
+            console.log('🎮 [MINIGAME START] Starting Nicholas unlock minigame (miniGameForSwitch=false)');
+            this.inMiniGame = true;
+            this.miniGame.start();
+        } else {
+            this.nextCharacterToSwitch = null;
+        }
+    }
+
+    updateSettingsPanel() {
+        const current = this.gameState.getCurrentCharacter();
+        const nameEl = document.getElementById('settingsCurrentCharacter');
+        const charProg = document.getElementById('settingsCharProgress');
+        const charTotal = document.getElementById('settingsCharTotal');
+        const questInfo = document.getElementById('settingsQuestInfo');
+        const questStatus = document.getElementById('settingsQuestStatus');
+
+        if (nameEl) nameEl.textContent = current.name;
+
+        if (this.gameState) {
+            const done = this.gameState.getCompletedCountForCharacter(current.id);
+            const total = this.gameState.getTotalTargetsPerCharacter(current.id);
+            if (charProg) charProg.textContent = String(done);
+            if (charTotal) charTotal.textContent = String(total);
+
+            const charData = CHARACTERS[current.id];
+            if (charData) {
+                if (questInfo && charData.quest) {
+                    questInfo.textContent = charData.quest.description || 'No quest';
+                }
+
+                if (questStatus) {
+                    const isCompleted = this.gameState.completedQuests.has(current.id);
+                    questStatus.textContent = isCompleted ? 'Complete' : 'Ongoing';
+                }
+            }
+        }
+    }
+
+    updateInventoryUI() {
+        const itemsEl = document.getElementById('inventoryItems');
+        if (!itemsEl) return;
+
+        const currentChar = this.gameState.getCurrentCharacter();
+        const inventory = this.gameState.inventory[currentChar.id] || [];
+        const capacity = this.gameState.inventoryCapacity[currentChar.id] || 5;
+
+        if (inventory.length === 0) {
+            itemsEl.innerHTML = '<div>Empty</div>';
+        } else {
+            itemsEl.innerHTML = inventory.map(item => `<div>• ${item}</div>`).join('');
+        }
+        itemsEl.innerHTML += `<div style="margin-top: 4px; font-size: 12px; color: var(--muted);">${inventory.length}/${capacity} slots</div>`;
+    }
+
+    updateQuestUI() {
+        this.mapQuests.updateQuestUI();
+    }
+
+    handleKeyPress(e) {
+        const now = Date.now();
+
+        // If settings modal is open, ignore gameplay keys (ESC is handled by a separate listener)
+        const settingsModal = document.getElementById('settingsModal');
+        if (settingsModal && settingsModal.style.display === 'block') return;
+
+        switch(e.code) {
+            case 'Space':
+                e.preventDefault();
+                if (this.showingDialogue) {
+                    if (this.dialogueManager.showingMenu) {
+                        this.dialogueManager.confirmMenuSelection();
+                        if (!this.dialogueManager.showingMenu && !this.dialogueManager.isActive) {
+                            this.closeDialogue();
+                        } else if (this.dialogueManager.isActive && !this.dialogueManager.showingMenu) {
+                            this.showDialogueUI();
+                        }
+                    } else {
+                        this.advanceDialogue();
+                    }
+                } else if (now - this.lastInteractionTime > 500) {
+                    const npcInteracted = this.tryInteract();
+                    if (!npcInteracted) {
+                        this.tryInteractWithObjects();
+                    }
+                    this.lastInteractionTime = now;
+                }
+                break;
+
+            case 'ArrowUp':
+            case 'ArrowDown':
+            case 'KeyW':
+            case 'KeyS':
+                if (this.dialogueManager.showingMenu) {
+                    e.preventDefault();
+                    const direction = (e.code === 'ArrowUp' || e.code === 'KeyW') ? 'up' : 'down';
+                    this.dialogueManager.navigateMenu(direction);
+                    this.renderMenu();
+                }
+                break;
+
+            case 'Escape':
+                // Escape handling is centralized in setupEventListeners global listener
+                // to manage closing/opening UI overlays. No action here to avoid duplication.
+                break;
+        }
+    }
+
+    tryInteractWithObjects() {
+        this.mapInteractions.handleSpaceKeyInteractions();
+    }
+
+
+    async loadSprites() {
+        // Create sprite containers
+        this.sprites = {
+            characters: {},
+            npcs: {},
+            backgrounds: {}
+        };
+
+        // Build simple 4-frame walking animations per direction for each character
+        // Frames are procedurally drawn stick-figure humans using the theme color
+        for (const charId of Object.keys(CHARACTERS)) {
+            const color = this.characters[charId].color;
+            this.sprites.characters[charId] = this.createHumanSpriteSheet(color);
+        }
+
+        // Load NPC sprites (procedural human in gray or provided color)
+        for (const npc of this.npcs) {
+            this.sprites.npcs[npc.id] = this.createHumanSpriteSheet(npc.color || '#888');
+        }
+
+        // Generate a procedural background and cache it
+        this.sprites.backgrounds.main = this.createBackgroundSprite();
+
+        this.spritesLoaded = true;
+    }
+
+    // Human sprite sheet generator: 4 directions x 4 frames = 16 tiles
+    // Each frame is 32x32, sheet is 128x128
+    createHumanSpriteSheet(color) {
+        const tile = 32;
+        const cols = 4; // frames per direction
+        const rows = 4; // directions: 0=down,1=left,2=right,3=up
+        const canvas = document.createElement('canvas');
+        canvas.width = tile * cols;
+        canvas.height = tile * rows;
+        const ctx = canvas.getContext('2d');
+
+        // Draw a simple human made of shapes: head, body, limbs
+        // Vary limb positions by frame to simulate a walk cycle
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const x = col * tile;
+                const y = row * tile;
+                this.renderer.drawHumanFrame(ctx, x, y, tile, color, row, col);
+            }
+        }
+        return canvas;
+    }
+
+
+
+    initializeMap() {
+        initializeMapTiles(this.mapTiles, this.mapRows, this.mapCols);
+
+        for (const room of roomDefinitions) {
+            if (room.type === 'gap') {
+                createGap(this.mapTiles, this.mapRows, this.mapCols, room.x, room.y, room.width, room.height);
+            } else if (room.type === 'room') {
+                createRoom(this.mapTiles, this.mapRows, this.mapCols, room.x, room.y, room.width, room.height, room.walled);
+            }
+        }
+
+        this.boulders = boulderPositions.map(pos => ({
+            x: pos.x * this.tileSize,
+            y: pos.y * this.tileSize
+        }));
+
+        this.obstacles = obstaclePositions.map(pos => ({
+            x: pos.x * this.tileSize,
+            y: pos.y * this.tileSize,
+            broken: pos.broken
+        }));
+
+        this.fillableChasms = fillableChasmPositions.map(pos => ({
+            x: pos.x * this.tileSize,
+            y: pos.y * this.tileSize,
+            filled: pos.filled
+        }));
+
+        this.chests = chestPositions.map(chest => ({
+            x: chest.x * this.tileSize,
+            y: chest.y * this.tileSize,
+            opened: chest.opened,
+            item: chest.item,
+            requiresPuzzle: chest.requiresPuzzle,
+            restrictedTo: chest.restrictedTo
+        }));
+
+        this.agents = agentConfigs.map(agent => {
+            const agentX = agent.x * this.tileSize;
+            const agentY = agent.y * this.tileSize;
+            const agentKey = `${agentX}_${agentY}`;
+            const isDefeated = this.gameState.defeatedAgents && this.gameState.defeatedAgents.includes(agentKey);
+
+            return {
+                x: agentX,
+                y: agentY,
+                spawnX: agentX,
+                spawnY: agentY,
+                direction: agent.direction,
+                patrolPath: agent.patrolPath,
+                patrolIndex: agent.patrolIndex,
+                patrolReverse: agent.patrolReverse,
+                speed: agent.speed,
+                detectionRange: agent.detectionRange,
+                chasing: agent.chasing,
+                defeated: isDefeated,
+                animationFrame: agent.animationFrame,
+                animationTimer: agent.animationTimer
+            };
+        });
+    }
+
+    createBackgroundSprite() {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.mapWidth;
+        canvas.height = this.mapHeight;
+        const ctx = canvas.getContext('2d');
+
+        // Create purple Derse-themed tiled background with patterns
+        const tileSize = 64;
+        for (let x = 0; x < this.mapWidth; x += tileSize) {
+            for (let y = 0; y < this.mapHeight; y += tileSize) {
+                const isEven = ((x / tileSize) + (y / tileSize)) % 2 === 0;
+                // Purple color palette
+                ctx.fillStyle = isEven ? '#2a1a3a' : '#1a0a2a';
+                ctx.fillRect(x, y, tileSize, tileSize);
+
+                // Add Derse-like checkerboard pattern
+                ctx.fillStyle = isEven ? '#3a2a4a' : '#2a1a3a';
+                const patternSize = 8;
+                for (let px = 0; px < tileSize; px += patternSize * 2) {
+                    for (let py = 0; py < tileSize; py += patternSize * 2) {
+                        if ((px / patternSize + py / patternSize) % 2 === 0) {
+                            ctx.fillRect(x + px, y + py, patternSize, patternSize);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add decorative purple patches
+        ctx.fillStyle = '#4a3a5a';
+        for (let i = 0; i < 20; i++) {
+            const x = Math.random() * this.mapWidth;
+            const y = Math.random() * this.mapHeight;
+            const size = 20 + Math.random() * 40;
+            ctx.fillRect(x, y, size, size);
+        }
+
+        return canvas;
+    }
+
+    update() {
+        if (!this.isGameRunning || this.showingDialogue || this.showingSwitchPrompt) return;
+
+        // Update logic puzzle if active
+        if (this.logicPuzzle && this.logicPuzzle.active) {
+            this.logicPuzzle.update();
+            return;
+        }
+
+        // Update mini-game if active
+        if (this.inMiniGame && this.miniGame) {
+            this.miniGame.update();
+            return;
+        }
+
+        this.updatePlayerMovement();
+        this.updateCamera();
+        this.updateAnimations();
+        this.updateAgents();
+        this.checkForInteractions();
+        this.checkForItemPickups();
+        this.updateFloatingTexts();
+
+        // Update UI
+        this.updateInventoryUI();
+        this.updateQuestUI();
+    }
+
+    updateAgents() {
+        this.mapAI.updateAgents();
+    }
+
+    updateAgentPatrol(agent) {
+        return this.mapAI.updateAgentPatrol(agent);
+    }
+
+    checkAgentDetection(agent) {
+        this.mapAI.checkAgentDetection(agent);
+    }
+
+    startAgentCombat(agent) {
+        this.battleController.startAgentCombat(agent);
+    }
+
+    checkCollision(x, y, width, height) {
+        return this.mapInteractions.checkCollision(x, y, width, height);
+    }
+
+    updateFloatingTexts() {
+        if (!this.floatingTexts) return;
+
+        this.floatingTexts = this.floatingTexts.filter(text => {
+            text.y -= 1;
+            text.alpha -= 0.016;
+            text.lifetime--;
+            return text.lifetime > 0 && text.alpha > 0;
+        });
+    }
+
+    checkForItemPickups() {
+        this.mapInteractions.checkForItemPickups();
+    }
+
+    useCombatMove(moveIndex) {
+        this.battleController.useCombatMove(moveIndex);
+    }
+
+    executeEnemyTurn() {
+        this.battleController.executeEnemyTurn();
+    }
+
+    endCombat(playerWon) {
+        this.battleController.endCombat(playerWon);
+    }
+
+    updatePlayerMovement() {
+        this.mapInteractions.updatePlayerMovement();
+    }
+
+    showDialogueUI() {
+        if (this.dialogueManager.showingMenu) {
+            this.renderMenu();
+            return;
+        }
+
+        const current = this.dialogueManager.getCurrentLine();
+        const npc = this.dialogueManager.getCurrentNPC();
+        const currentChar = this.gameState.getCurrentCharacter();
+
+        if (current && npc) {
+            // Back-and-forth visual treatment
+            this.dialogueText.textContent = current.text;
+
+            // Determine colors from global theme and character theme
+            const playerColor = currentChar.color;
+            const npcColor = npc.color || '#888';
+            // Style dialogue text color based on the current speaker
+            if (this.dialogueText) {
+                this.dialogueText.style.color = current.speaker === 'player' ? playerColor : npcColor;
+            }
+
+            // Toggle speaker highlight classes on dialogue box
+            if (this.dialogueBox) {
+                this.dialogueBox.classList.toggle('speaker-player', current.speaker === 'player');
+                this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
+                this.dialogueBox.style.display = 'block';
+            }
+        }
+    }
+
+    renderMenu() {
+        const npc = this.dialogueManager.getCurrentNPC();
+        const options = this.dialogueManager.menuOptions;
+        const selectedIdx = this.dialogueManager.selectedMenuOption;
+
+        if (!npc || !options || !this.dialogueBox || !this.dialogueText) {
+            return;
+        }
+
+        let menuHTML = `<div style="text-align: center; color: ${npc.color || '#888'}; margin-bottom: 15px;"><strong>${npc.name}</strong></div>`;
+        menuHTML += '<div style="display: flex; flex-direction: column; gap: 10px;" id="menuOptionsContainer">';
+
+        options.forEach((option, idx) => {
+            const isSelected = idx === selectedIdx;
+            const isEnabled = option.enabled;
+            const cursor = isSelected ? '> ' : '  ';
+            const color = !isEnabled ? '#555' : (isSelected ? '#fff' : '#aaa');
+            const weight = isSelected ? 'bold' : 'normal';
+            const cursorStyle = isEnabled ? 'pointer' : 'default';
+            const hoverStyle = isEnabled ? 'transition: transform 0.1s;' : '';
+
+            menuHTML += `<div
+                data-option-idx="${idx}"
+                data-option-id="${option.id}"
+                data-enabled="${isEnabled}"
+                style="color: ${color}; font-weight: ${weight}; opacity: ${isEnabled ? 1 : 0.5}; cursor: ${cursorStyle}; ${hoverStyle}"
+                class="menu-option">${cursor}${option.label}</div>`;
+        });
+
+        menuHTML += '</div>';
+        menuHTML += '<div style="text-align: center; margin-top: 15px; font-size: 12px; color: #888;">↑↓/WS to navigate, SPACE/Click to select</div>';
+
+        this.dialogueText.innerHTML = menuHTML;
+        this.dialogueBox.style.display = 'block';
+        this.dialogueBox.classList.remove('speaker-player', 'speaker-npc');
+
+        this.attachMenuEventListeners();
+    }
+
+    attachMenuEventListeners() {
+        const menuOptions = this.dialogueText.querySelectorAll('.menu-option');
+
+        menuOptions.forEach((optionElement, idx) => {
+            const isEnabled = optionElement.getAttribute('data-enabled') === 'true';
+
+            if (isEnabled) {
+                optionElement.addEventListener('mouseenter', () => {
+                    this.dialogueManager.selectedMenuOption = idx;
+                    this.renderMenu();
+                });
+
+                optionElement.addEventListener('click', () => {
+                    const optionId = optionElement.getAttribute('data-option-id');
+                    this.dialogueManager.selectMenuOption(optionId);
+                    if (!this.dialogueManager.showingMenu && !this.dialogueManager.isActive) {
+                        this.closeDialogue();
+                    } else if (this.dialogueManager.isActive && !this.dialogueManager.showingMenu) {
+                        this.showDialogueUI();
+                    }
+                });
+            }
+        });
+    }
+
+    updateCamera() {
+        this.mapInteractions.updateCamera();
+    }
+
+    updateAnimations() {
+        if (this.player.isMoving) {
+            this.player.animationTimer++;
+            if (this.player.animationTimer > 10) {
+                this.player.animationFrame = (this.player.animationFrame + 1) % 4;
+                this.player.animationTimer = 0;
+            }
+        } else {
+            this.player.animationFrame = 0;
+        }
+    }
+
+    checkForInteractions() {
+        this.mapInteractions.checkForInteractions();
+    }
+
+    tryInteract() {
+        return this.mapInteractions.tryInteract();
+    }
+
+    showInteractionMenu(npcId) {
+        if (this.dialogueManager.showInteractionMenu(npcId)) {
+            this.showingDialogue = true;
+            this.showDialogueUI();
+        }
+    }
+
+    startDialogue(npcId) {
+        if (this.dialogueManager.startDialogue(npcId)) {
+            this.showingDialogue = true;
+            this.showDialogueUI();
+        }
+    }
+
+    advanceDialogue() {
+        const result = this.dialogueManager.nextLine();
+
+        if (result && typeof result === 'object' && result.action === 'minigame') {
+            this.closeDialogue();
+            this.dialogueManager.pendingSwitch = result.target;
+            this.startSwitchMiniGame();
+        } else if (!result) {
+            this.closeDialogue();
+        } else {
+            const current = this.dialogueManager.getCurrentLine();
+            const npc = this.dialogueManager.getCurrentNPC();
+            const currentChar = this.gameState.getCurrentCharacter();
+
+            if (current && npc) {
+                if (this.dialogueText) {
+                    this.dialogueText.textContent = current.text;
+                    this.dialogueText.style.color = (current.speaker === 'player') ? currentChar.color : (npc.color || '#888');
+                }
+
+                if (this.dialogueBox) {
+                    this.dialogueBox.classList.toggle('speaker-player', current.speaker === 'player');
+                    this.dialogueBox.classList.toggle('speaker-npc', current.speaker === 'npc');
+                    this.dialogueBox.style.display = 'block';
+                }
+            }
+        }
+    }
+
+
+    closeDialogue() {
+        this.showingDialogue = false;
+        if (this.dialogueBox) this.dialogueBox.style.display = 'none';
+
+        // If there is a last-talked NPC recorded, unlock them as a playable character
+        // (but do not unlock if they are marked as the final character).
+        const lastId = this.gameState.lastNPCTalkedId;
+        if (lastId && CHARACTERS[lastId] && !CHARACTERS[lastId].isFinalCharacter) {
+            if (typeof this.gameState.unlockCharacter === 'function') {
+                this.gameState.unlockCharacter(lastId);
+            }
+            if (typeof this.gameState.save === 'function') {
+                this.gameState.save();
+            }
+        }
+
+        // Trigger Nicholas mini-game prompt after talking to him
+        if (lastId === 'nicholas' && !this.inMiniGame && this.gameState.miniGameScores.nicholas < 5) {
+            setTimeout(() => {
+                this.showMiniGamePrompt();
+            }, 500);
+            return;
+        }
+
+        // Check if all interactions are complete (remaining === 0)
+        // If so, and we're not Victor, fade out the music
+        const remaining = (this.gameState && typeof this.gameState.getRemainingInteractionsToFinishGame === 'function')
+            ? this.gameState.getRemainingInteractionsToFinishGame()
+            : 1;
+        const currentChar = this.gameState.getCurrentCharacter();
+
+        if (remaining === 0 && currentChar && currentChar.id !== 'victor') {
+            // All 49 interactions complete and not playing as Victor - fade out music
+            if (this.audioManager && typeof this.audioManager.fadeOutAndStop === 'function') {
+                this.audioManager.fadeOutAndStop(2500); // 2.5 second fade
+            }
+        }
+
+        // Refresh settings panel progress if open
+        const settingsModal = document.getElementById('settingsModal');
+        if (settingsModal && settingsModal.style.display === 'block' && typeof this.updateSettingsPanel === 'function') {
+            this.updateSettingsPanel();
+        }
+    }
+
+    handleCharacterSwitch(confirmed) {
+        this.showingSwitchPrompt = false;
+        if (this.switchPrompt) this.switchPrompt.style.display = 'none';
+
+        if (confirmed && this.nextCharacterToSwitch) {
+            const targetChar = CHARACTERS[this.nextCharacterToSwitch];
+
+            // Special check for Nicholas - require mini-game completion
+            if (this.nextCharacterToSwitch === 'nicholas' && this.gameState.miniGameScores.nicholas < 5) {
+                this.showingDialogue = true;
+                if (this.dialogueBox) {
+                    this.dialogueBox.style.display = 'block';
+                }
+                if (this.dialogueText) {
+                    this.dialogueText.textContent = "Hold on there. Before we switch, I need to know you can handle my abilities. Let me test your aim.";
+                    this.dialogueText.style.color = CHARACTERS.nicholas.color;
+                }
+
+                setTimeout(() => {
+                    this.showingDialogue = false;
+                    if (this.dialogueBox) {
+                        this.dialogueBox.style.display = 'none';
+                    }
+                    setTimeout(() => {
+                        this.showMiniGamePrompt();
+                    }, 300);
+                }, 2500);
+                return;
+            }
+
+            // If target is the final character (Victor), only allow when remaining == 0 and we just interacted with Victor
+            const remaining = (this.gameState && typeof this.gameState.getRemainingInteractionsToFinishGame === 'function')
+                ? this.gameState.getRemainingInteractionsToFinishGame()
+                : 1;
+            const lastTalked = this.gameState && this.gameState.lastNPCTalkedId;
+            if (targetChar && targetChar.isFinalCharacter) {
+                if (remaining === 0 && lastTalked === 'victor' && this.gameState.canSwitchToCharacter && this.gameState.canSwitchToCharacter('victor')) {
+                    if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+                        this.audioManager.playCharacterMusic('victor');
+                    }
+                    this.triggerGlitchEnding();
+                    return;
+                } else {
+                    return;
+                }
+            }
+
+            // Check if we can actually switch to this character (verify unlock criteria)
+            if (!this.gameState.canSwitchToCharacter(this.nextCharacterToSwitch)) {
+                // Show a message indicating why the switch is not allowed
+                this.showingDialogue = true;
+                if (this.dialogueBox) {
+                    this.dialogueBox.style.display = 'block';
+                }
+                if (this.dialogueText) {
+                    const reqMessage = this.getUnlockRequirementMessage(this.nextCharacterToSwitch);
+                    this.dialogueText.textContent = reqMessage || "You cannot switch to this character yet. Complete their unlock requirements first.";
+                    this.dialogueText.style.color = targetChar.color || '#ffffff';
+                }
+                setTimeout(() => {
+                    this.showingDialogue = false;
+                    if (this.dialogueBox) {
+                        this.dialogueBox.style.display = 'none';
+                    }
+                }, 3000);
+                return;
+            }
+
+            // Track which characters have been played for unlock conditions
+            if (this.gameState.playedCharacters) {
+                this.gameState.playedCharacters.add(this.nextCharacterToSwitch);
+            }
+
+            // Perform normal character switch with NPC swap logic
+            const prevChar = this.gameState.getCurrentCharacter();
+            const prevPos = { x: this.player.x, y: this.player.y };
+
+            // Switch state
+            this.switchToCharacter(this.nextCharacterToSwitch);
+
+            // Track former swap partner mapping so that you don't need to talk to the person you just swapped from
+            if (this.gameState && prevChar && targetChar) {
+                if (!this.gameState.formerSwapPartnerByCharacter) this.gameState.formerSwapPartnerByCharacter = {};
+                this.gameState.formerSwapPartnerByCharacter[targetChar.id] = prevChar.id;
+            }
+
+            // Remove any NPC that matches the new current character (since the player is now that character)
+            const currentChar = this.gameState.getCurrentCharacter();
+            this.npcs = this.npcs.filter(n => n.id !== (currentChar && currentChar.id));
+
+            // Add an NPC where the player used to be (the old character appears at your previous position)
+            const ghostNPC = {
+                id: prevChar.id,
+                name: prevChar.name,
+                position: prevPos,
+                color: prevChar.color,
+            };
+
+            // Replace old ghost if already present
+            this.npcs = this.npcs.filter(n => n.id !== ghostNPC.id);
+            this.npcs.push(ghostNPC);
+
+            // Ensure sprite exists for ghost
+            if (this.sprites) {
+                if (!this.sprites.npcs) this.sprites.npcs = {};
+                const existing = this.sprites.npcs && this.sprites.npcs[ghostNPC.id];
+                this.sprites.npcs[ghostNPC.id] = existing || this.createHumanSpriteSheet(ghostNPC.color || '#888');
+            }
+
+            // Update DialogueManager NPC list
+            if (this.dialogueManager) this.dialogueManager.npcs = this.npcs;
+
+            // Apply new theme and music (keep UI consistent immediately after switching)
+            if (this.gameState) {
+                const active = this.gameState.getCurrentCharacter();
+                if (active) {
+                    this.applyCharacterTheme(active);
+                    if (this.audioManager && typeof this.audioManager.playCharacterMusic === 'function') {
+                        this.audioManager.playCharacterMusic(active.id);
+                    }
+                }
+            }
+
+            // Persist current NPC positions too (so ghost NPCs remain where you left them)
+            if (Array.isArray(this.npcs) && this.gameState) {
+                if (!this.gameState.characterPositions) this.gameState.characterPositions = {};
+                for (const npc of this.npcs) {
+                    if (npc && npc.id && npc.position) {
+                        this.gameState.characterPositions[npc.id] = { x: npc.position.x, y: npc.position.y };
+                    }
+                }
+                if (typeof this.gameState.save === 'function') this.gameState.save();
+            }
+        }
+
+        this.nextCharacterToSwitch = null;
+    }
+
+    getUnlockRequirementMessage(characterId) {
+        return this.mapQuests.getUnlockRequirementMessage(characterId);
+    }
+
+    switchToCharacter(characterId) {
+        if (!this.gameState.canSwitchToCharacter(characterId)) return false;
+        if (!CHARACTERS[characterId]) return false;
+
+        const oldCharId = this.gameState.currentCharacter;
+
+        // Save current player position before switching
+        this.gameState.characterPositions[oldCharId] = {
+            x: this.player.x,
+            y: this.player.y
+        };
+
+        // Switch the character in game state
+        if (this.gameState.switchCharacter(characterId)) {
+            const newChar = this.gameState.getCurrentCharacter();
+
+            // Rebuild NPCs list: remove new character, add old character
+            this.npcs = NPCS.filter(npc => npc.id !== characterId).map(npc => ({ ...npc }));
+
+            // Update NPC positions from saved state
+            for (const npc of this.npcs) {
+                const saved = this.gameState.characterPositions[npc.id];
+                if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') {
+                    npc.position = { x: saved.x, y: saved.y };
+                }
+            }
+
+            // Update dialogue manager NPCs reference
+            if (this.dialogueManager) this.dialogueManager.npcs = this.npcs;
+
+            // Update player position to new character's saved position
+            const savedPos = this.gameState.characterPositions[characterId];
+            if (savedPos) {
+                this.player.x = savedPos.x;
+                this.player.y = savedPos.y;
+            }
+
+            // Update UI and theme
+            this.updateCharacterUI();
+            this.applyCharacterTheme(newChar);
+
+            // Switch music
+            this.audioManager.playCharacterMusic(characterId);
+
+            // Unlock the character for future switches
+            this.gameState.unlockCharacter(characterId);
+            this.gameState.save();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    triggerGlitchEnding() {
+        this.endingManager.triggerGlitchEnding();
+    }
+
+    updateCharacterUI() {
+        const currentChar = this.gameState.getCurrentCharacter();
+        if (this.characterName) this.characterName.textContent = currentChar.name;
+
+        // Update all UI elements to reflect new character
+        this.updateInventoryUI();
+        this.updateQuestUI();
+
+        // Also refresh settings panel values if open
+        const settingsModal = document.getElementById('settingsModal');
+        if (settingsModal && settingsModal.style.display === 'block') {
+            this.updateSettingsPanel();
+        }
+    }
+
+    applyCharacterTheme(character) {
+        // Check user's theme preference from localStorage
+        const themeKey = 'mspa:theme';
+        let userTheme = null;
+        try {
+            userTheme = localStorage.getItem(themeKey);
+        } catch (e) {
+            // localStorage not available or access denied; fall back to default behavior
+        }
+
+        // Only request a theme change from the parent if user has selected "Default" or has no preference
+        // If user selected a specific theme (e.g. 'space', 'breath', etc.), respect that choice
+        if (!userTheme || userTheme === 'default') {
+            const theme = (character && character.id && CHARACTER_ASPECTS[character.id])
+                ? CHARACTER_ASPECTS[character.id]
+                : 'space';
+
+            // Instead of changing the embed's own theme, ask the parent page to change its theme via postMessage.
+            // Parent pages can listen for message.type === 'GAME_THEME_CHANGE' to apply the theme change.
+            try {
+                window.parent.postMessage({
+                    type: 'GAME_THEME_CHANGE',
+                    theme: theme
+                }, '*');
+            } catch (e) {
+                // If we can't communicate with parent, that's okay — just fail silently.
+                console.warn('Could not send theme change to parent page', e);
+            }
+        }
+        // If the user has a specific theme preference, do not override it here.
+
+        // Always drive UI accent directly from the current character color inside the iframe/game UI
+        if (character && character.color) {
+            document.documentElement.style.setProperty('--accent', character.color);
+        }
+    }
+
+    transitionToTheme(oldTheme, newTheme) {
+        const overlay = document.getElementById('themeTransitionOverlay');
+        if (!overlay) {
+            // Fallback: just change theme instantly if overlay doesn't exist
+            document.documentElement.setAttribute('data-theme', newTheme);
+            return;
+        }
+
+        // Ensure overlay has necessary base styles for transition
+        // (expected CSS: overlay positioned over the viewport, transitions opacity over 2s)
+        overlay.setAttribute('data-overlay-theme', newTheme);
+
+        // Kick off a crossfade:
+        //  - Add 'transitioning' class to fade the overlay in (0 -> 1 opacity) over ~1s
+        //  - At the halfway point (1s), swap the document theme so the new theme is revealed
+        //  - Then remove 'transitioning' after the full 2s to fade the overlay out
+        overlay.classList.add('transitioning');
+
+        // After 1 second (halfway through the 2s transition), change the actual theme
+        setTimeout(() => {
+            document.documentElement.setAttribute('data-theme', newTheme);
+        }, 1000);
+
+        // After 2 seconds (full transition), fade out and clean up
+        setTimeout(() => {
+            overlay.classList.remove('transitioning');
+            // Cleanup attribute to keep DOM tidy (optional)
+            overlay.removeAttribute('data-overlay-theme');
+        }, 2000);
+    }
+
+    render() {
+        this.renderer.render(this.ctx, {
+            canvas: this.canvas,
+            camera: this.camera,
+            sprites: this.sprites,
+            mapTiles: this.mapTiles,
+            mapCols: this.mapCols,
+            mapRows: this.mapRows,
+            fillableChasms: this.fillableChasms,
+            boulders: this.boulders,
+            obstacles: this.obstacles,
+            chests: this.chests,
+            npcs: this.npcs,
+            agents: this.agents,
+            player: this.player,
+            floatingTexts: this.floatingTexts,
+            inMiniGame: this.inMiniGame,
+            miniGame: this.miniGame,
+            logicPuzzle: this.logicPuzzle,
+            gameState: this.gameState
+        });
+    }
+
+    gameLoop() {
+        this.update();
+        this.render();
+
+        if (this.isGameRunning) {
+            requestAnimationFrame(() => this.gameLoop());
+        }
+    }
+}
+
+// Initialize game when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎮 DOMContentLoaded event fired');
+    try {
+        console.log('🎮 Creating SwitchGame instance...');
+        const game = new SwitchGame();
+        console.log('✅ SwitchGame created successfully:', game);
+        console.log('✅ Game running:', game.isGameRunning);
+        console.log('✅ Canvas:', game.canvas);
+        console.log('✅ Context:', game.ctx);
+    } catch (error) {
+        console.error('❌ ERROR creating SwitchGame:', error);
+        console.error('❌ Error stack:', error.stack);
+    }
+});

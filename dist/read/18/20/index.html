@@ -1,0 +1,1092 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Confront Cache.</title><meta name="description" content="Portable archives."><meta property="og:title" content="Confront Cache."><meta property="og:description" content="Portable archives."><meta property="og:type" content="website"><meta property="og:image" content="/placeholder/hero.svg"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#0f1014"><!-- Apply saved Options (theme, font, desktop mode, etc.) globally before CSS loads --><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><script>(function(){const themeConfigStr = "{\"originalTheme\":\"space\",\"theme\":\"void\",\"transition\":\"crawl\"}";
+
+    // This runs AFTER BaseLayout's script to override theme if needed
+    (function() {
+      const pageThemeConfig = themeConfigStr !== 'null' ? JSON.parse(themeConfigStr) : null;
+      const userTheme = (function(){ try { return localStorage.getItem('mspa:theme'); } catch { return null; } })();
+
+      if (pageThemeConfig) {
+        const shouldApplyPageTheme = pageThemeConfig.overrule || !userTheme || userTheme === 'default';
+
+        if (shouldApplyPageTheme) {
+          const targetTheme = pageThemeConfig.theme;
+          const originalTheme = pageThemeConfig.originalTheme;
+          const transition = pageThemeConfig.transition || 'smooth';
+
+          // For scroll/crawl transitions, start with originalTheme
+          if ((transition === 'crawl' || transition === 'scroll') && originalTheme) {
+            document.documentElement.setAttribute('data-theme', originalTheme);
+          } else {
+            document.documentElement.setAttribute('data-theme', targetTheme);
+          }
+          document.documentElement.setAttribute('data-transition', 'instant');
+        }
+      }
+    })();
+  })();</script><style>.echeladder-container[data-astro-cid-as3wywkx]{background:#000;border:2px solid #00ffff;box-shadow:inset 0 0 10px #00ffff4d;position:relative;width:200px}.echeladder-content[data-astro-cid-as3wywkx]{width:calc(100% - 16px)}.echeladder-rung[data-astro-cid-as3wywkx]{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;background:linear-gradient(180deg,#1a1a1a,#0d0d0d,#000);border:2px outset #333;border-left:3px solid #00ffff;border-right:3px solid #00ffff;box-shadow:inset 0 1px #ffffff1a,inset 0 -1px #00000080;margin-bottom:2px}.echeladder-rung[data-astro-cid-as3wywkx].current{background:linear-gradient(180deg,#0ff,#0cc,#088);border-color:#0ff;box-shadow:0 0 10px #0ffc,inset 0 1px #ffffff4d,inset 0 -1px #0000004d}.echeladder-rung[data-astro-cid-as3wywkx].future{opacity:.5}.echeladder-rung[data-astro-cid-as3wywkx].future .rung-name[data-astro-cid-as3wywkx]{color:#fff;text-transform:uppercase}.rung-level[data-astro-cid-as3wywkx]{font-weight:700;color:#0ff;font-size:14px;min-width:30px}.echeladder-rung[data-astro-cid-as3wywkx].current .rung-level[data-astro-cid-as3wywkx]{color:#000}.rung-name[data-astro-cid-as3wywkx]{flex:1;text-align:center;font-size:12px;color:#0ff;font-weight:700}.echeladder-rung[data-astro-cid-as3wywkx].current .rung-name[data-astro-cid-as3wywkx]{color:#000}.custom-scrollbar[data-astro-cid-as3wywkx]{display:flex;flex-direction:column;background:linear-gradient(90deg,silver,#dfdfdf,silver);border-left:1px solid #808080;border-top:1px solid #fff;border-right:1px solid #fff;border-bottom:1px solid #808080}.scrollbar-button[data-astro-cid-as3wywkx]{width:16px;height:16px;background:linear-gradient(135deg,#dfdfdf,silver);border:none;border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #808080;border-bottom:1px solid #808080;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:8px;color:#000;flex-shrink:0}.scrollbar-button[data-astro-cid-as3wywkx]:active{border-top:1px solid #808080;border-left:1px solid #808080;border-right:1px solid #fff;border-bottom:1px solid #fff;background:linear-gradient(135deg,silver,#dfdfdf)}.scrollbar-track[data-astro-cid-as3wywkx]{flex:1;background:gray;position:relative;background-image:repeating-linear-gradient(45deg,gray 0px 2px,#a0a0a0 2px 4px)}.scrollbar-thumb[data-astro-cid-as3wywkx]{position:absolute;width:100%;background:linear-gradient(90deg,silver,#dfdfdf,silver);border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #808080;border-bottom:1px solid #808080;cursor:pointer;box-shadow:inset 0 0 2px #ffffff80}.scrollbar-thumb[data-astro-cid-as3wywkx]:active{background:linear-gradient(90deg,#a0a0a0,silver,#a0a0a0)}
+.game-embed-container[data-astro-cid-vgmdofn2]{display:flex;justify-content:center;align-items:center;margin:20px 0;background:#000;border-radius:8px;overflow:hidden;box-shadow:0 4px 12px #0000004d}.game-iframe[data-astro-cid-vgmdofn2]{display:block;border:none;background:#000}@media (max-width: 768px){.game-embed-container[data-astro-cid-vgmdofn2]{margin:10px -20px}.game-iframe[data-astro-cid-vgmdofn2]{width:100%!important;height:400px!important}}.game-embed-container[data-astro-cid-vgmdofn2]:before{content:"Loading game...";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-family:Courier New,monospace;z-index:-1}
+</style><script type="module" src="/_astro/hoisted.DNdTUob2.js"></script></head> <body class="mspa">     <main class="wrap" data-astro-cid-as3wywkx> <nav class="mspa-nav" data-astro-cid-as3wywkx> <span class="mspa-nav-item" data-astro-cid-as3wywkx>  <a href="/" data-astro-cid-as3wywkx>BARDS QUEST</a> </span><span class="mspa-nav-item" data-astro-cid-as3wywkx> <span class="dot" data-astro-cid-as3wywkx>•</span> <a href="https://x.com" target="_blank" rel="noopener noreferrer" data-astro-cid-as3wywkx>XTWITTER</a> </span><span class="mspa-nav-item" data-astro-cid-as3wywkx> <span class="dot" data-astro-cid-as3wywkx>•</span> <a href="/news" data-astro-cid-as3wywkx>NEWS</a> </span><span class="mspa-nav-item" data-astro-cid-as3wywkx> <span class="dot" data-astro-cid-as3wywkx>•</span> <a href="https://github.com/maguil36/bards_quest_web" target="_blank" rel="noopener noreferrer" data-astro-cid-as3wywkx>GITHUB</a> </span><span class="mspa-nav-item" data-astro-cid-as3wywkx> <span class="dot" data-astro-cid-as3wywkx>•</span> <a href="/map" data-astro-cid-as3wywkx>MAP</a> </span><span class="mspa-nav-item" data-astro-cid-as3wywkx> <span class="dot" data-astro-cid-as3wywkx>•</span> <a href="https://patreon.com" target="_blank" rel="noopener noreferrer" data-astro-cid-as3wywkx>PATREON</a> </span><span class="mspa-nav-item" data-astro-cid-as3wywkx> <span class="dot" data-astro-cid-as3wywkx>•</span> <a href="#" data-astro-cid-as3wywkx>MUSIC</a> </span><span class="mspa-nav-item" data-astro-cid-as3wywkx> <span class="dot" data-astro-cid-as3wywkx>•</span> <a href="/options" data-astro-cid-as3wywkx>OPTIONS</a> </span><span class="mspa-nav-item" data-astro-cid-as3wywkx> <span class="dot" data-astro-cid-as3wywkx>•</span> <a href="#" target="_blank" rel="noopener noreferrer" data-astro-cid-as3wywkx>WIKI</a> </span><span class="mspa-nav-item" data-astro-cid-as3wywkx> <span class="dot" data-astro-cid-as3wywkx>•</span> <a href="#" data-astro-cid-as3wywkx>CREDITS</a> </span> </nav> <section class="mspa-card" data-astro-cid-as3wywkx> <div class="panel" data-astro-cid-as3wywkx> <article id="reader-root" class="reader" data-chapter="18" data-total="20" data-page="20" data-default-theme="" data-original-theme="" data-overrule-theme="0" data-transition="smooth"> <h1 class="mspa-title">Confront Cache.</h1> <div class="frame mt-05" style="text-align:center"> <img src="/placeholder/page-2.svg" alt="Confront Cache." class="page" loading="eager"> </div>    <div class="mspa-utility"> <div class="left"> <a id="link-start" href="/read/1/1">Begin Anew</a> <span class="sep">|</span> <a id="link-back" href="#">Go Back</a> </div> <div class="right"> <a id="link-save" href="#">Log Location</a> <span class="sep">|</span> <button id="link-auto" class="as-link" aria-pressed="false">Auto Log: OFF</button> <span class="sep">|</span> <a id="link-load" href="#">Go to Location</a> <span class="sep">|</span> <a id="link-delete" href="#">Remove Log</a> </div> </div> </article> <script src="/js/reader.js" defer></script>  </div> </section> <footer class="mspa-footer" data-astro-cid-as3wywkx> <p data-astro-cid-as3wywkx>© 2025 - 2026 Bards Quest</p> <p data-astro-cid-as3wywkx><a href="/privacy" data-astro-cid-as3wywkx>Privacy</a> – <a href="/legal" data-astro-cid-as3wywkx>Legal</a></p> </footer> <div id="left-sprite-container" class="sprite left" data-astro-cid-as3wywkx></div> <img src="/images/aspects/breath.svg" alt="aspect symbol" class="sprite right" id="aspect-sprite" data-astro-cid-as3wywkx> </main> <script>
+  window.SpriteRenderers = {
+    renderClockSprite(container, config, initClock) {
+      container.innerHTML = `
+        <div style="position: relative; width: 72px; height: 72px;">
+          <div id="clock-date" style="position: absolute; top: -16px; left: 0; right: 0; font-size: 10px; font-weight: bold; color: #FF2106; font-family: monospace; text-align: center;"></div>
+          <canvas id="clock-canvas" width="72" height="72" style="display: block;"></canvas>
+        </div>
+      `;
+      console.log('Initializing clock with config:', config);
+      initClock(config);
+    },
+
+    renderStaticSprite(container, config, theme, pov, lightCharacterPaths) {
+      console.log('Rendering static sprite with SVG:', config.svg);
+
+      if (theme === 'light') {
+        const characterPath = lightCharacterPaths[pov.toLowerCase()];
+
+        if (characterPath && config.tooltip) {
+          container.innerHTML = `
+            <div class="light-tooltip-container">
+              <img src="${characterPath}" alt="${pov}" class="light-character-icon" />
+              <span class="light-tooltip">${config.tooltip}</span>
+            </div>
+          `;
+        } else {
+          container.innerHTML = config.svg;
+        }
+      } else {
+        container.innerHTML = config.svg;
+      }
+    },
+
+    renderBreathSprite(container, config, pov, getLevelName) {
+      const currentLevel = config.currentLevel || config.level || 1;
+      const character = config.pov || config.character || pov;
+
+      const totalLevels = 50;
+      const visibleRungs = 3;
+      const rungHeight = 14;
+      const innerHeight = 56;
+      const innerWidth = 72;
+      const borderWidth = 12;
+      const outerHeight = innerHeight + (borderWidth * 3);
+      const outerWidth = innerWidth + (borderWidth * 3);
+      const containerHeight = 72;
+
+      // Seeded random number generator
+      function seededRandom(seed) {
+        let x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
+      }
+
+      // Generate seed from character name
+      function getCharacterSeed(name) {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+          hash = ((hash << 5) - hash) + name.charCodeAt(i);
+          hash = hash & hash;
+        }
+        return Math.abs(hash);
+      }
+
+      const characterSeed = getCharacterSeed(character.toLowerCase());
+
+      function getSeededColor(level) {
+        const seed = characterSeed + level * 1000;
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+          const randomValue = seededRandom(seed + i);
+          color += letters[Math.floor(randomValue * 16)];
+        }
+        return color;
+      }
+
+      let rungs = '';
+      for (let i = totalLevels; i >= 1; i--) {
+        const levelName = getLevelName(character, i);
+        const isCurrentLevel = i === currentLevel;
+        const isFutureLevel = i > currentLevel;
+        const isPastLevel = i <= currentLevel;
+
+        let bgColor = '#000';
+        let textColor = '#fff';
+
+        if (isPastLevel) {
+          bgColor = getSeededColor(i * 2);
+          textColor = getSeededColor(i * 2 + 1);
+        }
+
+        rungs += `
+          <div class="echeladder-rung ${isCurrentLevel ? 'current' : ''} ${isFutureLevel ? 'future' : ''}" data-level="${i}" title="${levelName}" style="height: ${rungHeight}px; display: flex; align-items: center; padding: 0 4px; background: ${bgColor}; color: ${textColor}; font-weight: bold; font-family: 'Courier New', monospace; border-bottom: 2px solid #4a92f7;">
+            <span class="rung-name" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.5px;">${levelName}</span>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <style>
+          .echeladder-outer-frame {
+            position: relative;
+            background: #fff;
+            border: ${borderWidth}px solid #4a92f7;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .echeladder-outer-frame::before {
+            content: 'ECHELADDER';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            font-weight: bold;
+            color: #fff;
+            background: #4a92f7;
+            padding: 0 2px;
+            line-height: ${borderWidth}px;
+          }
+          .echeladder-container::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 8px;
+            width: 90%;
+            height: 5px;
+            background: #c7e6ff;
+            transform: skewX(-40deg);
+            transform-origin: bottom left;
+            z-index: 2;
+          }
+          .custom-scrollbar::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            width: 100%;
+            height: 5px;
+            background: #cfcfcf;
+            transform: skewX(-40deg);
+            transform-origin: bottom left;
+            z-index: 2;
+          }
+          .echeladder-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -6px;
+            width: 6px;
+            height: 100%;
+            background: #93d0ff;
+            transform: skewY(-40deg);
+            transform-origin: top left;
+            z-index: 2;
+          }
+
+        </style>
+        <div class="echeladder-outer-frame" style="width: ${outerWidth}px; height: ${outerHeight}px; position: relative; left: -${(outerWidth - 72) / 2 }px; top: -${(outerHeight - 72) / 2 + 4}px;">
+          <div class="echeladder-container" style="height: ${innerHeight}px; width: ${innerWidth}px; position: relative; overflow: visible; background: #000; margin-top: 3px; margin-left: -4px; margin-top: 5px;">
+            <div class="custom-scrollbar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 10px; background: #f1f1ec; border-right: 2px solid #4a92f7; z-index: 1;">
+              <button class="scrollbar-button scrollbar-up" style="width: 100%; height: 10px; background: #f1f1ec; border: none; color: #000; cursor: pointer; font-size: 6px; display: flex; align-items: center; justify-content: center; padding: 0;" aria-label="Scroll up">▲</button>
+              <div class="scrollbar-track" style="position: relative; height: calc(100% - 20px); background: #f1f1ec;">
+                <div class="scrollbar-thumb" style="position: absolute; width: 100%; background: #aac9eb; cursor: grab; border: 1px outset #6f89b0;"></div>
+              </div>
+              <button class="scrollbar-button scrollbar-down" style="width: 100%; height: 10px; background: #f1f1ec; border: none; color: #000; cursor: pointer; font-size: 6px; display: flex; align-items: center; justify-content: center; padding: 0;" aria-label="Scroll down">▼</button>
+            </div>
+            <div class="echeladder-content-wrapper" style="position: absolute; width: calc(100% - 10px); left: 10px; top: 0; bottom: 0; overflow: hidden; border: 2px solid #4a92f7; border-left: none;">
+              <div class="echeladder-content" style="position: relative; width: 100%;">
+                ${rungs}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const echeladderContent = container.querySelector('.echeladder-content');
+      const scrollbarThumb = container.querySelector('.scrollbar-thumb');
+      const scrollbarTrack = container.querySelector('.scrollbar-track');
+      const scrollUpBtn = container.querySelector('.scrollbar-up');
+      const scrollDownBtn = container.querySelector('.scrollbar-down');
+      const echeladderContainer = container.querySelector('.echeladder-container');
+
+      const contentHeight = totalLevels * rungHeight;
+      const scrollableHeight = contentHeight - innerHeight;
+      const trackHeight = scrollbarTrack.clientHeight;
+      const thumbHeight = Math.max(12, (innerHeight / contentHeight) * trackHeight * 0.7);
+      scrollbarThumb.style.height = `${thumbHeight}px`;
+
+      const currentRung = container.querySelector(`.echeladder-rung[data-level="${currentLevel}"]`);
+      if (currentRung) {
+        const scrollPosition = (totalLevels - currentLevel) * rungHeight - rungHeight;
+        echeladderContent.style.top = `-${scrollPosition}px`;
+
+        const thumbPosition = (scrollPosition / scrollableHeight) * (trackHeight - thumbHeight);
+        scrollbarThumb.style.top = `${thumbPosition}px`;
+      }
+
+      function updateScroll(scrollTop) {
+        scrollTop = Math.max(0, Math.min(scrollTop, scrollableHeight));
+        echeladderContent.style.top = `-${scrollTop}px`;
+
+        const thumbPosition = (scrollTop / scrollableHeight) * (trackHeight - thumbHeight);
+        scrollbarThumb.style.top = `${thumbPosition}px`;
+      }
+
+      scrollUpBtn.addEventListener('click', () => {
+        const currentScroll = Math.abs(parseInt(echeladderContent.style.top) || 0);
+        updateScroll(currentScroll - rungHeight);
+      });
+
+      scrollDownBtn.addEventListener('click', () => {
+        const currentScroll = Math.abs(parseInt(echeladderContent.style.top) || 0);
+        updateScroll(currentScroll + rungHeight);
+      });
+
+      scrollUpBtn.addEventListener('mouseenter', () => {
+        scrollUpBtn.style.background = '#ffffff';
+      });
+      scrollUpBtn.addEventListener('mouseleave', () => {
+        scrollUpBtn.style.background = '#f1f1ec';
+      });
+
+      scrollDownBtn.addEventListener('mouseenter', () => {
+        scrollDownBtn.style.background = '#ffffff';
+      });
+      scrollDownBtn.addEventListener('mouseleave', () => {
+        scrollDownBtn.style.background = '#f1f1ec';
+      });
+
+      let isDragging = false;
+      let startY = 0;
+      let startThumbTop = 0;
+
+      scrollbarThumb.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startY = e.clientY;
+        startThumbTop = parseInt(scrollbarThumb.style.top) || 0;
+        scrollbarThumb.style.cursor = 'grabbing';
+        scrollbarThumb.style.border = '1px inset #6f89b0';
+        e.preventDefault();
+      });
+
+      scrollbarThumb.addEventListener('mouseenter', () => {
+        if (!isDragging) {
+          scrollbarThumb.style.background = '#c0e0ff';
+        }
+      });
+
+      scrollbarThumb.addEventListener('mouseleave', () => {
+        if (!isDragging) {
+          scrollbarThumb.style.background = '#aac9eb';
+        }
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const deltaY = e.clientY - startY;
+        const newThumbTop = Math.max(0, Math.min(startThumbTop + deltaY, trackHeight - thumbHeight));
+        scrollbarThumb.style.top = `${newThumbTop}px`;
+
+        const scrollRatio = newThumbTop / (trackHeight - thumbHeight);
+        const newScrollTop = scrollRatio * scrollableHeight;
+        echeladderContent.style.top = `-${newScrollTop}px`;
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          scrollbarThumb.style.cursor = 'grab';
+          scrollbarThumb.style.border = '1px outset #6f89b0';
+          scrollbarThumb.style.background = '#aac9eb';
+        }
+      });
+
+      echeladderContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const currentScroll = Math.abs(parseInt(echeladderContent.style.top) || 0);
+        const delta = e.deltaY > 0 ? rungHeight : -rungHeight;
+        updateScroll(currentScroll + delta);
+      });
+    },
+
+    renderGodTierSprite(container, config) {
+      console.log('Rendering god tier symbol for:', config);
+      const aspectName = config.aspect.toLowerCase();
+      container.innerHTML = `
+        <img src="/images/aspects/${aspectName}.svg" alt="${config.aspect} aspect" style="width: 72px; height: 72px;" title="${config.characterName} - ${config.class} of ${config.aspect}" />
+      `;
+    },
+
+    renderHealthBarSprite(container, config) {
+      console.log('Rendering health bar:', config);
+      const percentage = Math.max(0, Math.min(100, (config.currentHealth / config.maxHealth) * 100));
+
+      container.innerHTML = `
+        <div style="width: 72px; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="36" cy="36" r="30" fill="none" stroke="#333" stroke-width="4"/>
+            <circle cx="36" cy="36" r="30" fill="none" stroke="#72EB34" stroke-width="4"
+              stroke-dasharray="${2 * Math.PI * 30}"
+              stroke-dashoffset="${2 * Math.PI * 30 * (1 - percentage / 100)}"
+              transform="rotate(-90 36 36)"
+              stroke-linecap="round"/>
+            ${config.showNumbers !== false ? `<text x="36" y="40" text-anchor="middle" font-size="10" font-weight="bold" fill="#72EB34" font-family="monospace">${config.currentHealth}/${config.maxHealth}</text>` : ''}
+          </svg>
+        </div>
+      `;
+    },
+
+    renderGristSprite(container, config, pov, gristOrder, gristIconPaths, setPageGrist, getCharacterGristAtPage, initGristCounter) {
+      console.log('Rendering grist counter:', config);
+
+      const character = config.character || pov;
+
+      if (config.deltas && Object.keys(config.deltas).length > 0) {
+        setPageGrist(character, config.pageNumber, config.deltas);
+      }
+
+      const inventory = getCharacterGristAtPage(character, config.pageNumber);
+
+      const availableGrists = gristOrder.filter(gristType => inventory[gristType] && inventory[gristType] > 0);
+
+      if (availableGrists.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const gristHTML = availableGrists.map((gristType, index) => {
+        const amount = inventory[gristType];
+        const iconPath = gristIconPaths[gristType];
+        return `
+          <div class="grist-item" data-index="${index}" data-grist="${gristType}">
+            <img src="${iconPath}" alt="${gristType}" class="grist-icon" />
+            <span class="grist-amount">${amount}</span>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="grist-counter" id="grist-counter">
+          <div class="grist-list" id="grist-list">
+            ${gristHTML}
+          </div>
+        </div>
+      `;
+
+      requestAnimationFrame(() => {
+        initGristCounter(availableGrists.length);
+      });
+    }
+  };
+</script> <script>(function(){const pageConfigs = "{\"1\":{\"pov\":\"victor\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"12:30:50\",\"endTime\":\"+ 0\",\"startDate\":\"2026:01:01\",\"middleTimes\":[\"+ 5\",\"= 5\",\"+ 0\",\"+ 5\"]},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/earth.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":1,\"pov\":\"victor\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Alexis appears\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/heart.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"heart\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"observing\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":50,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":1,\"deltas\":{\"Build\":10}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":1}}},\"2\":{\"pov\":\"victor\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"08:00:00\",\"endTime\":\"08:00:30\",\"speed\":2},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/prospit.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Austine joins\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/diamond.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"diamond\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"curious\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":95,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Apple\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":2,\"deltas\":{\"Build\":5}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":2},\"message\":\"Qernzf juvfcre gehguf gur jnxvat zvaq pnaabg tenfc.\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":4,\"pov\":\"victor\"}},\"3\":{\"pov\":\"victor\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/derse.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":6,\"pov\":\"victor\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Chloe enters\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/spade.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"spade\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"thinking...\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":88,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Sword\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":3,\"deltas\":{\"Chalk\":5}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":3},\"message\":\"Va qnexarff, jr svaq jung yvtug pbaprnyf.\"}},\"4\":{\"pov\":\"victor\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"12:00:00\",\"endTime\":\"12:05:00\",\"speed\":2},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay1.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"isabela arrives\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/club.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"club\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"focused\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":92,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Shield\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":4,\"deltas\":{\"Build\":-3}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":4},\"message\":\"Gur ynaq erzrzoref jung jr sbetrg.\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":4,\"pov\":\"victor\"}},\"5\":{\"pov\":\"victor\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay2.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":3,\"pov\":\"victor\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Nicholas appears\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/heart.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"heart\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"planning\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":85,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Potion\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":5,\"deltas\":{\"Garnet\":10}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":5},\"message\":\"Rirel pubvpr rpubrf va gur ibvq.\"}},\"6\":{\"pov\":\"victor\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"06:00:00\",\"endTime\":\"06:10:00\",\"speed\":1.5},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay3.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Opal joins\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/diamond.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"diamond\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"analyzing\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":78,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Key\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":6,\"deltas\":{\"Iodine\":8}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":6},\"message\":\"Xabjyrqtr vf n qbhoyr-rqtrq oynqr.\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":4,\"pov\":\"victor\"}},\"7\":{\"pov\":\"victor\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay4.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":4,\"pov\":\"victor\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Tyson shows up\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/spade.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"spade\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"irritated\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":70,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Book\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":7,\"deltas\":{\"Mercury\":7}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":7},\"message\":\"Entr oheaf oevtugrfg orsber vg snqrf.\"}},\"8\":{\"pov\":\"opal\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"18:00:00\",\"endTime\":\"18:15:00\",\"speed\":3},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay5.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Victor arrives\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/club.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"club\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"melancholy\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":65,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Map\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":8,\"deltas\":{\"Quartz\":12}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":8},\"message\":\"Fbeebj pneirf qrrcre guna nal oynqr.\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":1,\"pov\":\"opal\"}},\"9\":{\"pov\":\"opal\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay6.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":5,\"pov\":\"opal\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Alice appears\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/heart.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"heart\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"energized\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":100,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Compass\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":9,\"deltas\":{\"Ruby\":15}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":9},\"message\":\"Yvsr svaqf n jnl, rira va gur ibvq.\"}},\"10\":{\"pov\":\"opal\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"00:00:00\",\"endTime\":\"00:05:00\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay7.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Audrey enters\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/diamond.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"diamond\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"peaceful\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":90,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Scroll\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":10,\"deltas\":{\"Rust\":9}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":10},\"message\":\"Zvqavtug ubyqf frpergf gur qnl jvyy arire xabj.\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":1,\"pov\":\"opal\"}},\"11\":{\"pov\":\"opal\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay8.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":6,\"pov\":\"opal\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Clayton joins\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/spade.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"spade\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"determined\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":82,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Lantern\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":11,\"deltas\":{\"Shale\":6}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":11},\"message\":\"Oybbq ovaqf hf gb jung jr pnaabg rfpncr.\"}},\"12\":{\"pov\":\"opal\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"15:30:00\",\"endTime\":\"15:45:00\",\"speed\":2},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay9.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":1,\"pov\":\"opal\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Irene appears\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/club.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"club\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"resolute\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":75,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Orb\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":12,\"deltas\":{\"Sulfur\":11}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":12},\"message\":\"Gb fgrny sebz abguvat vf gb tnva rirelguvat.\"}},\"13\":{\"pov\":\"alexis\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/skaia.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":7,\"pov\":\"alexis\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Nix arrives\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/heart.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"heart\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"joyful\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":95,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Ring\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":13,\"deltas\":{\"Tar\":14}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":13},\"message\":\"Gur onggyrsvryq ersyrpgf nyy cbffvoyr shgherf.\"}},\"14\":{\"pov\":\"alexis\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"09:00:00\",\"endTime\":\"09:20:00\",\"speed\":1.5},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/prospit.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Nix (alt) appears\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/diamond.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"diamond\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"puzzled\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":68,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Amulet\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":14,\"deltas\":{\"Uranium\":20}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":14},\"message\":\"Tbyqra gbjref uvqr tbyqra yvrf.\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":10,\"pov\":\"alexis\"}},\"15\":{\"pov\":\"alexis\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/derse.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":8,\"pov\":\"alexis\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Octavian enters\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/spade.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"spade\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"furious\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":60,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Crown\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":15,\"deltas\":{\"Zillium\":25}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":15},\"message\":\"Checyr fcverf cvrepr gur irvy bs ernyvgl.\"}},\"16\":{\"pov\":\"alexis\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"21:00:00\",\"endTime\":\"21:10:00\",\"speed\":2.5},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay1.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Trenton joins\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/club.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"club\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"confident\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":88,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Gem\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":16,\"deltas\":{\"Diamond\":18}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":16},\"message\":\"Avtug snyyf, naq jvgu vg, ubcr.\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":10,\"pov\":\"alexis\"}},\"17\":{\"pov\":\"alexis\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay2.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":9,\"pov\":\"alexis\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Vettia appears\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/heart.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"heart\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"thrilled\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":88,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Tablet\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":17,\"deltas\":{\"Gold\":30}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":17},\"message\":\"Gur urneg xabjf jung gur zvaq qravrf.\"}},\"18\":{\"pov\":\"alexis\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"03:00:00\",\"endTime\":\"03:30:00\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay3.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Okwos emerges\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/diamond.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"diamond\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"serene\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":72,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Chalice\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":18,\"deltas\":{\"Artifact\":22}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":18},\"message\":\"Va gur jvgpuvat ubhe, gehgu fcrnxf.\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":10,\"pov\":\"alexis\"}},\"19\":{\"pov\":\"alexis\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay4.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":10,\"pov\":\"alexis\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Gwenhas arrives\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/spade.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"spade\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"focused\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":100,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Artifact\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":19,\"deltas\":{\"Cobalt\":28}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":19},\"message\":\"Ubcr vf gur ynfg yvtug orsber gur ibvq.\"}},\"20\":{\"pov\":\"alexis\",\"time\":{\"type\":\"clock\",\"mode\":\"loop\",\"startTime\":\"12:30:00\",\"endTime\":\"13:00:00\",\"speed\":3},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/loxay5.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Dhesas appears\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/club.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"club\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"triumphant\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":100,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[{\"name\":\"Trophy\"}],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":20,\"deltas\":{\"Build\":50,\"Amethyst\":10}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"page\":20},\"message\":\"Gur raq vf whfg nabgure ortvaavat uvqqra va funqbj.\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":10,\"pov\":\"alexis\"}}}";
+const defaultPageConfig = "{\"pov\":\"redacted\",\"time\":{\"type\":\"clock\",\"mode\":\"default\"},\"space\":{\"type\":\"static\",\"svg\":\"<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>\\n    <image href='/images/space/earth.svg' x='0' y='0' width='72' height='72'/>\\n  </svg>\"},\"breath\":{\"type\":\"breath\",\"currentLevel\":1,\"pov\":\"\"},\"light\":{\"type\":\"static\",\"svg\":\"\",\"tooltip\":\"Unknown\"},\"heart\":{\"type\":\"static\",\"svg\":\"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 100 100\\\"><image href=\\\"/images/heart/none.svg\\\" x=\\\"0\\\" y=\\\"0\\\" width=\\\"100\\\" height=\\\"100\\\"/></svg>\",\"quadrant\":\"none\"},\"mind\":{\"type\":\"tooltip\",\"mentalState\":\"neutral\"},\"hope\":{\"type\":\"godtier\",\"characterName\":\"Unknown\",\"aspect\":\"hope\",\"class\":\"page\"},\"rage\":{\"type\":\"static\",\"svg\":\"\"},\"life\":{\"type\":\"healthbar\",\"currentHealth\":100,\"maxHealth\":100,\"showNumbers\":true},\"doom\":{\"type\":\"inventory\",\"items\":[],\"maxSlots\":8},\"blood\":{\"type\":\"grist\",\"character\":\"\",\"pageNumber\":0,\"deltas\":{}},\"void\":{\"type\":\"hidden\",\"metadata\":{\"default\":true}}}";
+const currentPage = 20;
+const themeConfig = "{\"originalTheme\":\"space\",\"theme\":\"void\",\"transition\":\"crawl\"}";
+const gristOrderData = "[\"Build\",\"Amber\",\"Amethyst\",\"Artifact\",\"Caulk\",\"Chalk\",\"Cobalt\",\"Diamond\",\"Garnet\",\"Gold\",\"Iodine\",\"Marble\",\"Mercury\",\"Quartz\",\"Ruby\",\"Rust\",\"Shale\",\"Sulfur\",\"Tar\",\"Uranium\",\"Zillium\"]";
+const gristIconPathsData = "{\"Build\":\"/images/blood/Build.webp\",\"Amber\":\"/images/blood/Amber.webp\",\"Amethyst\":\"/images/blood/Amethyst.webp\",\"Artifact\":\"/images/blood/Artifact.webp\",\"Caulk\":\"/images/blood/Caulk.webp\",\"Chalk\":\"/images/blood/Chalk.webp\",\"Cobalt\":\"/images/blood/Cobalt.webp\",\"Diamond\":\"/images/blood/Diamond.PNG.webp\",\"Garnet\":\"/images/blood/Garnet.webp\",\"Gold\":\"/images/blood/Gold.webp\",\"Iodine\":\"/images/blood/Iodine.webp\",\"Marble\":\"/images/blood/Marble.webp\",\"Mercury\":\"/images/blood/Mercury.webp\",\"Quartz\":\"/images/blood/Quartz.webp\",\"Ruby\":\"/images/blood/Ruby.webp\",\"Rust\":\"/images/blood/Rust.webp\",\"Shale\":\"/images/blood/Shale.webp\",\"Sulfur\":\"/images/blood/Sulfur.webp\",\"Tar\":\"/images/blood/Tar.webp\",\"Uranium\":\"/images/blood/Uranium.webp\",\"Zillium\":\"/images/blood/Zillion.webp\"}";
+const characterWeaponsData = "{\"alexis\":\"dagger\",\"austine\":\"hammer\",\"chloe\":\"spear\",\"isabela\":\"bow\",\"nicholas\":\"axe\",\"opal\":\"mace\",\"tyson\":\"staff\",\"victor\":\"dagger\",\"alice\":\"sword\",\"audrey\":\"hammer\",\"clayton\":\"spear\",\"irene\":\"bow\",\"nix\":\"axe\",\"nix2\":\"mace\",\"octavian\":\"staff\",\"trenton\":\"dagger\",\"vettia\":\"sword\",\"okwos\":\"hammer\",\"gwenhas\":\"spear\",\"dhesas\":\"bow\",\"redacted\":\"sword\"}";
+const rageWeaponPathsData = "{\"sword\":\"/images/rage/sword.svg\",\"hammer\":\"/images/rage/hammer.svg\",\"spear\":\"/images/rage/spear.svg\",\"bow\":\"/images/rage/bow.svg\",\"axe\":\"/images/rage/axe.svg\",\"mace\":\"/images/rage/mace.svg\",\"staff\":\"/images/rage/staff.svg\",\"dagger\":\"/images/rage/dagger.svg\"}";
+const lightCharacterPathsData = "{\"alexis\":\"/images/light/alexis.svg\",\"austine\":\"/images/light/austine.svg\",\"chloe\":\"/images/light/chloe.svg\",\"isabela\":\"/images/light/isabela.svg\",\"nicholas\":\"/images/light/nicholas.svg\",\"opal\":\"/images/light/opal.svg\",\"tyson\":\"/images/light/tyson.svg\",\"victor\":\"/images/light/victor.svg\",\"alice\":\"/images/light/alice.svg\",\"audrey\":\"/images/light/audrey.svg\",\"clayton\":\"/images/light/clayton.svg\",\"irene\":\"/images/light/irene.svg\",\"nix\":\"/images/light/nix.svg\",\"nix2\":\"/images/light/nix2.svg\",\"octavian\":\"/images/light/octavian.svg\",\"trenton\":\"/images/light/trenton.svg\",\"vettia\":\"/images/light/vettia.svg\",\"okwos\":\"/images/light/okwos.svg\",\"gwenhas\":\"/images/light/gwenhas.svg\",\"dhesas\":\"/images/light/dhesas.svg\",\"redacted\":\"/images/light/redacted.svg\"}";
+const characterLevelNamesData = "{\"alexis\":[\"Tantrum Tosser\",\"Angry Ankle Biter\",\"Grumpy Grabber\",\"Pouty Pilferer\",\"Cranky Collector\",\"Moody Marauder\",\"Irritable Invader\",\"Testy Taker\",\"Furious Filcher\",\"Wrathful Wanderer\",\"Hostile Hoarder\",\"Aggressive Acquirer\",\"Fierce Forager\",\"Raging Raider\",\"Violent Vulture\",\"Savage Scavenger\",\"Brutal Brigand\",\"Merciless Marauder\",\"Ruthless Reaver\",\"Vicious Vandal\",\"Relentless Ravager\",\"Unstoppable Usurper\",\"Fearsome Freebooter\",\"Terrifying Tyrant\",\"Dreadful Despoiler\",\"Catastrophic Conqueror\",\"Apocalyptic Antagonist\",\"Cataclysmic Catalyst\",\"Devastating Demagogue\",\"Annihilating Agitator\",\"Obliterating Oppressor\",\"Eradicating Enforcer\",\"Exterminating Executor\",\"Consuming Chaos\",\"Embodiment of Enmity\",\"Avatar of Animosity\",\"Herald of Havoc\",\"Harbinger of Hatred\",\"Incarnation of Ire\",\"Manifestation of Malice\",\"Vessel of Vengeance\",\"Champion of Conflict\",\"Paragon of Pandemonium\",\"Exemplar of Extremity\",\"Pinnacle of Provocation\",\"Apex Antagonist\",\"Supreme Subjugator\",\"Ultimate Usurper\",\"Absolute Adversary\",\"THIEF OF RAGE ASCENDANT\"],\"austine\":[\"Confused Calculator\",\"Puzzled Ponderer\",\"Baffled Bookworm\",\"Perplexed Pupil\",\"Stumped Scholar\",\"Bewildered Brain\",\"Mystified Mathematician\",\"Riddled Reasoner\",\"Enigmatic Examiner\",\"Cryptic Cogitator\",\"Logical Learner\",\"Rational Researcher\",\"Analytical Apprentice\",\"Deductive Detective\",\"Systematic Solver\",\"Methodical Mastermind\",\"Strategic Savant\",\"Tactical Theorist\",\"Calculated Cognoscente\",\"Precise Philosopher\",\"Brilliant Brainiac\",\"Genius Gamemaster\",\"Intellectual Innovator\",\"Cerebral Champion\",\"Mental Maestro\",\"Wisdom Wielder\",\"Knowledge Keeper\",\"Truth Tracker\",\"Logic Lord\",\"Reason Ruler\",\"Thought Tyrant\",\"Cognition Commander\",\"Perception Prince\",\"Understanding Overlord\",\"Comprehension Czar\",\"Enlightenment Emperor\",\"Sagacity Sovereign\",\"Acumen Archon\",\"Insight Incarnate\",\"Clarity Colossus\",\"Oracle of Order\",\"Prophet of Patterns\",\"Seer of Systems\",\"Diviner of Decisions\",\"Harbinger of Hypotheses\",\"Architect of Absolutes\",\"Weaver of Wisdom\",\"Master of Mentality\",\"Transcendent Thinker\",\"MAGE OF MIND ASCENDANT\"],\"chloe\":[\"Band-Aid Bandit\",\"Boo-Boo Borrower\",\"Ouchie Operator\",\"Scrape Stealer\",\"Bruise Burglar\",\"Healing Hobbyist\",\"Wellness Wanderer\",\"Recovery Rogue\",\"Vitality Vagrant\",\"Health Hustler\",\"Remedy Redistributor\",\"Cure Collector\",\"Triage Taker\",\"Medicine Mover\",\"Treatment Transferrer\",\"Life Liberator\",\"Energy Equalizer\",\"Vigor Vigilante\",\"Essence Exchanger\",\"Vitality Vindicator\",\"Growth Guardian\",\"Bloom Bringer\",\"Flourish Facilitator\",\"Prosperity Purveyor\",\"Abundance Advocate\",\"Renewal Reaver\",\"Regeneration Rogue\",\"Restoration Rebel\",\"Revival Raider\",\"Resurrection Redistributor\",\"Salvation Savant\",\"Deliverance Dealer\",\"Preservation Protector\",\"Conservation Champion\",\"Sustenance Sovereign\",\"Existence Executor\",\"Being Benefactor\",\"Living Legend\",\"Breath Bringer\",\"Pulse Provider\",\"Heartbeat Herald\",\"Lifeblood Liberator\",\"Soul Sustainer\",\"Spirit Shepherd\",\"Essence Emissary\",\"Avatar of Altruism\",\"Paragon of Preservation\",\"Exemplar of Existence\",\"Pinnacle of Prosperity\",\"ROGUE OF LIFE ASCENDANT\"],\"isabela\":[\"Friendship Fixer\",\"Buddy Builder\",\"Pal Patcher\",\"Chum Channeler\",\"Amigo Assembler\",\"Bond Braider\",\"Connection Crafter\",\"Relation Restorer\",\"Tie Tightener\",\"Link Lifter\",\"Unity Understander\",\"Harmony Helper\",\"Cooperation Cultivator\",\"Alliance Architect\",\"Partnership Planner\",\"Team Therapist\",\"Group Gardener\",\"Collective Coordinator\",\"Synergy Sylph\",\"Cohesion Creator\",\"Brotherhood Binder\",\"Kinship Keeper\",\"Fellowship Forger\",\"Camaraderie Conductor\",\"Solidarity Shaper\",\"Loyalty Luminary\",\"Devotion Director\",\"Fidelity Facilitator\",\"Allegiance Architect\",\"Commitment Commander\",\"Blood Binder\",\"Lineage Lifter\",\"Heritage Healer\",\"Ancestry Amplifier\",\"Legacy Lifegiver\",\"Covenant Crafter\",\"Pact Perfecter\",\"Oath Orchestrator\",\"Vow Vindicator\",\"Promise Preserver\",\"Destiny Definer\",\"Fate Facilitator\",\"Paradox Parent\",\"Timeline Tender\",\"Ectobiology Expert\",\"Genesis Guardian\",\"Origin Overseer\",\"Creation Conductor\",\"Existence Engineer\",\"SYLPH OF BLOOD ASCENDANT\"],\"nicholas\":[\"Unlucky Underdog\",\"Fumbling Fool\",\"Clumsy Catastrophe\",\"Bumbling Buffoon\",\"Stumbling Simpleton\",\"Ignorant Igniter\",\"Oblivious Obliterator\",\"Clueless Crusher\",\"Unaware Undoer\",\"Blind Breaker\",\"Misfortune Maker\",\"Calamity Caller\",\"Disaster Dealer\",\"Mishap Merchant\",\"Accident Architect\",\"Darkness Dealer\",\"Shadow Striker\",\"Gloom Gladiator\",\"Murk Marauder\",\"Obscurity Operative\",\"Dimness Destroyer\",\"Blackout Brawler\",\"Eclipse Enforcer\",\"Void Vanquisher\",\"Absence Annihilator\",\"Ignorance Incarnate\",\"Stupidity Slayer\",\"Folly Fighter\",\"Delusion Destroyer\",\"Illusion Ender\",\"Knowledge Killer\",\"Wisdom Wrecker\",\"Truth Terminator\",\"Clarity Crusher\",\"Understanding Undoer\",\"Light Leech\",\"Radiance Reaper\",\"Brilliance Banisher\",\"Luminance Liquidator\",\"Fortune Feller\",\"Luck Liquidator\",\"Chance Canceller\",\"Probability Purger\",\"Destiny Destroyer\",\"Fate Fragmenter\",\"Doom Dealer\",\"Ruin Renderer\",\"Catastrophe King\",\"Apocalypse Architect\",\"PRINCE OF LIGHT ASCENDANT\"],\"opal\":[\"Pebble Protector\",\"Rock Rookie\",\"Stone Student\",\"Boulder Beginner\",\"Gravel Guardian\",\"Space Squire\",\"Dimension Defender\",\"Void Vigilante\",\"Cosmos Cadet\",\"Universe Understudy\",\"Gravity Grappler\",\"Orbit Organizer\",\"Planet Protector\",\"Celestial Sentinel\",\"Stellar Shield\",\"Spatial Safeguard\",\"Dimensional Defender\",\"Expanse Enforcer\",\"Vastness Vanguard\",\"Infinity Infantry\",\"Frog Farmer\",\"Tadpole Tender\",\"Amphibian Attendant\",\"Genesis Gardener\",\"Creation Cultivator\",\"Balance Bringer\",\"Equilibrium Enforcer\",\"Harmony Holder\",\"Stability Steward\",\"Symmetry Sentinel\",\"Bulwark of Being\",\"Rampart of Reality\",\"Bastion of Boundaries\",\"Fortress of Form\",\"Citadel of Creation\",\"Aegis of Atoms\",\"Ward of Worlds\",\"Guardian of Galaxies\",\"Protector of Planes\",\"Keeper of Cosmos\",\"Universe Architect\",\"Reality Renderer\",\"Existence Engineer\",\"Creation Commander\",\"Genesis General\",\"Space Sovereign\",\"Dimension Deity\",\"Cosmos Colossus\",\"Infinity Incarnate\",\"KNIGHT OF SPACE ASCENDANT\"],\"tyson\":[\"Ouchie Apprentice\",\"Boo-Boo Boy\",\"Scraped Knee Kid\",\"Bruised Beginner\",\"Hurt Hatchling\",\"Pain Pupil\",\"Suffering Student\",\"Ache Amateur\",\"Agony Apprentice\",\"Misery Minor\",\"Damage Dabbler\",\"Injury Initiate\",\"Wound Wanderer\",\"Harm Hobbyist\",\"Affliction Acolyte\",\"Narcissist Novice\",\"Self-Centered Seeker\",\"Ego Explorer\",\"Pride Practitioner\",\"Vanity Voyager\",\"Sacrifice Shirker\",\"Duty Dodger\",\"Responsibility Runner\",\"Obligation Avoider\",\"Commitment Coward\",\"Late Bloomer\",\"Delayed Developer\",\"Slow Starter\",\"Tardy Trainee\",\"Postponed Pupil\",\"Potential Prisoner\",\"Dormant Dreamer\",\"Latent Learner\",\"Hidden Hero\",\"Buried Brave\",\"Awakening Warrior\",\"Emerging Champion\",\"Rising Redeemer\",\"Growing Guardian\",\"Developing Defender\",\"Sacrifice Seeker\",\"Selfless Soldier\",\"Altruist Ascendant\",\"Martyr Manifest\",\"Devoted Destroyer\",\"Doom Dealer\",\"Fate Facilitator\",\"End Embracer\",\"Terminus Tender\",\"PAGE OF DOOM ASCENDANT\"],\"victor\":[\"Tick-Tock Troublemaker\",\"Clock Clown\",\"Minute Mischief\",\"Second Silly\",\"Hour Hooligan\",\"Chaos Cadet\",\"Mayhem Minor\",\"Disorder Dabbler\",\"Havoc Hobbyist\",\"Pandemonium Pupil\",\"Wildcard Wanderer\",\"Random Rascal\",\"Unpredictable Urchin\",\"Erratic Explorer\",\"Volatile Vagrant\",\"Timeline Tangler\",\"Paradox Prankster\",\"Loop Lunatic\",\"Causality Clown\",\"Chronology Chaos\",\"Consequence Ignorer\",\"Ripple Maker\",\"Butterfly Botherer\",\"Domino Disturber\",\"Chain Changer\",\"Destiny Denier\",\"Fate Fumbler\",\"Future Forgetter\",\"Past Perturber\",\"Present Puzzler\",\"Time Twister\",\"Moment Mangler\",\"Duration Destroyer\",\"Eternity Ender\",\"Infinity Interrupter\",\"Chronos Challenger\",\"Temporal Terror\",\"Hourglass Horror\",\"Clockwork Catastrophe\",\"Timestream Tyrant\",\"Paradox Embracer\",\"Chaos Conductor\",\"Entropy Enabler\",\"Disorder Deity\",\"Anarchy Architect\",\"Destruction Dancer\",\"Ruin Revelator\",\"Apocalypse Artist\",\"Oblivion Oracle\",\"BARD OF TIME ASCENDANT\"],\"nix\":[\"Mystery Mumbler\",\"Riddle Rambler\",\"Enigma Enthusiast\",\"Puzzle Prattler\",\"Secret Speaker\",\"Unknown Unveiler\",\"Hidden Herald\",\"Obscure Orator\",\"Cryptic Chatterer\",\"Veiled Vocalist\",\"Void Vagabond\",\"Emptiness Explorer\",\"Nothingness Navigator\",\"Absence Adventurer\",\"Nullity Nomad\",\"Forgotten Finder\",\"Lost Locator\",\"Missing Mapper\",\"Erased Explorer\",\"Deleted Discoverer\",\"Truth Talker\",\"Clarity Caller\",\"Revelation Revealer\",\"Exposure Expert\",\"Disclosure Dealer\",\"Knowledge Keeper\",\"Wisdom Wanderer\",\"Understanding Unveiler\",\"Insight Illuminator\",\"Awareness Awakener\",\"Silence Shatterer\",\"Quiet Queller\",\"Hush Harbinger\",\"Stillness Stopper\",\"Peace Perturber\",\"Void Vocalist\",\"Emptiness Enabler\",\"Nothingness Narrator\",\"Absence Advocate\",\"Nullification Noble\",\"Oblivion Oracle\",\"Erasure Emissary\",\"Deletion Deity\",\"Removal Revealer\",\"Negation Noble\",\"Chaos Conductor\",\"Entropy Enabler\",\"Disorder Deity\",\"Destruction Dancer\",\"BARD OF VOID ASCENDANT\"],\"alice\":[\"Tantrum Thinker\",\"Angry Analyst\",\"Furious Philosopher\",\"Irate Intellectual\",\"Mad Mage\",\"Rage Researcher\",\"Wrath Witness\",\"Fury Finder\",\"Ire Inspector\",\"Anger Apprentice\",\"Lie Detector\",\"Falsehood Finder\",\"Deception Discoverer\",\"Untruth Uncoverer\",\"Fabrication Ferreter\",\"Truth Tracker\",\"Honesty Hunter\",\"Veracity Vigilante\",\"Reality Revealer\",\"Fact Finder\",\"Misconception Mauler\",\"Delusion Destroyer\",\"Illusion Ender\",\"Fantasy Feller\",\"Dream Demolisher\",\"Clarity Crusader\",\"Understanding Unleashed\",\"Comprehension Champion\",\"Awareness Advocate\",\"Insight Incarnate\",\"Passion Prophet\",\"Intensity Incarnate\",\"Fervor Facilitator\",\"Zeal Zealot\",\"Ardor Architect\",\"Rage Ruler\",\"Fury Facilitator\",\"Wrath Wielder\",\"Anger Architect\",\"Ire Incarnate\",\"Truth Tyrant\",\"Reality Ruler\",\"Honesty Herald\",\"Veracity Vessel\",\"Fact Facilitator\",\"Enlightenment Enforcer\",\"Revelation Ruler\",\"Exposure Emperor\",\"Disclosure Deity\",\"MAGE OF RAGE ASCENDANT\"],\"audrey\":[\"Doom Dodger\",\"Fate Fumbler\",\"Destiny Denier\",\"End Evader\",\"Ruin Runner\",\"Destruction Dabbler\",\"Catastrophe Challenger\",\"Disaster Defier\",\"Calamity Contester\",\"Apocalypse Avoider\",\"Rebel Rookie\",\"Defiant Dabbler\",\"Insurgent Initiate\",\"Revolutionary Recruit\",\"Mutineer Minor\",\"Inevitability Ignorer\",\"Certainty Challenger\",\"Guarantee Grappler\",\"Assurance Antagonist\",\"Promise Perturber\",\"Death Delayer\",\"Demise Deferrer\",\"Ending Extender\",\"Terminus Temporizer\",\"Finale Forestaller\",\"Fate Fragmenter\",\"Destiny Disruptor\",\"Fortune Foiler\",\"Kismet Killer\",\"Wyrd Wrecker\",\"Doom Defier\",\"Ruin Resister\",\"Destruction Denier\",\"Annihilation Antagonist\",\"Obliteration Opposer\",\"Reality Rebel\",\"Existence Enforcer\",\"Being Bender\",\"Life Liberator\",\"Survival Sovereign\",\"Witch of Warding\",\"Sorceress of Salvation\",\"Enchantress of Endurance\",\"Magician of Mercy\",\"Spellcaster of Survival\",\"Doom Dominator\",\"Fate Facilitator\",\"Destiny Deity\",\"End Empress\",\"WITCH OF DOOM ASCENDANT\"],\"clayton\":[\"Thoughtful Toddler\",\"Pensive Pupil\",\"Contemplative Child\",\"Reflective Rookie\",\"Meditative Minor\",\"Logic Learner\",\"Reason Rookie\",\"Rational Recruit\",\"Sensible Student\",\"Practical Pupil\",\"Emotion Explorer\",\"Feeling Finder\",\"Sentiment Seeker\",\"Passion Pupil\",\"Heart Hunter\",\"Balance Beginner\",\"Equilibrium Explorer\",\"Harmony Hunter\",\"Symmetry Seeker\",\"Parity Pupil\",\"Decision Dabbler\",\"Choice Challenger\",\"Option Observer\",\"Selection Student\",\"Pick Practitioner\",\"Mind Master\",\"Thought Theorist\",\"Cognition Commander\",\"Intellect Inspector\",\"Brain Bringer\",\"Wisdom Wielder\",\"Knowledge Keeper\",\"Understanding Understander\",\"Comprehension Champion\",\"Awareness Architect\",\"Team Thinker\",\"Group Genius\",\"Collective Cognoscente\",\"Unity Understander\",\"Alliance Analyst\",\"Destiny Decider\",\"Fate Facilitator\",\"Fortune Finder\",\"Kismet Keeper\",\"Wyrd Wielder\",\"Mind Monarch\",\"Thought Tyrant\",\"Cognition Czar\",\"Intellect Incarnate\",\"HEIR OF MIND ASCENDANT\"],\"irene\":[\"Bond Beginner\",\"Tie Toddler\",\"Link Learner\",\"Connection Cadet\",\"Relation Rookie\",\"Friendship Fixer\",\"Buddy Builder\",\"Pal Patcher\",\"Chum Channeler\",\"Amigo Assembler\",\"Unity Understander\",\"Harmony Helper\",\"Cooperation Cultivator\",\"Alliance Architect\",\"Partnership Planner\",\"Team Tender\",\"Group Gardener\",\"Collective Caretaker\",\"Synergy Servant\",\"Cohesion Creator\",\"Blood Binder\",\"Kinship Keeper\",\"Brotherhood Builder\",\"Sisterhood Sustainer\",\"Family Facilitator\",\"Loyalty Lifter\",\"Devotion Developer\",\"Fidelity Fosterer\",\"Allegiance Architect\",\"Commitment Cultivator\",\"Bond Bringer\",\"Connection Conductor\",\"Relation Renderer\",\"Tie Tightener\",\"Link Lifegiver\",\"Unity Upholder\",\"Solidarity Sovereign\",\"Togetherness Tyrant\",\"Cohesion Commander\",\"Harmony Herald\",\"Survival Sustainer\",\"Endurance Enabler\",\"Persistence Provider\",\"Resilience Renderer\",\"Fortitude Facilitator\",\"Blood Sovereign\",\"Kinship Keeper\",\"Brotherhood Bringer\",\"Unity Incarnate\",\"MAID OF BLOOD ASCENDANT\"],\"trenton\":[\"Breeze Beginner\",\"Wind Watcher\",\"Gust Gazer\",\"Zephyr Zealot\",\"Draft Dabbler\",\"Freedom Finder\",\"Liberty Learner\",\"Independence Inspector\",\"Autonomy Apprentice\",\"Emancipation Explorer\",\"Connection Contemplator\",\"Bond Beholder\",\"Tie Tracker\",\"Link Looker\",\"Relation Reader\",\"Vision Voyager\",\"Sight Seeker\",\"Perception Pupil\",\"Observation Operator\",\"Awareness Apprentice\",\"Insight Inspector\",\"Understanding Understander\",\"Comprehension Contemplator\",\"Clarity Caller\",\"Lucidity Learner\",\"Change Champion\",\"Transformation Tracker\",\"Shift Seer\",\"Alteration Analyst\",\"Modification Monitor\",\"Wind Wielder\",\"Breeze Bringer\",\"Gale Guide\",\"Storm Steerer\",\"Tempest Tender\",\"Guide Giver\",\"Direction Dealer\",\"Path Provider\",\"Way Wielder\",\"Route Renderer\",\"Breath Bringer\",\"Air Architect\",\"Atmosphere Advocate\",\"Oxygen Oracle\",\"Wind Wisdom\",\"Freedom Facilitator\",\"Liberty Lord\",\"Independence Incarnate\",\"Autonomy Ascendant\",\"SEER OF BREATH ASCENDANT\"],\"vettia\":[\"Hope Hobbyist\",\"Dream Dabbler\",\"Wish Wanderer\",\"Aspiration Amateur\",\"Desire Discoverer\",\"Optimism Operator\",\"Positivity Pupil\",\"Brightness Beginner\",\"Cheer Challenger\",\"Joy Journeyer\",\"Compassion Cadet\",\"Kindness Keeper\",\"Mercy Minor\",\"Sympathy Student\",\"Empathy Explorer\",\"Nurture Novice\",\"Care Cultivator\",\"Tend Trainee\",\"Foster Facilitator\",\"Cherish Champion\",\"Heal Helper\",\"Mend Maker\",\"Cure Crafter\",\"Remedy Renderer\",\"Recovery Restorer\",\"Inspire Initiator\",\"Motivate Maker\",\"Encourage Enabler\",\"Uplift Understander\",\"Embolden Engineer\",\"Resilience Renderer\",\"Fortitude Facilitator\",\"Endurance Enabler\",\"Persistence Provider\",\"Tenacity Tender\",\"Despair Defeater\",\"Darkness Destroyer\",\"Gloom Grappler\",\"Sorrow Slayer\",\"Misery Mauler\",\"Hope Herald\",\"Dream Deity\",\"Wish Wielder\",\"Aspiration Architect\",\"Desire Divinity\",\"Belief Bringer\",\"Faith Facilitator\",\"Trust Tyrant\",\"Conviction Commander\",\"SYLPH OF HOPE ASCENDANT\"],\"octavian\":[\"Emotion Embezzler\",\"Feeling Filcher\",\"Sentiment Stealer\",\"Passion Pilferer\",\"Heart Hustler\",\"Connection Collector\",\"Bond Burglar\",\"Tie Taker\",\"Link Looter\",\"Relation Raider\",\"Trait Thief\",\"Quality Quester\",\"Attribute Acquirer\",\"Characteristic Collector\",\"Feature Filcher\",\"Manipulation Master\",\"Cunning Collector\",\"Scheming Stealer\",\"Plotting Pilferer\",\"Devious Dealer\",\"Identity Invader\",\"Self Stealer\",\"Ego Embezzler\",\"Persona Pilferer\",\"Character Collector\",\"Soul Siphoner\",\"Essence Extractor\",\"Spirit Stealer\",\"Core Collector\",\"Being Burglar\",\"Perfection Pursuer\",\"Excellence Extractor\",\"Superiority Seeker\",\"Supremacy Stealer\",\"Pinnacle Pilferer\",\"Ultimate Usurper\",\"Absolute Acquirer\",\"Supreme Stealer\",\"Paramount Pilferer\",\"Apex Appropriator\",\"Heart Harvester\",\"Soul Sovereign\",\"Essence Emperor\",\"Identity Incarnate\",\"Self Supreme\",\"Perfection Personified\",\"Excellence Embodied\",\"Superiority Sovereign\",\"Ultimate Usurper\",\"THIEF OF HEART ASCENDANT\"],\"okwos\":[\"Secret Squire\",\"Mystery Minor\",\"Enigma Enthusiast\",\"Riddle Rookie\",\"Puzzle Pupil\",\"Hidden Helper\",\"Obscure Operator\",\"Veiled Vigilante\",\"Shrouded Sentinel\",\"Cloaked Cadet\",\"Unknown Understander\",\"Forgotten Finder\",\"Lost Locator\",\"Missing Monitor\",\"Erased Explorer\",\"Void Vigilante\",\"Emptiness Enforcer\",\"Nothingness Navigator\",\"Absence Advocate\",\"Nullity Noble\",\"Obscurity Operative\",\"Darkness Defender\",\"Shadow Sentinel\",\"Murk Monitor\",\"Gloom Guardian\",\"Secret Safeguard\",\"Mystery Maintainer\",\"Enigma Enforcer\",\"Riddle Resolver\",\"Puzzle Protector\",\"Shield of Shadows\",\"Ward of Whispers\",\"Bulwark of Blackness\",\"Rampart of Riddles\",\"Bastion of Blindness\",\"Guardian of Gaps\",\"Keeper of Cracks\",\"Protector of Paradox\",\"Defender of Deletion\",\"Sentinel of Silence\",\"Void Vanguard\",\"Emptiness Emperor\",\"Nothingness Noble\",\"Absence Archon\",\"Nullification Knight\",\"Obscurity Overlord\",\"Mystery Monarch\",\"Enigma Emperor\",\"Secret Sovereign\",\"KNIGHT OF VOID ASCENDANT\"],\"gwenhas\":[\"Space Snatcher\",\"Dimension Dabbler\",\"Area Appropriator\",\"Zone Zealot\",\"Region Rookie\",\"Distance Dealer\",\"Expanse Explorer\",\"Vastness Vagrant\",\"Breadth Burglar\",\"Width Wanderer\",\"Bend Beginner\",\"Warp Wanderer\",\"Twist Taker\",\"Curve Collector\",\"Fold Filcher\",\"Spatial Stealer\",\"Dimensional Dealer\",\"Geometric Grifter\",\"Topological Thief\",\"Manifold Marauder\",\"Resource Redistributor\",\"Asset Appropriator\",\"Wealth Wanderer\",\"Treasure Transferrer\",\"Bounty Burglar\",\"Team Tactician\",\"Group Grifter\",\"Collective Collector\",\"Unity Usurper\",\"Alliance Appropriator\",\"Frog Farmer\",\"Tadpole Tender\",\"Amphibian Attendant\",\"Genesis Gardener\",\"Creation Cultivator\",\"Space Shaper\",\"Dimension Definer\",\"Reality Renderer\",\"Existence Engineer\",\"Universe Understander\",\"Cosmos Crafter\",\"Galaxy Gardener\",\"Stellar Stealer\",\"Celestial Collector\",\"Astral Appropriator\",\"Space Sovereign\",\"Dimension Deity\",\"Reality Ruler\",\"Existence Empress\",\"ROGUE OF SPACE ASCENDANT\"],\"redacted\":[\"Doom Detector\",\"Ruin Reader\",\"Destruction Diviner\",\"Catastrophe Caller\",\"Disaster Discoverer\",\"End Examiner\",\"Finale Finder\",\"Terminus Tracker\",\"Conclusion Contemplator\",\"Cessation Seer\",\"Vision Voyager\",\"Sight Seeker\",\"Perception Pupil\",\"Observation Operator\",\"Awareness Apprentice\",\"Despair Diviner\",\"Misery Monitor\",\"Sorrow Seer\",\"Anguish Analyst\",\"Agony Augur\",\"Inevitability Inspector\",\"Certainty Caller\",\"Guarantee Gazer\",\"Assurance Analyst\",\"Promise Prophet\",\"Preparation Provider\",\"Readiness Renderer\",\"Anticipation Architect\",\"Foresight Facilitator\",\"Planning Prophet\",\"Guide Giver\",\"Direction Dealer\",\"Path Provider\",\"Way Wielder\",\"Route Renderer\",\"Mitigation Master\",\"Reduction Ruler\",\"Lessening Lord\",\"Diminishment Deity\",\"Decrease Divinity\",\"Doom Diviner\",\"Fate Forecaster\",\"Destiny Detector\",\"End Oracle\",\"Ruin Revelator\",\"Destruction Deity\",\"Catastrophe Colossus\",\"Disaster Divinity\",\"Apocalypse Archon\",\"SEER OF DOOM ASCENDANT\"],\"dhesas\":[\"Second Snatcher\",\"Minute Moocher\",\"Hour Hustler\",\"Day Dabbler\",\"Week Wanderer\",\"Time Taker\",\"Moment Mover\",\"Instant Invader\",\"Duration Dealer\",\"Period Pilferer\",\"Survival Seeker\",\"Endurance Explorer\",\"Persistence Pupil\",\"Resilience Rookie\",\"Fortitude Finder\",\"Stolen Seconds\",\"Borrowed Breaths\",\"Reclaimed Rhythms\",\"Appropriated Ages\",\"Filched Futures\",\"Timeline Taker\",\"Chronology Collector\",\"Sequence Stealer\",\"Order Obtainer\",\"Succession Snatcher\",\"Consequence Confronter\",\"Ripple Reader\",\"Effect Examiner\",\"Result Resolver\",\"Outcome Observer\",\"Alteration Artist\",\"Change Champion\",\"Modification Master\",\"Transformation Thief\",\"Shift Stealer\",\"Fragility Fighter\",\"Delicacy Dealer\",\"Brittleness Bringer\",\"Weakness Wielder\",\"Vulnerability Victor\",\"Existence Extender\",\"Being Borrower\",\"Life Lengthener\",\"Survival Sovereign\",\"Endurance Emperor\",\"Time Tyrant\",\"Chronology Commander\",\"Moment Monarch\",\"Duration Deity\",\"THIEF OF TIME ASCENDANT\"],\"default\":[\"Level 1\",\"Level 2\",\"Level 3\",\"Level 4\",\"Level 5\",\"Level 6\",\"Level 7\",\"Level 8\",\"Level 9\",\"Level 10\",\"Level 11\",\"Level 12\",\"Level 13\",\"Level 14\",\"Level 15\",\"Level 16\",\"Level 17\",\"Level 18\",\"Level 19\",\"Level 20\",\"Level 21\",\"Level 22\",\"Level 23\",\"Level 24\",\"Level 25\",\"Level 26\",\"Level 27\",\"Level 28\",\"Level 29\",\"Level 30\",\"Level 31\",\"Level 32\",\"Level 33\",\"Level 34\",\"Level 35\",\"Level 36\",\"Level 37\",\"Level 38\",\"Level 39\",\"Level 40\",\"Level 41\",\"Level 42\",\"Level 43\",\"Level 44\",\"Level 45\",\"Level 46\",\"Level 47\",\"Level 48\",\"Level 49\",\"Level 50\"]}";
+
+    const parsedPageConfigs = JSON.parse(pageConfigs);
+    const parsedDefaultConfig = JSON.parse(defaultPageConfig);
+    const configs = parsedPageConfigs[currentPage] || parsedDefaultConfig || {};
+    const pageThemeConfig = themeConfig ? JSON.parse(themeConfig) : null;
+    const gristOrder = JSON.parse(gristOrderData);
+    const gristIconPaths = JSON.parse(gristIconPathsData);
+    const characterWeapons = JSON.parse(characterWeaponsData);
+    const rageWeaponPaths = JSON.parse(rageWeaponPathsData);
+    const lightCharacterPaths = JSON.parse(lightCharacterPathsData);
+    const characterLevelNames = JSON.parse(characterLevelNamesData);
+
+    function getLevelName(character, level) {
+      const names = characterLevelNames[character.toLowerCase()] || characterLevelNames.default;
+      return names[level - 1] || `Level ${level}`;
+    }
+
+    const { renderClockSprite, renderStaticSprite, renderBreathSprite, renderGodTierSprite, renderHealthBarSprite, renderGristSprite } = window.SpriteRenderers;
+
+    console.log('Current page:', currentPage);
+    console.log('Loaded configs:', configs);
+    console.log('Space config specifically:', configs.space);
+    console.log('Breath config specifically:', configs.breath);
+
+    // Preload all grist data from all pages for all characters
+    function preloadAllGristData() {
+      const allConfigs = JSON.parse(pageConfigs);
+      for (const [page, pageConfig] of Object.entries(allConfigs)) {
+        if (pageConfig.blood && pageConfig.blood.type === 'grist') {
+          const character = pageConfig.blood.character || pageConfig.pov || 'alexis';
+          const pageNum = parseInt(page);
+          const deltas = pageConfig.blood.deltas;
+
+          if (deltas && Object.keys(deltas).length > 0) {
+            setPageGrist(character, pageNum, deltas);
+          }
+        }
+      }
+    }
+
+    // Grist inventory tracking (client-side)
+    const characterGristInventory = new Map();
+
+    // Preload grist data on page load
+    preloadAllGristData();
+
+    function setPageGrist(character, pageNumber, deltas) {
+      if (!characterGristInventory.has(character)) {
+        characterGristInventory.set(character, new Map());
+      }
+      characterGristInventory.get(character).set(pageNumber, deltas);
+    }
+
+    function getCharacterGristAtPage(character, pageNumber) {
+      const inventory = {};
+
+      if (!characterGristInventory.has(character)) {
+        return inventory;
+      }
+
+      const characterPages = characterGristInventory.get(character);
+      const sortedPages = Array.from(characterPages.keys()).sort((a, b) => a - b);
+
+      for (const page of sortedPages) {
+        if (page > pageNumber) break;
+
+        const deltas = characterPages.get(page);
+        for (const [gristType, amount] of Object.entries(deltas)) {
+          inventory[gristType] = (inventory[gristType] || 0) + amount;
+        }
+      }
+
+      return inventory;
+    }
+
+    // Handle scroll-based transitions (initial theme already set in <head>)
+    const userTheme = localStorage.getItem('mspa:theme');
+
+    if (pageThemeConfig) {
+      const shouldApplyTransition = pageThemeConfig.overrule || !userTheme || userTheme === 'default';
+
+      if (shouldApplyTransition) {
+        const targetTheme = pageThemeConfig.theme;
+        const originalTheme = pageThemeConfig.originalTheme || 'space';
+        const transition = pageThemeConfig.transition || 'smooth';
+
+        // Only set up scroll listeners for scroll-based transitions
+        if (transition === 'crawl' || transition === 'scroll') {
+          function handleScrollTransition() {
+            const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+
+            if (transition === 'scroll') {
+              // Simple scroll: switch at 50%
+              const newTheme = scrollPercent >= 0.5 ? targetTheme : originalTheme;
+              if (document.documentElement.getAttribute('data-theme') !== newTheme) {
+                document.documentElement.setAttribute('data-transition', 'smooth');
+                document.documentElement.setAttribute('data-theme', newTheme);
+              }
+            } else if (transition === 'crawl') {
+              // Crawl: transition happens at 80% scroll
+              if (scrollPercent >= 0.8) {
+                if (document.documentElement.getAttribute('data-theme') !== targetTheme) {
+                  document.documentElement.setAttribute('data-transition', 'smooth');
+                  document.documentElement.setAttribute('data-theme', targetTheme);
+                }
+              } else {
+                if (document.documentElement.getAttribute('data-theme') !== originalTheme) {
+                  document.documentElement.setAttribute('data-transition', 'smooth');
+                  document.documentElement.setAttribute('data-theme', originalTheme);
+                }
+              }
+            }
+          }
+
+          window.addEventListener('scroll', handleScrollTransition, { passive: true });
+          handleScrollTransition(); // Check initial position
+        }
+      }
+    }
+
+    let voidMessageLogged = false;
+
+    async function updateLeftSprite() {
+      const theme = document.documentElement.getAttribute('data-theme') || 'space';
+      let config = configs[theme];
+      const pov = configs.pov || 'alexis';
+      const container = document.getElementById('left-sprite-container');
+
+      console.log('Current theme:', theme);
+      console.log('POV character:', pov);
+      console.log('Config for theme:', config);
+      console.log('Container element:', container);
+
+      if (!container) return;
+
+      if (!config) {
+        if (theme === 'breath') {
+          const { getCharacterLevel } = await import('../sprites/breath.ts');
+          const level = getCharacterLevel(pov);
+          config = {
+            type: 'breath',
+            currentLevel: level,
+            pov: pov
+          };
+          console.log('Created default breath config with remembered level:', level);
+        } else {
+          console.log('No config found for theme:', theme);
+          container.innerHTML = '';
+          return;
+        }
+      }
+
+      if (theme === 'void' && configs.void && configs.void.message && !voidMessageLogged) {
+        console.log('%c' + configs.void.message, 'color: #000080; font-style: italic;');
+        voidMessageLogged = true;
+      } else if (theme !== 'void') {
+        voidMessageLogged = false;
+      }
+
+      if (config.type === 'clock') {
+        const initClock = (config) => {
+          const canvas = document.getElementById('clock-canvas');
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+
+          const getUTCTimeInSeconds = () => {
+            const now = new Date();
+            return now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+          };
+
+          const getUTCDate = () => {
+            const now = new Date();
+            return { year: now.getUTCFullYear(), month: now.getUTCMonth() + 1, day: now.getUTCDate() };
+          };
+
+          const parseTime = (timeStr) => {
+            if (timeStr === 'random') return Math.floor(Math.random() * 86400);
+            const parts = timeStr.split(':').map(Number);
+            return parts[0] * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+          };
+
+          const parseDate = (dateStr) => {
+            if (dateStr === 'NaN') return 'NaN';
+            const parts = dateStr.split(':').map(Number);
+            return { year: parts[0], month: parts[1], day: parts[2] };
+          };
+
+          const parseTimeValue = (value, previousValue) => {
+            if (value.startsWith('j ')) {
+              const targetTime = parseTime(value.substring(2));
+              return { jump: true, value: targetTime };
+            }
+            if (value.startsWith('= ')) {
+              const pauseSeconds = parseInt(value.substring(2));
+              return { pause: pauseSeconds, value: previousValue };
+            }
+            return parseTime(value);
+          };
+
+          const parseDateValue = (value, previousValue) => {
+            if (!value) return null;
+            if (value.startsWith('j ')) {
+              const targetDate = parseDate(value.substring(2));
+              return { jump: true, value: targetDate };
+            }
+            if (value.startsWith('= ')) {
+              const pauseSeconds = parseInt(value.substring(2));
+              return { pause: pauseSeconds, value: previousValue };
+            }
+            if (value.startsWith('+ ')) {
+              const addDays = parseInt(value.substring(2));
+              const newDate = new Date(previousValue.year, previousValue.month - 1, previousValue.day + addDays);
+              return { year: newDate.getFullYear(), month: newDate.getMonth() + 1, day: newDate.getDate() };
+            }
+            return parseDate(value);
+          };
+
+          const mode = config.mode || 'default';
+          const speed = config.speed || 1;
+          const trigger = config.trigger || 'automatic';
+
+          let currentSeconds;
+          let currentDate;
+          let timeSequence = [];
+          let dateSequence = [];
+          let sequenceIndex = 0;
+          let pauseRemaining = 0;
+          let lastFrameTime = Date.now();
+          let isRunning = trigger === 'automatic';
+
+          if (mode === 'default') {
+            currentSeconds = getUTCTimeInSeconds();
+            currentDate = getUTCDate();
+          } else {
+            let prevValue = parseTimeValue(config.startTime, 0);
+            if (typeof prevValue === 'object' && prevValue.pause) {
+              pauseRemaining = prevValue.pause;
+              currentSeconds = prevValue.value;
+              timeSequence.push(prevValue.value);
+              prevValue = prevValue.value;
+            } else if (typeof prevValue === 'object' && prevValue.jump) {
+              currentSeconds = prevValue.value;
+              timeSequence.push(prevValue);
+              prevValue = prevValue.value;
+            } else {
+              currentSeconds = prevValue;
+              timeSequence.push(prevValue);
+            }
+
+            let prevDate = parseDateValue(config.startDate, getUTCDate());
+            if (prevDate) {
+              if (typeof prevDate === 'object' && prevDate.pause) {
+                currentDate = prevDate.value;
+                dateSequence.push(prevDate.value);
+                prevDate = prevDate.value;
+              } else if (typeof prevDate === 'object' && prevDate.jump) {
+                currentDate = prevDate.value;
+                dateSequence.push(prevDate);
+                prevDate = prevDate.value;
+              } else if (prevDate === 'NaN') {
+                currentDate = 'NaN';
+                dateSequence.push('NaN');
+              } else {
+                currentDate = prevDate;
+                dateSequence.push(prevDate);
+              }
+            } else {
+              currentDate = getUTCDate();
+              dateSequence.push(currentDate);
+              prevDate = currentDate;
+            }
+
+            if (config.middleTimes) {
+              for (let i = 0; i < config.middleTimes.length; i++) {
+                const middleTime = config.middleTimes[i];
+                const parsed = parseTimeValue(middleTime, prevValue);
+                if (typeof parsed === 'object' && parsed.pause) {
+                  timeSequence.push({ pause: parsed.pause, value: parsed.value });
+                  prevValue = parsed.value;
+                } else if (typeof parsed === 'object' && parsed.jump) {
+                  timeSequence.push(parsed);
+                  prevValue = parsed.value;
+                } else {
+                  timeSequence.push(parsed);
+                  prevValue = parsed;
+                }
+
+                if (config.middleDates && config.middleDates[i]) {
+                  const parsedDate = parseDateValue(config.middleDates[i], prevDate);
+                  if (parsedDate) {
+                    if (typeof parsedDate === 'object' && parsedDate.pause) {
+                      dateSequence.push(parsedDate);
+                      prevDate = parsedDate.value;
+                    } else if (typeof parsedDate === 'object' && parsedDate.jump) {
+                      dateSequence.push(parsedDate);
+                      prevDate = parsedDate.value;
+                    } else if (parsedDate === 'NaN') {
+                      dateSequence.push('NaN');
+                    } else {
+                      dateSequence.push(parsedDate);
+                      prevDate = parsedDate;
+                    }
+                  } else {
+                    dateSequence.push(prevDate);
+                  }
+                } else {
+                  dateSequence.push(prevDate);
+                }
+              }
+            }
+
+            const endParsed = parseTimeValue(config.endTime, prevValue);
+            if (typeof endParsed === 'object' && endParsed.pause) {
+              timeSequence.push(endParsed);
+            } else if (typeof endParsed === 'object' && endParsed.jump) {
+              timeSequence.push(endParsed);
+            } else {
+              timeSequence.push(endParsed);
+            }
+
+            const endDateParsed = parseDateValue(config.endDate, prevDate);
+            if (endDateParsed) {
+              if (typeof endDateParsed === 'object' && endDateParsed.pause) {
+                dateSequence.push(endDateParsed);
+              } else if (typeof endDateParsed === 'object' && endDateParsed.jump) {
+                dateSequence.push(endDateParsed);
+              } else if (endDateParsed === 'NaN') {
+                dateSequence.push('NaN');
+              } else {
+                dateSequence.push(endDateParsed);
+              }
+            } else {
+              dateSequence.push(prevDate);
+            }
+          }
+
+          if (trigger === 'click') {
+            canvas.style.cursor = 'pointer';
+            canvas.addEventListener('click', () => {
+              if (!isRunning) {
+                isRunning = true;
+                lastFrameTime = Date.now();
+              }
+            });
+          }
+
+          function drawClock() {
+            ctx.clearRect(0, 0, 72, 72);
+            ctx.fillStyle = '#B70D0E';
+            ctx.beginPath();
+            ctx.arc(36, 36, 32, 0, Math.PI * 2);
+            ctx.fill();
+
+            const dateDisplay = document.getElementById('clock-date');
+            if (dateDisplay) {
+              if (currentDate === 'NaN') {
+                dateDisplay.textContent = '';
+              } else if (currentDate && typeof currentDate === 'object') {
+                const year = currentDate.year;
+                const month = String(currentDate.month).padStart(2, '0');
+                const day = String(currentDate.day).padStart(2, '0');
+                dateDisplay.textContent = `${year}:${month}:${day}`;
+              } else {
+                const now = new Date();
+                const year = now.getUTCFullYear();
+                const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(now.getUTCDate()).padStart(2, '0');
+                dateDisplay.textContent = `${year}:${month}:${day}`;
+              }
+            }
+
+            if (isNaN(currentSeconds)) return;
+
+            const hours = Math.floor(currentSeconds / 3600) % 24;
+            const minutes = Math.floor((currentSeconds % 3600) / 60);
+            const seconds = Math.floor(currentSeconds % 60);
+
+            const drawHand = (angle, length, width) => {
+              ctx.save();
+              ctx.translate(36, 36);
+              ctx.rotate(angle);
+              ctx.strokeStyle = '#FF2106';
+              ctx.lineWidth = width;
+              ctx.beginPath();
+              ctx.moveTo(0, 0);
+              ctx.lineTo(0, -length);
+              ctx.stroke();
+              ctx.restore();
+            };
+
+            const hourAngle = ((hours % 12) + minutes / 60) * (Math.PI / 6);
+            const minuteAngle = (minutes + seconds / 60) * (Math.PI / 30);
+            const secondAngle = seconds * (Math.PI / 30);
+
+            drawHand(hourAngle, 15, 3);
+            drawHand(minuteAngle, 22, 2);
+            drawHand(secondAngle, 26, 1);
+
+            ctx.fillStyle = '#FF2106';
+            ctx.beginPath();
+            ctx.arc(36, 36, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          function animate() {
+            if (!isRunning) {
+              drawClock();
+              requestAnimationFrame(animate);
+              return;
+            }
+
+            const now = Date.now();
+            const deltaTime = (now - lastFrameTime) / 1000;
+            lastFrameTime = now;
+
+            if (mode === 'default') {
+              currentSeconds = getUTCTimeInSeconds();
+              currentDate = getUTCDate();
+            } else {
+              if (pauseRemaining > 0) {
+                pauseRemaining -= deltaTime * speed;
+                if (pauseRemaining <= 0) {
+                  pauseRemaining = 0;
+                  sequenceIndex++;
+                  if (sequenceIndex < timeSequence.length) {
+                    const nextValue = timeSequence[sequenceIndex];
+                    if (typeof nextValue === 'object' && nextValue.pause) {
+                      pauseRemaining = nextValue.pause;
+                      currentSeconds = nextValue.value;
+                    } else {
+                      currentSeconds = nextValue;
+                    }
+
+                    if (dateSequence[sequenceIndex]) {
+                      const nextDate = dateSequence[sequenceIndex];
+                      if (typeof nextDate === 'object' && nextDate.pause) {
+                        currentDate = nextDate.value;
+                      } else if (typeof nextDate === 'object' && nextDate.jump) {
+                        currentDate = nextDate.value;
+                      } else {
+                        currentDate = nextDate;
+                      }
+                    }
+                  }
+                }
+              } else {
+                const targetTime = timeSequence[sequenceIndex];
+                const actualTarget = typeof targetTime === 'object' ? targetTime.value : targetTime;
+                const isJump = typeof targetTime === 'object' && targetTime.jump;
+
+                if (isJump) {
+                  currentSeconds = actualTarget;
+                  sequenceIndex++;
+
+                  if (sequenceIndex >= timeSequence.length) {
+                    if (mode === 'loop') {
+                      sequenceIndex = 0;
+                      const firstValue = timeSequence[0];
+                      if (typeof firstValue === 'object' && firstValue.pause) {
+                        pauseRemaining = firstValue.pause;
+                        currentSeconds = firstValue.value;
+                      } else if (typeof firstValue === 'object' && firstValue.jump) {
+                        currentSeconds = firstValue.value;
+                      } else {
+                        currentSeconds = firstValue;
+                      }
+
+                      if (dateSequence[0]) {
+                        const firstDate = dateSequence[0];
+                        if (typeof firstDate === 'object' && firstDate.pause) {
+                          currentDate = firstDate.value;
+                        } else if (typeof firstDate === 'object' && firstDate.jump) {
+                          currentDate = firstDate.value;
+                        } else {
+                          currentDate = firstDate;
+                        }
+                      }
+                    } else {
+                      sequenceIndex = timeSequence.length - 1;
+                    }
+                  } else {
+                    const nextValue = timeSequence[sequenceIndex];
+                    if (typeof nextValue === 'object' && nextValue.pause) {
+                      pauseRemaining = nextValue.pause;
+                      currentSeconds = nextValue.value;
+                    }
+
+                    if (dateSequence[sequenceIndex]) {
+                      const nextDate = dateSequence[sequenceIndex];
+                      if (typeof nextDate === 'object' && nextDate.pause) {
+                        currentDate = nextDate.value;
+                      } else if (typeof nextDate === 'object' && nextDate.jump) {
+                        currentDate = nextDate.value;
+                      } else {
+                        currentDate = nextDate;
+                      }
+                    }
+                  }
+                } else if (currentSeconds < actualTarget) {
+                  currentSeconds += deltaTime * speed;
+                  if (currentSeconds >= actualTarget) {
+                    currentSeconds = actualTarget;
+                    sequenceIndex++;
+
+                    if (sequenceIndex >= timeSequence.length) {
+                      if (mode === 'loop') {
+                        sequenceIndex = 0;
+                        const firstValue = timeSequence[0];
+                        if (typeof firstValue === 'object' && firstValue.pause) {
+                          pauseRemaining = firstValue.pause;
+                          currentSeconds = firstValue.value;
+                        } else if (typeof firstValue === 'object' && firstValue.jump) {
+                          currentSeconds = firstValue.value;
+                        } else {
+                          currentSeconds = firstValue;
+                        }
+
+                        if (dateSequence[0]) {
+                          const firstDate = dateSequence[0];
+                          if (typeof firstDate === 'object' && firstDate.pause) {
+                            currentDate = firstDate.value;
+                          } else if (typeof firstDate === 'object' && firstDate.jump) {
+                            currentDate = firstDate.value;
+                          } else {
+                            currentDate = firstDate;
+                          }
+                        }
+                      } else {
+                        sequenceIndex = timeSequence.length - 1;
+                      }
+                    } else {
+                      const nextValue = timeSequence[sequenceIndex];
+                      if (typeof nextValue === 'object' && nextValue.pause) {
+                        pauseRemaining = nextValue.pause;
+                        currentSeconds = nextValue.value;
+                      }
+
+                      if (dateSequence[sequenceIndex]) {
+                        const nextDate = dateSequence[sequenceIndex];
+                        if (typeof nextDate === 'object' && nextDate.pause) {
+                          currentDate = nextDate.value;
+                        } else if (typeof nextDate === 'object' && nextDate.jump) {
+                          currentDate = nextDate.value;
+                        } else {
+                          currentDate = nextDate;
+                        }
+                      }
+                    }
+                  }
+                } else if (currentSeconds >= actualTarget) {
+                  sequenceIndex++;
+
+                  if (sequenceIndex >= timeSequence.length) {
+                    if (mode === 'loop') {
+                      sequenceIndex = 0;
+                      const firstValue = timeSequence[0];
+                      if (typeof firstValue === 'object' && firstValue.pause) {
+                        pauseRemaining = firstValue.pause;
+                        currentSeconds = firstValue.value;
+                      } else if (typeof firstValue === 'object' && firstValue.jump) {
+                        currentSeconds = firstValue.value;
+                      } else {
+                        currentSeconds = firstValue;
+                      }
+
+                      if (dateSequence[0]) {
+                        const firstDate = dateSequence[0];
+                        if (typeof firstDate === 'object' && firstDate.pause) {
+                          currentDate = firstDate.value;
+                        } else if (typeof firstDate === 'object' && firstDate.jump) {
+                          currentDate = firstDate.value;
+                        } else {
+                          currentDate = firstDate;
+                        }
+                      }
+                    } else {
+                      sequenceIndex = timeSequence.length - 1;
+                    }
+                  } else {
+                    const nextValue = timeSequence[sequenceIndex];
+                    if (typeof nextValue === 'object' && nextValue.pause) {
+                      pauseRemaining = nextValue.pause;
+                      currentSeconds = nextValue.value;
+                    }
+
+                    if (dateSequence[sequenceIndex]) {
+                      const nextDate = dateSequence[sequenceIndex];
+                      if (typeof nextDate === 'object' && nextDate.pause) {
+                        currentDate = nextDate.value;
+                      } else if (typeof nextDate === 'object' && nextDate.jump) {
+                        currentDate = nextDate.value;
+                      } else {
+                        currentDate = nextDate;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            drawClock();
+            requestAnimationFrame(animate);
+          }
+
+          animate();
+        };
+        renderClockSprite(container, config, initClock);
+      } else if (config.type === 'static') {
+        renderStaticSprite(container, config, theme, pov, lightCharacterPaths);
+      } else if (config.type === 'breath') {
+        renderBreathSprite(container, config, pov, getLevelName);
+      } else if (config.type === 'godtier') {
+        renderGodTierSprite(container, config);
+      } else if (config.type === 'healthbar') {
+        renderHealthBarSprite(container, config);
+      } else if (config.type === 'grist') {
+        const initGristCounter = (totalItems) => {
+          const counter = document.getElementById('grist-counter');
+          const list = document.getElementById('grist-list');
+          if (!counter || !list) return;
+
+          let currentIndex = 0;
+          const items = list.querySelectorAll('.grist-item');
+
+          function updateDisplay(isExpanded = false) {
+            items.forEach((item, index) => {
+              item.classList.remove('active', 'above', 'below');
+
+              if (isExpanded) {
+                const prevIndex = (currentIndex - 1 + totalItems) % totalItems;
+                const nextIndex = (currentIndex + 1) % totalItems;
+
+                if (index === currentIndex) {
+                  item.classList.add('active');
+                  item.style.display = 'flex';
+                } else if (index === prevIndex) {
+                  item.classList.add('above');
+                  item.style.display = 'flex';
+                } else if (index === nextIndex) {
+                  item.classList.add('below');
+                  item.style.display = 'flex';
+                } else {
+                  item.style.display = 'none';
+                }
+              } else {
+                if (index === currentIndex) {
+                  item.classList.add('active');
+                  item.style.display = 'flex';
+                } else {
+                  item.style.display = 'none';
+                }
+              }
+            });
+
+            if (isExpanded) {
+              counter.classList.add('expanded');
+            } else {
+              counter.classList.remove('expanded');
+            }
+          }
+
+          updateDisplay(false);
+
+          counter.addEventListener('mouseenter', () => {
+            updateDisplay(true);
+          });
+
+          counter.addEventListener('mouseleave', () => {
+            updateDisplay(false);
+          });
+
+          counter.addEventListener('wheel', (e) => {
+            e.preventDefault();
+
+            if (e.deltaY > 0) {
+              currentIndex = (currentIndex + 1) % totalItems;
+            } else {
+              currentIndex = (currentIndex - 1 + totalItems) % totalItems;
+            }
+
+            const isHovering = counter.matches(':hover');
+            updateDisplay(isHovering);
+          });
+
+          counter.style.cursor = 'pointer';
+        };
+        renderGristSprite(container, config, pov, gristOrder, gristIconPaths, setPageGrist, getCharacterGristAtPage, initGristCounter);
+      } else if (config.type === 'hidden') {
+        container.innerHTML = '';
+      }
+    }
+
+    updateLeftSprite();
+
+    window.addEventListener('theme-changed', () => {
+      updateLeftSprite();
+    });
+  })();</script>      </body> </html> 

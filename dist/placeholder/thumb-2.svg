@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="g2" x1="0" x2="1" y1="1" y2="0">
+      <stop offset="0%" stop-color="#0b0c10"/>
+      <stop offset="100%" stop-color="#202028"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#g2)"/>
+  <rect x="150" y="150" width="300" height="300" fill="#80b3ff" fill-opacity="0.35"/>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="24" fill="#f2f3f5">Thumbnail</text>
+</svg>

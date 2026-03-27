@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Switch - Character Adventure Game</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="battle/battleEffects.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: auto;
+        }
+
+        #gameContainer {
+            position: relative;
+            min-width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #gameCanvas {
+            border: 2px solid var(--border);
+            background: var(--surface);
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            max-width: 100%;
+            max-height: calc(100vh - 40px);
+            width: auto;
+            height: auto;
+        }
+
+        #instructions {
+            display: none;
+        }
+
+        #dialogueBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 75%;
+            max-width: 1000px;
+            min-height: 280px;
+            background: var(--card);
+            border: none;
+            padding: 24px;
+            display: none;
+            z-index: 100;
+            font-size: 14px;
+            line-height: 1.8;
+            transition: none;
+            box-shadow:
+                0 0 0 4px var(--border),
+                4px 0 0 4px var(--border),
+                -4px 0 0 4px var(--border),
+                0 4px 0 4px var(--border),
+                0 -4px 0 4px var(--border),
+                8px 0 0 8px var(--border),
+                -8px 0 0 8px var(--border),
+                0 8px 0 8px var(--border),
+                0 -8px 0 8px var(--border);
+        }
+
+        #dialogueBox.encounter-mode {
+            top: auto;
+            bottom: 20px;
+            transform: translateX(-50%);
+            min-height: 100px;
+            max-height: 25vh;
+            width: 90%;
+        }
+
+        #dialogueBox.speaker-player {
+            text-align: left;
+            padding-left: 24px;
+            padding-right: 25%;
+        }
+
+        #dialogueBox.speaker-npc {
+            text-align: left;
+            padding-left: 25%;
+            padding-right: 24px;
+        }
+
+        #dialoguePrompt {
+            font-size: 10px;
+            color: var(--muted);
+            text-align: right;
+        }
+
+        #switchPrompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            display: none;
+            z-index: 101;
+        }
+
+        #switchPrompt button {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #switchPrompt button:hover {
+            opacity: 0.8;
+        }
+
+        #miniGamePrompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            display: none;
+            z-index: 101;
+        }
+
+        #miniGamePrompt button {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #miniGamePrompt button:hover {
+            opacity: 0.8;
+        }
+
+        #glitchOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 200;
+            background: rgba(0,0,0,0.8);
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+
+        /* Keep a subtle baseline flicker via CSS; heavy flashing is driven by JS */
+        @keyframes glitch {
+            0% { filter: hue-rotate(0deg) saturate(1); opacity: 0.8; }
+            25% { filter: hue-rotate(90deg) saturate(2); opacity: 0.6; }
+            50% { filter: hue-rotate(180deg) saturate(3); opacity: 0.9; }
+            75% { filter: hue-rotate(270deg) saturate(2); opacity: 0.7; }
+            100% { filter: hue-rotate(360deg) saturate(1); opacity: 0.85; }
+        }
+
+        #errorMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            text-align: center;
+            display: none;
+            z-index: 201;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+        }
+
+        #currentCharacter {
+            background: var(--card);
+            border: 2px solid var(--border);
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none;
+        }
+
+        /* Restart button */
+        #restartGameBtn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        #restartGameBtn:hover { opacity: 0.9; }
+
+        /* Settings gear button */
+        #settingsButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 60;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #settingsButton:hover { filter: brightness(1.05); }
+        #settingsButton .gear {
+            width: 22px; height: 22px; fill: var(--text);
+        }
+
+        /* Settings modal */
+        #settingsModal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            max-height: 90vh;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            z-index: 120;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            overflow-y: auto;
+        }
+        #settingsHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        #settingsTitle { font-size: 16px; font-weight: 700; }
+        #settingsClose {
+            background: transparent; border: none; color: var(--text); cursor: pointer; font-size: 18px; line-height: 1;
+        }
+        .settingsRow { margin: 8px 0; }
+        .settingsLabel { font-weight: 600; margin-bottom: 4px; font-size: 13px; }
+        .settingsValue { color: var(--muted); font-size: 12px; line-height: 1.4; }
+        .volumeRow { display: flex; align-items: center; gap: 10px; }
+        #volumeSlider { flex: 1; }
+
+        /* Character Stats Modal - Homestuck/Pokemon Style - Full Screen */
+        #characterStatsModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg);
+            z-index: 125;
+            display: none;
+            overflow: hidden;
+        }
+
+        #statsModalHeader {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+            color: var(--bg);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #statsModalHeader::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            pointer-events: none;
+        }
+
+        #statsModalTitle {
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+
+        #statsModalClose {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            transition: all 0.2s;
+        }
+
+        #statsModalClose:hover {
+            background: rgba(0,0,0,0.5);
+            border-color: rgba(255,255,255,0.5);
+            transform: rotate(90deg);
+        }
+
+        #statsModalBody {
+            display: flex;
+            height: calc(100vh - 52px);
+            overflow: hidden;
+        }
+
+        #statsPortraitSection {
+            width: 45%;
+            background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+            border-right: 3px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 16px;
+        }
+
+        #statsPortraitSection::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.02) 2px,
+                rgba(0,0,0,0.02) 4px
+            );
+            pointer-events: none;
+        }
+
+        #statsPortraitContainer {
+            width: 85%;
+            max-width: 280px;
+            aspect-ratio: 1;
+            border: 3px solid var(--border);
+            background: var(--card);
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        #statsPortraitImage {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated;
+        }
+
+        #statsCharacterName {
+            font-size: 28px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 12px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+
+        #statsCharacterTitle {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        #statsInfoSection {
+            width: 55%;
+            padding: 16px;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        .stats-section {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            padding: 12px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .stats-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .stats-section-title {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: var(--card);
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            border: 2px solid var(--border);
+        }
+
+        .stats-vitality-bar-container {
+            margin-bottom: 10px;
+        }
+
+        .stats-vitality-bar-container:last-child {
+            margin-bottom: 0;
+        }
+
+        .stats-vitality-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stats-vitality-bar {
+            width: 100%;
+            height: 18px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-vitality-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+            transition: width 0.3s ease;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        .stats-vitality-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 4px,
+                rgba(255,255,255,0.1) 4px,
+                rgba(255,255,255,0.1) 8px
+            );
+        }
+
+        .stats-level-container {
+            margin-bottom: 0;
+        }
+
+        .stats-level-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stats-xp-bar {
+            width: 100%;
+            height: 14px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 3px;
+        }
+
+        .stats-xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
+            transition: width 0.3s ease;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        .stats-xp-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 3px,
+                rgba(255,255,255,0.15) 3px,
+                rgba(255,255,255,0.15) 6px
+            );
+        }
+
+        .stats-xp-text {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 2px;
+            text-align: right;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            background: var(--bg);
+            border-left: 3px solid var(--accent);
+        }
+
+        .stat-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--muted);
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stats-weapon-info {
+            margin-top: 6px;
+        }
+
+        .stats-weapon-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 3px;
+        }
+
+        .stats-weapon-desc {
+            font-size: 10px;
+            color: var(--muted);
+            line-height: 1.3;
+        }
+
+        .stats-ability-combat {
+            margin-top: 6px;
+        }
+
+        .stats-ability-name {
+            font-size: 10px;
+            color: var(--text);
+        }
+
+        .stats-abilities-list {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 0 0;
+        }
+
+        .stats-abilities-list li {
+            padding: 5px 8px;
+            margin-bottom: 4px;
+            background: var(--bg);
+            border-left: 3px solid var(--primary);
+            font-size: 10px;
+            line-height: 1.3;
+        }
+
+        .stats-abilities-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        @keyframes statsSlideIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        #characterStatsModal.show {
+            animation: statsSlideIn 0.2s ease-out;
+        }
+
+        #questLogModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg);
+            z-index: 125;
+            display: none;
+            overflow: hidden;
+        }
+
+        #questLogModal.show {
+            animation: statsSlideIn 0.2s ease-out;
+        }
+
+        #questLogModalHeader {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+            color: var(--bg);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #questLogModalHeader::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            pointer-events: none;
+        }
+
+        #questLogModalTitle {
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+
+        #questLogModalClose {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            cursor: pointer;
+            font-size: 24px;
+            line-height: 1;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            transition: all 0.2s;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #questLogModalClose:hover {
+            background: rgba(0,0,0,0.5);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        #questLogModalBody {
+            height: calc(100vh - 52px);
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--bg);
+        }
+
+        .quest-item {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            padding: 6px;
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .quest-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .quest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3px;
+        }
+
+        .quest-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .quest-status {
+            padding: 1px 4px;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid var(--border);
+            background: var(--card);
+        }
+
+        .quest-status.active {
+            color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .quest-status.completed {
+            color: #22c55e;
+            border-color: #22c55e;
+        }
+
+        .quest-description {
+            font-size: 9px;
+            line-height: 1.3;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .quest-objectives {
+            margin-top: 3px;
+        }
+
+        .quest-objectives-title {
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+
+        .quest-objectives-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .quest-objectives-list li {
+            padding: 2px 5px;
+            margin-bottom: 2px;
+            background: var(--bg);
+            border-left: 2px solid var(--primary);
+            font-size: 8px;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+        }
+
+        .quest-objectives-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .quest-objectives-list li.completed {
+            border-left-color: #22c55e;
+            color: var(--muted);
+            text-decoration: line-through;
+        }
+
+        .quest-objectives-list li.completed::before {
+            content: '✓';
+            margin-right: 3px;
+            color: #22c55e;
+            font-weight: 700;
+        }
+
+        .quest-objectives-list li:not(.completed)::before {
+            content: '○';
+            margin-right: 3px;
+            color: var(--muted);
+        }
+
+        .quest-rewards {
+            margin-top: 5px;
+            padding-top: 3px;
+            border-top: 1px solid var(--border);
+        }
+
+        .quest-rewards-title {
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+
+        .quest-rewards-list {
+            font-size: 8px;
+            color: var(--accent);
+            line-height: 1.3;
+        }
+
+        /* Compact Quest Chain System with Progress Indicators */
+        .quest-chains-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quest-chain {
+            position: relative;
+        }
+
+        .quest-item {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 50px;
+            transition: all 0.2s ease;
+        }
+
+        .quest-item.active {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, var(--surface) 0%, var(--card) 100%);
+        }
+
+        .quest-item.locked {
+            border-color: #eab308;
+            background: linear-gradient(135deg, var(--surface) 0%, var(--card) 100%);
+            opacity: 0.85;
+        }
+
+        .quest-item.completed-chain {
+            border-color: #22c55e;
+            opacity: 0.9;
+        }
+
+        .quest-progress {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 45px;
+            padding: 4px;
+            border-right: 1px solid var(--border);
+        }
+
+        .quest-progress-count {
+            font-size: 10px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 2px;
+        }
+
+        .quest-progress-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .quest-progress-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--muted);
+            transition: all 0.2s ease;
+        }
+
+        .quest-progress-dot.completed {
+            background: #22c55e;
+        }
+
+        .quest-progress-dot.active {
+            background: #3b82f6;
+            box-shadow: 0 0 4px #3b82f6;
+        }
+
+        .quest-progress-dot.locked {
+            background: #eab308;
+        }
+
+        .quest-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .quest-title-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quest-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .quest-item.completed-chain .quest-title {
+            color: #22c55e;
+        }
+
+        .quest-item.locked .quest-title {
+            color: #eab308;
+        }
+
+        .quest-badge {
+            padding: 2px 5px;
+            font-size: 7px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
+        .quest-badge.active {
+            background: #3b82f6;
+            color: var(--bg);
+        }
+
+        .quest-badge.completed {
+            background: #22c55e;
+            color: white;
+        }
+
+        .quest-badge.locked {
+            background: #eab308;
+            color: #000;
+        }
+
+        .quest-desc {
+            font-size: 8px;
+            line-height: 1.3;
+            color: var(--text);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .quest-reward-compact {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 7px;
+            font-weight: 600;
+            color: var(--accent);
+            background: var(--bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+        }
+
+        .quest-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .quest-history-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 8px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .quest-history-btn:hover {
+            background: var(--surface);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .quest-history-btn.expanded {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        .quest-history {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .quest-history.show {
+            max-height: 500px;
+        }
+
+        .quest-history-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-top: none;
+            padding: 6px 8px 6px 55px;
+            font-size: 8px;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quest-history-item:last-child {
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+
+        .quest-history-title {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .quest-history-status {
+            font-size: 7px;
+            color: #22c55e;
+            white-space: nowrap;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .quest-history.show .quest-history-item {
+            animation: slideDown 0.2s ease;
+        }
+
+        #interactionMenu {
+            position: absolute;
+            background: var(--card);
+            border: none;
+            padding: 8px 12px;
+            display: none;
+            z-index: 99;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            min-width: 150px;
+            box-shadow:
+                0 0 0 2px var(--border),
+                0 0 0 4px var(--card),
+                2px 0 0 2px var(--border),
+                -2px 0 0 2px var(--border),
+                0 2px 0 2px var(--border),
+                0 -2px 0 2px var(--border);
+        }
+
+        #interactionMenu .menu-option {
+            padding: 4px 0;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        #interactionMenu .menu-option:hover {
+            opacity: 0.8;
+        }
+
+        #interactionMenu .menu-hint {
+            font-size: 8px;
+            color: var(--muted);
+            margin-top: 6px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 4px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="640" height="480"></canvas>
+
+        <div id="ui">
+            <div id="currentCharacter">Play as <span id="characterName">Alexis</span></div>
+        </div>
+
+        <!-- Old instructions hidden; replaced by settings gear -->
+        <div id="instructions">
+            <strong>Controls:</strong><br>
+            WASD or Arrow Keys - Move<br>
+            SPACE - Interact<br>
+            ESC - Character Menu
+        </div>
+
+        <!-- Settings gear button -->
+        <button id="settingsButton" aria-label="Open settings">
+            <svg class="gear" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19.14,12.94a7.43,7.43,0,0,0,.05-.94,7.43,7.43,0,0,0-.05-.94l2.11-1.65a.5.5,0,0,0,.12-.63l-2-3.46a.5.5,0,0,0-.6-.22L16.7,5a7.22,7.22,0,0,0-1.63-.94l-.25-2.6A.5.5,0,0,0,14.33.5H9.67a.5.5,0,0,0-.49.42L8.93,3.52A7.22,7.22,0,0,0,7.3,4.46L4.23,3.1a.5.5,0,0,0-.6.22l-2,3.46a.5.5,0,0,0,.12.63L3.86,9.06a7.43,7.43,0,0,0-.05.94,7.43,7.43,0,0,0,.05.94L1.77,12.59a.5.5,0,0,0-.12.63l2,3.46a.5.5,0,0,0,.6.22L7.3,15.54a7.22,7.22,0,0,0,1.63.94l.25,2.6a.5.5,0,0,0,.49.42h4.66a.5.5,0,0,0,.49-.42l.25-2.6a7.22,7.22,0,0,0,1.63-.94l3.07,1.36a.5.5,0,0,0,.6-.22l2-3.46a.5.5,0,0,0-.12-.63ZM12,15.5A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/>
+            </svg>
+        </button>
+
+        <!-- Settings modal -->
+        <div id="settingsModal">
+            <div id="settingsHeader">
+                <div id="settingsTitle">Settings</div>
+                <button id="settingsClose" aria-label="Close settings">×</button>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Controls</div>
+                <div class="settingsValue">
+                    WASD or Arrow Keys — Move<br>
+                    Space — Interact / talk<br>
+                    E — View character stats<br>
+                    Esc — Close windows; open Options if none are open
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Character Stats</div>
+                <div class="settingsValue">
+                    <button id="viewCharacterStatsBtn" style="background: var(--accent); color: var(--bg); border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 700; font-size: 13px; font-family: 'Courier New', monospace;">View Stats (E)</button>
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Quest Log</div>
+                <div class="settingsValue">
+                    <button id="viewQuestLogBtn" style="background: var(--accent); color: var(--bg); border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 700; font-size: 13px; font-family: 'Courier New', monospace;">View Quests (Q)</button>
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Volume</div>
+                <div class="volumeRow">
+                    <input type="range" id="volumeSlider" min="0" max="100" step="1" value="50" />
+                    <span id="volumeValue">50%</span>
+                </div>
+            </div>
+
+            <div class="settingsRow">
+                <div class="settingsLabel">Danger zone</div>
+                <div class="settingsValue" style="display:flex; flex-direction: column; gap: 10px;">
+                    <button id="restartGameBtn" title="This will erase your progress and restart the game from the beginning">Re-start game</button>
+                    <small>Warning: This permanently clears your saved progress (characters, positions, and conversations) and restarts the game.</small>
+                </div>
+            </div>
+        </div>
+
+        <div id="interactionMenu">
+            <div id="interactionMenuContent"></div>
+        </div>
+
+        <div id="dialogueBox"></div>
+
+        <div id="switchPrompt">
+            <h3>Switch Character?</h3>
+            <p>You've talked to everyone as <span id="switchFromCharacter"></span>.</p>
+            <p>Would you like to switch to <span id="switchToCharacter"></span>?</p>
+            <button id="switchYes">Yes, Switch!</button>
+            <button id="switchNo">Not Yet</button>
+        </div>
+
+        <div id="miniGamePrompt">
+            <h3>Target Practice?</h3>
+            <p>Nicholas wants to test your aim.</p>
+            <p>Hit 5 bullseyes out of 5 targets to prove your worth!</p>
+            <button id="miniGameYes">Let's Do This!</button>
+            <button id="miniGameNo">Not Now</button>
+        </div>
+
+        <div id="glitchOverlay"></div>
+        <div id="errorMessage">
+            ERROR: REALITY.EXE HAS STOPPED WORKING<br>
+            ATTEMPTING TO RECOVER...<br>
+            SWITCHING TO BACKUP REALITY...
+        </div>
+
+        <div id="inventoryUI" style="position: absolute; top: 80px; right: 20px; background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: 12px; max-width: 200px; z-index: 60; display: none;">
+            <div style="font-weight: bold; margin-bottom: 8px;">Inventory</div>
+            <div id="inventoryItems" style="font-size: 14px; color: var(--muted);">
+                <div>Empty</div>
+            </div>
+        </div>
+
+        <div id="questUI" style="position: absolute; bottom: 20px; right: 20px; background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: 12px; max-width: 300px; z-index: 60; display: none;">
+            <div style="font-weight: bold; margin-bottom: 8px;">Current Quest</div>
+            <div id="questDescription" style="font-size: 14px; color: var(--muted);">
+                <div>No active quest</div>
+            </div>
+            <div id="questProgress" style="font-size: 12px; color: var(--muted); margin-top: 8px;">
+                <div>Progress: 0/0</div>
+            </div>
+        </div>
+
+        <div id="abilitiesUI" style="position: absolute; bottom: 20px; right: 340px; background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: 12px; max-width: 250px; z-index: 60; display: none;">
+            <div style="font-weight: bold; margin-bottom: 8px;">Abilities</div>
+            <div id="abilitiesDescription" style="font-size: 14px; color: var(--muted);">
+                <div>Click to use ability</div>
+            </div>
+        </div>
+
+        <div id="characterStatsModal">
+            <div id="statsModalHeader">
+                <div id="statsModalTitle">Character Stats</div>
+                <button id="statsModalClose" aria-label="Close stats">×</button>
+            </div>
+            <div id="statsModalBody">
+                <div id="statsPortraitSection">
+                    <div id="statsPortraitContainer">
+                        <img id="statsPortraitImage" src="" alt="Character Portrait">
+                    </div>
+                    <div id="statsCharacterName">Loading...</div>
+                    <div id="statsCharacterTitle">Adventurer</div>
+                </div>
+                <div id="statsInfoSection">
+                    <div id="statsModalContent">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="questLogModal">
+            <div id="questLogModalHeader">
+                <div id="questLogModalTitle">Quest Log</div>
+                <button id="questLogModalClose" aria-label="Close quest log">×</button>
+            </div>
+            <div id="questLogModalBody">
+                <div id="questLogContent">
+                    Loading...
+                </div>
+            </div>
+        </div>
+
+        <div id="combatUI"></div>
+    </div>
+    </div>
+
+    <audio id="backgroundMusic" loop preload="auto" crossorigin="anonymous"></audio>
+
+    <script>
+      // Minimal on-page error display to help diagnose black screens in production-like builds
+      window.addEventListener('error', function (e) {
+        const box = document.getElementById('errorMessage');
+        const details = [
+          'Runtime error:',
+          e && e.message ? e.message : 'Unknown error',
+          e && e.filename ? ('\nFile: ' + e.filename) : '',
+          (typeof e.lineno === 'number') ? ('\nLine: ' + e.lineno) : '',
+          (typeof e.colno === 'number') ? ('\nColumn: ' + e.colno) : '',
+          e && e.error && e.error.stack ? ('\n\nStack:\n' + e.error.stack) : ''
+        ].join('');
+        if (box) {
+          box.style.display = 'block';
+          box.style.whiteSpace = 'pre-wrap';
+          box.style.zIndex = '1000';
+          box.textContent = details;
+        } else {
+          alert(details);
+        }
+      });
+
+      // Surface unhandled promise rejections as well
+      window.addEventListener('unhandledrejection', function (e) {
+        const box = document.getElementById('errorMessage');
+        const reason = e && (e.reason && (e.reason.stack || e.reason.message)) ? (e.reason.stack || e.reason.message) : String(e.reason || 'Unknown reason');
+        const details = 'Unhandled promise rejection:\n' + reason;
+        if (box) {
+          box.style.display = 'block';
+          box.style.whiteSpace = 'pre-wrap';
+          box.style.zIndex = '1000';
+          box.textContent = details;
+        } else {
+          alert(details);
+        }
+      });
+    </script>
+    <script type="module" src="map/mapCharacters.js"></script>
+    <script src="dialogue/dialogueTalkTo.js"></script>
+    <script src="dialogue/dialogueSwitchCharacter.js"></script>
+    <script src="dialogue/dialogueEncounter.js"></script>
+    <script src="dialogue/dialogueSpecial.js"></script>
+    <script src="dialogue/dialoguePortraitLogic.js"></script>
+    <script src="dialogue/dialogueLogic.js"></script>
+    <script src="map/mapMiniGames.js"></script>
+    <script src="map/mapAudio.js"></script>
+    <script src="bitmapFont.js"></script>
+    <script src="battle/battleTextRenderer.js"></script>
+    <script src="battle/battleAnimations.js"></script>
+    <script src="map/mapRenderer.js"></script>
+    <script type="module" src="constants.js"></script>
+    <script type="module" src="map/mapEnding.js"></script>
+    <script type="module" src="battle/battleAI.js"></script>
+    <script type="module" src="battle/battleController.js"></script>
+    <script type="module" src="battle/battleCombatData.js"></script>
+    <script type="module" src="battle/battleUIInput.js"></script>
+    <script type="module" src="battle/battleUI.js"></script>
+    <script type="module" src="game.js"></script>
+  </body>
+</html>
