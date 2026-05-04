@@ -84,7 +84,7 @@ getPageTitle(chapter: any, page: number): string
 
 Returns a human-readable command string for the page.
 
-- Chapter 1 pages 1–18 have hardcoded titles (e.g. page 1 → `"Bard's Quest"`, page 12 → `"Switch Characters"`).
+- Chapter 1 pages 1–18 have hardcoded titles (e.g. page 1 → `"Bard's Quest"`, page 12 → `"Switch Characters"`). Note: the source contains a duplicate `if (page === 3)` — the first returns `"R Find the Boy"` (the actual result) and the second returns `"Device whats Going On"`, which is unreachable dead code. Page 3 always resolves to `"R Find the Boy"`.
 - All other pages generate a title by combining a verb from a fixed list (`Examine`, `Deploy`, `Converse`, `Investigate`, `Acquire`, `Combine`, `Confront`, `Consult`) and a subject from a fixed list (`Widget`, `Terminal`, `Memo`, `Artifact`, `Instrument`, `Contraption`, `Console`, `Cache`). The indices are `(chapterId + page) % 8` and `(bookId + page) % 8`.
 
 ### `getImageSrc(page)`

@@ -110,7 +110,7 @@ Registered game types: `'switch'` → `/games/switch/index.html`. Unknown `gameT
 Builds the iframe URL as `{gameUrl}?seed={seed}&chapter={chapter.id}&page={page}`. Renders:
 ```html
 <div class="game-embed-container" data-game-type="{gameType}">
-  <iframe src="{fullGameUrl}" width="{width}" height="{height}" class="game-iframe" ...></iframe>
+  <iframe src="{fullGameUrl}" width="{width}" height="{height}" class="game-iframe" loading="lazy" style="border: none;"></iframe>
 </div>
 ```
 
