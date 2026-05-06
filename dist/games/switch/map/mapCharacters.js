@@ -207,6 +207,12 @@ const NPCS = [
     position: { x: 2752, y: 4640 },
     color: CHAR_COLORS.victor,
   },
+  {
+    id: 'pet',
+    name: 'Lost Pet',
+    position: { x: 2400, y: 4300 },
+    color: '#8B4513',
+  },
 ];
 
 console.log('mapCharacters.js: NPCS array defined');

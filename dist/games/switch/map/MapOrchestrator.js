@@ -17,6 +17,7 @@ export class MapOrchestrator extends BaseOrchestrator {
         if (!this.isActive) return;
 
         this.updatePlayerMovement();
+        this.updatePetFollowing();
         this.updateCamera();
         this.updateAnimations();
         this.updateAgents();
@@ -29,6 +30,68 @@ export class MapOrchestrator extends BaseOrchestrator {
 
     updatePlayerMovement() {
         this.mapInteractions.updatePlayerMovement();
+    }
+
+    updatePetFollowing() {
+        const pet = this.game.npcs.find(npc => npc.id === 'pet');
+        if (!pet) return;
+
+        const currentChar = this.game.gameState.getCurrentCharacter();
+        if (!currentChar) return;
+
+        const petTalkedTo = this.game.gameState.completedDialogues &&
+                           Array.from(this.game.gameState.completedDialogues).some(dialogue =>
+                               dialogue.endsWith(':pet')
+                           );
+
+        if (!petTalkedTo) return;
+
+        const shouldFollowChloe = this.game.gameState.hasPlayedAs &&
+                                 this.game.gameState.hasPlayedAs('chloe');
+
+        let targetX, targetY;
+
+        if (shouldFollowChloe && currentChar.id === 'chloe') {
+            targetX = this.game.player.x;
+            targetY = this.game.player.y;
+        } else if (!shouldFollowChloe) {
+            targetX = this.game.player.x;
+            targetY = this.game.player.y;
+        } else {
+            const chloeNpc = this.game.npcs.find(npc => npc.id === 'chloe');
+            if (chloeNpc) {
+                targetX = chloeNpc.x;
+                targetY = chloeNpc.y;
+            } else {
+                return;
+            }
+        }
+
+        const distance = Math.sqrt(
+            Math.pow(targetX - pet.x, 2) +
+            Math.pow(targetY - pet.y, 2)
+        );
+
+        if (distance > 40) {
+            const speed = this.game.player.speed;
+            const angle = Math.atan2(targetY - pet.y, targetX - pet.x);
+
+            const oldX = pet.x;
+            const oldY = pet.y;
+
+            pet.x += Math.cos(angle) * speed;
+            pet.y += Math.sin(angle) * speed;
+
+            if (Math.abs(pet.x - oldX) > Math.abs(pet.y - oldY)) {
+                pet.direction = pet.x > oldX ? 'right' : 'left';
+            } else {
+                pet.direction = pet.y > oldY ? 'down' : 'up';
+            }
+
+            pet.isMoving = true;
+        } else {
+            pet.isMoving = false;
+        }
     }
 
     updateCamera() {

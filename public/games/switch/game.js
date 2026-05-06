@@ -1432,6 +1432,11 @@ class SwitchGame {
             }
             this.gameState.playedCharacters.add(characterId);
 
+            if (characterId === 'chloe' && this.gameState.petFollowing && !this.gameState.petGivenToChloe) {
+                this.gameState.petGivenToChloe = true;
+                this.gameState.petFollowing = true;
+            }
+
             // Rebuild NPCs list: remove new character, add old character
             this.npcs = NPCS.filter(npc => npc.id !== characterId).map(npc => ({
                 ...npc,

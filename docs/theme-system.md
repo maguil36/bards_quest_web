@@ -88,8 +88,8 @@ Implemented in `setupCrawlTransition(fromTheme, toTheme)` in `reader.js` (line 2
 | `mind` | Dark with teal tint, teal accent (#00c2a0) |
 | `hope` | Near-white (color-mix #dddddd/gold 5%), gold accent (#df9f03) |
 | `rage` | Dark with purple tint, cyan accent (#00ffff), magenta text |
-| `life` | Mid-grey (#535353 bg), dark green accent (#043400) |
-| `doom` | Black bg, dark green accent (#204020), grey text |
+| `life` | Mid-grey (#535353 bg), dark green accent (#043400), CSS `--text: #000000` (black). Note: JS `getThemeColors` table uses `text: '#ffffff'` — these two are inconsistent. |
+| `doom` | Black bg, dark green accent (#204020), CSS `--text: #000000` (black). Note: JS `getThemeColors` table uses `text: '#888888'` — these two are inconsistent. |
 | `blood` | Cream (#ffffee bg), dark red text (#800000), navy accent (#100068) |
 | `void` | Dark with indigo tint, indigo accent (#4f46e5) |
 

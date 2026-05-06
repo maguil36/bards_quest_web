@@ -653,6 +653,24 @@ class DialogueManager {
             });
         }
 
+        if (npcId === 'pet') {
+            const petGivenToChloe = this.gameState.petGivenToChloe || false;
+
+            if (petGivenToChloe) {
+                this.showingMenu = false;
+                this.isActive = false;
+                return false;
+            }
+
+            const petFollowing = this.gameState.petFollowing || false;
+
+            this.menuOptions = [
+                { id: 'follow', label: petFollowing ? '(Follow me)' : 'Follow me', enabled: !petFollowing },
+                { id: 'stay', label: petFollowing ? 'Stay here' : '(Stay here)', enabled: petFollowing },
+                { id: 'cancel', label: 'Stop talking to them', enabled: true }
+            ];
+        }
+
         return true;
     }
 
@@ -678,6 +696,12 @@ class DialogueManager {
         } else if (optionId === 'steal') {
             this.showStealWeaponDialogue();
             return true;
+        } else if (optionId === 'follow') {
+            this.setPetFollowing(true);
+            return false;
+        } else if (optionId === 'stay') {
+            this.setPetFollowing(false);
+            return false;
         } else if (optionId === 'cancel') {
             this.cancelDialogue();
             return false;
@@ -833,6 +857,13 @@ class DialogueManager {
 
     performSwitch(targetNpcId) {
         this.switchToCharacter(targetNpcId);
+    }
+
+    setPetFollowing(following) {
+        this.gameState.petFollowing = following;
+        this.gameState.save();
+        this.showingMenu = false;
+        this.isActive = false;
     }
 
     handleMiniGameComplete(success, targetNpcId) {

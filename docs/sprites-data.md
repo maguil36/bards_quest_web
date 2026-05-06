@@ -225,7 +225,7 @@ export interface PlanetData { name: string; description: string }
 
 export const characterPlanets: Record<string, PlanetData>
 ```
-Maps 21 character names (lowercase) to their land name and lore description. Includes `default` fallback.
+Maps 20 named characters (lowercase) to their land name and lore description. Includes a `default` fallback key (not a named character).
 
 ```ts
 export function createSpaceConfig(imageName: SpaceImageName): { type: 'static'; svg: string }

@@ -115,8 +115,10 @@ Throws `Error: Unknown game type: {gameType}` if the key is not present.
 
 **iframe src pattern:**
 
+The URL comes from the `gameFiles` map in `GameEmbed.astro` — it is not derived mechanically from `gameType`. The pattern `/games/{gameType}/index.html` happens to be correct for the `switch` entry, but custom entries in the map can use any path.
+
 ```
-/games/{gameType}/index.html?seed={seed}[&chapter={chapter.id}][&page={page}]
+{gameFiles[gameType]}?seed={seed}[&chapter={chapter.id}][&page={page}]
 ```
 
 Example: `/games/switch/index.html?seed=42&chapter=1&page=12`
@@ -139,7 +141,7 @@ Example: `/games/switch/index.html?seed=42&chapter=1&page=12`
 
 **Game completion handler:**
 
-An inline script listens for `window.message` events with `event.data === 'gameComplete'` and navigates to `/read/{currentChapter}/{nextPage}`.
+An inline script listens for `message` events via `window.addEventListener('message', ...)` with `event.data === 'gameComplete'` and navigates to `/read/{currentChapter}/{nextPage}`.
 
 ---
 

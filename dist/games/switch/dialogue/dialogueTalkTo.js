@@ -277,6 +277,15 @@ const DIALOGUES = {
                 { speaker: 'player', text: "Two different prisons. Both terrible in their own way." }
             ],
         }
+    },
+    pet: {
+        name: 'Lost Pet',
+        dialogues: {
+            default: [
+                { speaker: 'player', text: "Oh, here is the animal!" },
+                { speaker: 'player', text: "Follow me." }
+            ]
+        }
     }
 
 };

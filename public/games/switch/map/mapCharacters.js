@@ -207,6 +207,12 @@ const NPCS = [
     position: { x: 2752, y: 4640 },
     color: CHAR_COLORS.victor,
   },
+  {
+    id: 'pet',
+    name: 'Lost Pet',
+    position: { x: 2400, y: 4300 },
+    color: '#8B4513',
+  },
 ];
 
 console.log('mapCharacters.js: NPCS array defined');
@@ -271,6 +277,8 @@ class GameState {
         stolen: [],
         available: ['austine', 'chloe', 'nicholas', 'opal', 'tyson', 'isabela']
     };
+    this.petFollowing = false;
+    this.petGivenToChloe = false;
 
     Object.keys(CHARACTERS).forEach((charId) => {
       this.characterPositions[charId] = { ...CHARACTERS[charId].position };
@@ -595,7 +603,9 @@ class GameState {
       grist: this.grist,
       chestStates: this.chestStates,
       defeatedAgents: this.defeatedAgents,
-      characters: this.characters
+      characters: this.characters,
+      petFollowing: this.petFollowing,
+      petGivenToChloe: this.petGivenToChloe
     };
     try {
       localStorage.setItem('switchGameState', JSON.stringify(data));
@@ -636,6 +646,8 @@ class GameState {
       if (data.chestStates) this.chestStates = data.chestStates;
       if (data.defeatedAgents) this.defeatedAgents = data.defeatedAgents;
       if (data.characters) this.characters = data.characters;
+      this.petFollowing = data.petFollowing || false;
+      this.petGivenToChloe = data.petGivenToChloe || false;
 
       this.migrateDefeatedAgents();
     } catch (e) {

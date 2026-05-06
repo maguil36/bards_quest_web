@@ -64,7 +64,7 @@ The `<html>` element's `data-theme` attribute is set by `reader.js` and `options
 
 These are set as inline `style` properties by JS during `scroll`/`crawl` transitions and cascade-override the theme vars:
 
-- `--bg-color` (falls back to `var(--bg-soft)`)
+- `--bg-color` (falls back to `var(--bg)`)
 - `--text-color` (falls back to `var(--text)`)
 - `--accent-color` (falls back to `var(--accent)`)
 - `--panel-bg` (falls back to `var(--card)`)

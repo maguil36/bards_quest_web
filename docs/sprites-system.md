@@ -90,7 +90,7 @@ export type SpriteConfig = ClockConfig | StaticConfig | any
 
 #### `renderClockSprite(container, config, initClock)`
 
-Renders a `<div>` containing:
+Renders an outer `<div style="position: relative; width: 72px; height: 72px;">` containing:
 - A `<div id="clock-date">` positioned above (top: -16px) for the date display.
 - A `<canvas id="clock-canvas" width="72" height="72">` for the clock face.
 
@@ -165,8 +165,9 @@ The page route passes the current page number and chapter to the layout. The lay
   life: createLifeConfig(80, 100),                      // current/max HP
   doom: createDoomConfig([{ name: 'Key', code: 'KEY1' }]),
   blood: createBloodConfig(42, { 'Build': 5, 'Gold': 3 }),
-  void: createVoidConfig({ page: 42 }, 'Optional console message.')
-  // hope and rage are optional; omit to use defaultPageConfig values
+  void: createVoidConfig({ page: 42 }, 'Optional console message.'),
+  hope: createHopeConfig('opal'),                               // pov name (optional)
+  // rage is optional; omit to use defaultPageConfig values
 },
 ```
 

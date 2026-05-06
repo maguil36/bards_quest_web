@@ -95,6 +95,13 @@ The main theme-application function:
 ```js
 function applyTheme() {
   const t = selTheme?.value || get(K.theme, 'default') || 'default';
+  if (selTheme) selTheme.value = t;
+
+  // Ensure transition attribute is set (default to 'smooth' for options page)
+  if (!document.documentElement.hasAttribute('data-transition')) {
+    document.documentElement.setAttribute('data-transition', 'smooth');
+  }
+
   if (t === 'default') {
     document.documentElement.removeAttribute('data-theme');
     try { localStorage.removeItem(K.theme); } catch {}
@@ -139,8 +146,8 @@ Reads (read-only) the localStorage key `progress:series-1`, which is written by 
 
 On `DOMContentLoaded`:
 1. Parses `progress:series-1` from localStorage.
-2. If a valid `{ chapter, page }` entry exists, sets `#resume-link` href to `/read/{chapter}/{page}` and makes it visible.
-3. If no valid entry exists, hides `#resume-link` and shows `#resume-empty`.
+2. If a valid `{ chapter, page }` entry exists, sets `#resume-link` href to `/read/{chapter}/{page}` and makes it visible (sets `display: 'inline-flex'`) and hides `#resume-empty` (sets `display: 'none'`).
+3. If no valid entry exists, the function does nothing — both elements remain in their HTML-default display state (there is no else-branch).
 
 ---
 

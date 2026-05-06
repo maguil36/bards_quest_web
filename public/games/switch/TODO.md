@@ -5,12 +5,13 @@
 2. Fill in map with puzzles, chests, and encounters
 3. fill in map with chests
 4. fill in map with encounters
-5. create a failure ending
+5. create a failure ending, it should be the same as victors incomplete ending
 6. Fix up the map quests
 7. Implement map quest logic and checks 
 8. Implement alternative ending check
 9. Fix bug when switching old character becomes a block
 10. Fix quests to be backward compatiable if you have already completed their prerequists but haven't progressed far enough to meet that prequesite. 
+11. Seperate ending with incomplete ending, ending will play an animation .mp4 file, while incomplete ending will display what happens when you swap to victor. The check it will preform to see if you have the ability to do the complete ending is it'll see if you have been on read/2/1 yet. If yes it'll display the complete ending else the static victor swap ending will play. When you arrive to this page you'll be given an option to start the game again.
 
 ## Section 2: Dialogue Changes
 1. Write up dialogue
