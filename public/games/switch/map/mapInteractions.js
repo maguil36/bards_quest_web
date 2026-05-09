@@ -87,7 +87,7 @@ export class MapInteractions {
         }
 
         for (const npc of this.game.npcs) {
-            if (npc && npc.position) {
+            if (npc && npc.position && npc.id !== 'pet') {
                 if (newX < npc.position.x + this.game.tileSize + safetyMargin &&
                     newX + this.game.player.width > npc.position.x - safetyMargin &&
                     newY < npc.position.y + this.game.tileSize + safetyMargin &&
@@ -511,7 +511,7 @@ export class MapInteractions {
         }
 
         for (const npc of this.game.npcs) {
-            if (npc && npc.position) {
+            if (npc && npc.position && npc.id !== 'pet') {
                 if (x < npc.position.x + this.game.tileSize &&
                     x + width > npc.position.x &&
                     y < npc.position.y + this.game.tileSize &&
@@ -702,7 +702,7 @@ export class MapInteractions {
         }
 
         for (const npc of this.game.npcs) {
-            if (npc && npc.position) {
+            if (npc && npc.position && npc.id !== 'pet') {
                 if (newX < npc.position.x + this.game.tileSize &&
                     newX + this.game.player.width > npc.position.x &&
                     newY < npc.position.y + this.game.tileSize &&

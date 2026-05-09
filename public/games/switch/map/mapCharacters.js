@@ -27,9 +27,9 @@ console.log('mapCharacters.js: getCSSVar function defined');
  const CHARACTER_BASE_HP = {
    opal: 345,
    alexis: 358,
-   tyson: 311,
+   tyson: 331,
    chloe: 342,
-   isabela: 282,
+   isabela: 295,
    nicholas: 278,
    austine: 312,
    victor: 265
@@ -272,6 +272,9 @@ class GameState {
     this.grist = 50;
     this.chestStates = [];
     this.defeatedAgents = [];
+    this.alertedAgents = [];
+    this.chasingAgents = [];
+    this.pendingCombat = null;
     this.usedFraymotifs = {};
     this.stolenWeapons = {
         stolen: [],
@@ -483,6 +486,9 @@ class GameState {
       if (!this.defeatedAgents.includes(agentKey)) {
         this.defeatedAgents.push(agentKey);
       }
+      this.alertedAgents = (this.alertedAgents || []).filter(k => k !== agentKey);
+      this.chasingAgents = (this.chasingAgents || []).filter(k => k !== agentKey);
+      this.pendingCombat = null;
       this.save();
     }
   }
@@ -603,6 +609,9 @@ class GameState {
       grist: this.grist,
       chestStates: this.chestStates,
       defeatedAgents: this.defeatedAgents,
+      alertedAgents: this.alertedAgents,
+      chasingAgents: this.chasingAgents,
+      pendingCombat: this.pendingCombat,
       characters: this.characters,
       petFollowing: this.petFollowing,
       petGivenToChloe: this.petGivenToChloe
@@ -629,6 +638,12 @@ class GameState {
       );
       if (data.characterPositions) {
         this.characterPositions = data.characterPositions;
+        // Backfill any character missing from saved data (e.g. newly added characters)
+        Object.keys(CHARACTERS).forEach((charId) => {
+          if (!this.characterPositions[charId]) {
+            this.characterPositions[charId] = { ...CHARACTERS[charId].position };
+          }
+        });
       }
       this.lastNPCTalkedId = data.lastNPCTalkedId || null;
       this.lastNonFinalNPCTalkedId = data.lastNonFinalNPCTalkedId || null;
@@ -645,6 +660,9 @@ class GameState {
       this.grist = data.grist || 0;
       if (data.chestStates) this.chestStates = data.chestStates;
       if (data.defeatedAgents) this.defeatedAgents = data.defeatedAgents;
+      this.alertedAgents = data.alertedAgents || [];
+      this.chasingAgents = data.chasingAgents || [];
+      this.pendingCombat = data.pendingCombat || null;
       if (data.characters) this.characters = data.characters;
       this.petFollowing = data.petFollowing || false;
       this.petGivenToChloe = data.petGivenToChloe || false;

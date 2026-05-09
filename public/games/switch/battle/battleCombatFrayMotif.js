@@ -168,7 +168,7 @@ export class FraymotifExecutor {
       case 'complexStatChange':
         if (effect.targetSelection) {
           this.applyStatChanges(attacker, effect.positiveStats, effect.duration);
-          this.applyStatChanges(attacker, effect.negativeStats, effect.duration);
+          this.applyStatChanges(defender, effect.negativeStats, effect.duration);
         }
         break;
 

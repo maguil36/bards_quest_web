@@ -477,7 +477,7 @@ const STRIFE_OPTIONS = {
   derseAgent: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
   ],
-  derseArchAgent: [
+  derseArchagent: [
     { id: 'aggrieve', name: 'AGGRIEVE', category: 'damage', tooltip: 'Standard attack. Gain damage dealt as fraymotif points.' },
   ],
   derseSS: [
@@ -509,7 +509,7 @@ const ABILITIES = {
   tyson: { name: 'Doomed', effect: 'noCrits', description: 'Prevents critical hits' },
   nicholas: { name: 'Light Destroyer', effect: 'lowAccuracyHighDamage', description: 'Doubles damage when using rifle weapon, but halves accuracy' },
   alexis: { name: 'Adaptation', effect: 'defenseOnHit', description: 'Everytime hit by physical damage increase def by 1 stage, every time hit by special damage increase sp.def by 1 stage' },
-  isabela: { name: 'blood alchemy', effect: 'endturnheal', description: 'Heals 1/16 fo damage at end of the battle sequence' },
+  isabela: { name: 'blood alchemy', effect: 'endTurnHeal', description: 'Heals 1/16 fo damage at end of the battle sequence' },
   chloe: { name: 'Animal Companion', effect: 'pairbond', description: 'Second attack is made by Chloe with animalCompanion weapon.' },
   austine: { name: 'Tactician', effect: 'doubleStatChanges', description: 'Doubles the effect of stat changes.' }
 };

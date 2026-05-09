@@ -45,6 +45,7 @@ export class MapAI {
                 if (alertDuration >= 1000) {
                     agent.chasing = true;
                     agent.alerted = false;
+                    this._persistAgentState(agent);
                 }
             } else if (agent.chasing) {
                 const dx = this.player.x - agent.x;
@@ -114,6 +115,10 @@ export class MapAI {
 
     updateAgentPatrol(agent) {
         if (!agent.patrolPath || agent.patrolPath.length === 0) {
+            return false;
+        }
+
+        if (agent.patrolPath.length === 1) {
             return false;
         }
 
@@ -227,6 +232,7 @@ export class MapAI {
                             agent.alertTime = Date.now();
                             this.setPlayerFrozen(true);
                             this.playEncounterMusic(agent.type || 'derseAgent');
+                            this._persistAgentState(agent);
                         }
                         return;
                     }
@@ -242,6 +248,7 @@ export class MapAI {
                             agent.alertTime = Date.now();
                             this.setPlayerFrozen(true);
                             this.playEncounterMusic(agent.type || 'derseAgent');
+                            this._persistAgentState(agent);
                         }
                         return;
                     }
@@ -257,6 +264,7 @@ export class MapAI {
                             agent.alertTime = Date.now();
                             this.setPlayerFrozen(true);
                             this.playEncounterMusic(agent.type || 'derseAgent');
+                            this._persistAgentState(agent);
                         }
                         return;
                     }
@@ -272,11 +280,38 @@ export class MapAI {
                             agent.alertTime = Date.now();
                             this.setPlayerFrozen(true);
                             this.playEncounterMusic(agent.type || 'derseAgent');
+                            this._persistAgentState(agent);
                         }
                         return;
                     }
                 }
                 break;
         }
+    }
+
+    _agentKey(agent) {
+        return `${agent.spawnX}_${agent.spawnY}`;
+    }
+
+    _persistAgentState(agent) {
+        if (!this.game || !this.game.gameState) return;
+        const gs = this.game.gameState;
+        const key = this._agentKey(agent);
+
+        gs.alertedAgents = gs.alertedAgents || [];
+        gs.chasingAgents = gs.chasingAgents || [];
+
+        if (agent.alerted) {
+            if (!gs.alertedAgents.includes(key)) gs.alertedAgents.push(key);
+            gs.chasingAgents = gs.chasingAgents.filter(k => k !== key);
+        } else if (agent.chasing) {
+            if (!gs.chasingAgents.includes(key)) gs.chasingAgents.push(key);
+            gs.alertedAgents = gs.alertedAgents.filter(k => k !== key);
+        } else {
+            gs.alertedAgents = gs.alertedAgents.filter(k => k !== key);
+            gs.chasingAgents = gs.chasingAgents.filter(k => k !== key);
+        }
+
+        gs.save();
     }
 }

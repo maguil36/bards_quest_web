@@ -53,8 +53,8 @@ export class MapOrchestrator extends BaseOrchestrator {
             } else {
                 const chloeNpc = this.game.npcs.find(npc => npc.id === 'chloe');
                 if (chloeNpc) {
-                    targetX = chloeNpc.x;
-                    targetY = chloeNpc.y;
+                    targetX = chloeNpc.position.x;
+                    targetY = chloeNpc.position.y;
                 } else {
                     return;
                 }
@@ -65,30 +65,32 @@ export class MapOrchestrator extends BaseOrchestrator {
         }
 
         const distance = Math.sqrt(
-            Math.pow(targetX - pet.x, 2) +
-            Math.pow(targetY - pet.y, 2)
+            Math.pow(targetX - pet.position.x, 2) +
+            Math.pow(targetY - pet.position.y, 2)
         );
 
         if (distance > 40) {
             const speed = this.game.player.speed;
-            const angle = Math.atan2(targetY - pet.y, targetX - pet.x);
+            const angle = Math.atan2(targetY - pet.position.y, targetX - pet.position.x);
 
-            const oldX = pet.x;
-            const oldY = pet.y;
+            const oldX = pet.position.x;
+            const oldY = pet.position.y;
 
-            pet.x += Math.cos(angle) * speed;
-            pet.y += Math.sin(angle) * speed;
+            pet.position.x += Math.cos(angle) * speed;
+            pet.position.y += Math.sin(angle) * speed;
 
-            if (Math.abs(pet.x - oldX) > Math.abs(pet.y - oldY)) {
-                pet.direction = pet.x > oldX ? 'right' : 'left';
+            if (Math.abs(pet.position.x - oldX) > Math.abs(pet.position.y - oldY)) {
+                pet.direction = pet.position.x > oldX ? 'right' : 'left';
             } else {
-                pet.direction = pet.y > oldY ? 'down' : 'up';
+                pet.direction = pet.position.y > oldY ? 'down' : 'up';
             }
 
             pet.isMoving = true;
         } else {
             pet.isMoving = false;
         }
+
+        this.game.gameState.characterPositions['pet'] = { x: pet.position.x, y: pet.position.y };
     }
 
     updateCamera() {

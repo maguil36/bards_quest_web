@@ -52,7 +52,9 @@ export class BattleOrchestrator extends BaseOrchestrator {
             if (combatConfig.playerLevel !== undefined) {
                 playerData.level = combatConfig.playerLevel;
             }
-            enemyData = getCombatantData(combatConfig.enemyName);
+            enemyData = combatConfig.enemy && typeof combatConfig.enemy === 'object'
+                ? combatConfig.enemy
+                : getCombatantData(combatConfig.enemyName);
         } else if (combatConfig.player) {
             if (typeof combatConfig.player === 'string') {
                 playerData = getCombatantData(combatConfig.player);

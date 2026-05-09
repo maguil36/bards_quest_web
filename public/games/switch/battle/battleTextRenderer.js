@@ -153,14 +153,12 @@ class BattleTextRenderer {
     let totalDamage = 0;
 
     const showNextHit = () => {
-      console.log('showNextHit called, currentHitIndex:', currentHitIndex, 'hitData.length:', hitData.length);
       if (currentHitIndex >= hitData.length) {
-        const summaryMessage = `${attackerName}'s ${moveName} hit ${hitData.length} time${hitData.length > 1 ? 's' : ''} for ${totalDamage} damage`;
-        console.log('All hits done, showing summary:', summaryMessage);
+        const times = hitData.length;
+        const summaryMessage = `${moveName} hit ${times} time${times > 1 ? 's' : ''} for ${totalDamage} damage!`;
         this.addLogMessage(summaryMessage, '#0f0', context.onRender, context.container);
 
         this.waitForInput(() => {
-          console.log('Summary wait complete, calling finalCallback');
           if (finalCallback) finalCallback();
         }, context.container, this.waitTimeout);
         return;
@@ -169,18 +167,16 @@ class BattleTextRenderer {
       const hit = hitData[currentHitIndex];
       totalDamage += hit.damage;
 
-      const hitMessage = `${attackerName} hit ${hit.hitNumber} time for ${hit.damage} damage`;
-      console.log('Showing hit message:', hitMessage);
-      this.addLogMessage(hitMessage, '#0f0', context.onRender, context.container);
+      const hitMessage = `Hit for ${hit.damage} damage!`;
+      this.addLogMessage(hitMessage, '#fff', context.onRender, context.container);
 
-      if (context.onUpdateCombatData) {
-        context.onUpdateCombatData();
+      if (context.onUpdateHpSnapshot) {
+        context.onUpdateHpSnapshot(hit.defenderHp);
       }
 
       currentHitIndex++;
 
       this.waitForInput(() => {
-        console.log('Hit wait complete, showing next hit');
         showNextHit();
       }, context.container, this.waitTimeout);
     };

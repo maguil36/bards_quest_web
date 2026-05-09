@@ -210,14 +210,18 @@ class BattleAnimations {
     }, 2800);
 
     setTimeout(() => {
-      console.log('[INTRO] 3200ms: Playing glossy shine effect');
       const actionsContainer = this.container.querySelector('.actions');
-      console.log('[INTRO] actionsContainer at shine:', actionsContainer);
       if (actionsContainer) {
-        console.log('[INTRO] Setting up shine effect...');
-
-        const rect = actionsContainer.getBoundingClientRect();
-        console.log('[INTRO] Actions container position:', rect);
+        // Fires at 3400ms — after the .actions slide-in (2800ms + 0.5s) has fully settled.
+        // Use the container's stable fixed position plus the known .actions inset offset.
+        const containerRect = this.container.getBoundingClientRect();
+        const actionsRect = actionsContainer.getBoundingClientRect();
+        const rect = {
+          top: actionsRect.top,
+          left: containerRect.left + 20,
+          width: 227,
+          height: actionsRect.height
+        };
 
         const clipWrapper = document.createElement('div');
         clipWrapper.style.cssText = `
@@ -231,52 +235,32 @@ class BattleAnimations {
           z-index: 99999;
         `;
 
+        const shineWidth = Math.round(rect.width * 0.4);
         const shine = document.createElement('div');
         shine.id = 'shineEffect';
         shine.style.cssText = `
           position: absolute;
           top: 0;
-          left: ${-rect.width * 2}px;
-          width: ${rect.width * 2}px;
+          left: ${-shineWidth}px;
+          width: ${shineWidth}px;
           height: 100%;
           background: linear-gradient(90deg,
             rgba(255, 255, 255, 0) 0%,
             rgba(255, 255, 255, 0.3) 25%,
-            rgba(255, 255, 255, 0.9) 30%,
-            rgba(255, 255, 255, 0.9) 70%,
+            rgba(255, 255, 255, 0.9) 45%,
+            rgba(255, 255, 255, 0.9) 55%,
             rgba(255, 255, 255, 0.3) 75%,
             rgba(255, 255, 255, 0) 100%);
           pointer-events: none;
           transform: skewX(-20deg);
-          box-shadow: 0 0 50px rgba(255, 255, 255, 0.8);
         `;
 
         clipWrapper.appendChild(shine);
         document.body.appendChild(clipWrapper);
-        console.log('[INTRO] Shine element created with clipping wrapper');
-        console.log('[INTRO] Button container width:', rect.width + 'px');
-        console.log('[INTRO] Shine width:', (rect.width * 2) + 'px');
-        console.log('[INTRO] Shine start position:', (-rect.width * 2) + 'px');
-        console.log('[INTRO] Shine end position:', (rect.width * 2) + 'px');
-        console.log('[INTRO] Total distance to travel:', (rect.width * 4) + 'px');
 
         requestAnimationFrame(() => {
           shine.style.transition = `left 1.2s ease-in-out`;
-          shine.style.left = `${rect.width * 2}px`;
-          console.log('[INTRO] Shine animation started');
-
-          const trackShinePosition = setInterval(() => {
-            const shineRect = shine.getBoundingClientRect();
-            const shineLeft = shineRect.left - rect.left;
-            const shineRight = shineLeft + shineRect.width;
-            const coverage = Math.min(100, Math.max(0, (Math.min(shineRight, rect.width) - Math.max(shineLeft, 0)) / rect.width * 100));
-            console.log('[SHINE] Position:', shineLeft.toFixed(0) + 'px', '| Coverage:', coverage.toFixed(1) + '%', '| Shine Right Edge:', shineRight.toFixed(0) + 'px / ' + rect.width + 'px');
-          }, 100);
-
-          setTimeout(() => {
-            clearInterval(trackShinePosition);
-            console.log('[INTRO] Shine position tracking stopped');
-          }, 1300);
+          shine.style.left = `${rect.width}px`;
         });
 
         setTimeout(() => {
@@ -301,7 +285,7 @@ class BattleAnimations {
         this.container.style.background = '';
         if (callback) callback();
       }, 1300);
-    }, 3200);
+    }, 3400);
   }
 
   playAttackAnimation(isPlayer = false, moveData = null, callback) {

@@ -18,10 +18,16 @@ function createStageModifier(stat, stages, duration = 3) {
   };
 }
 
-function decrementStageModifiers(modifiers) {
-  return modifiers.filter(mod => {
+function decrementStageModifiers(battler, messages) {
+  battler.stageModifiers = battler.stageModifiers.filter(mod => {
     mod.turnsRemaining--;
-    return mod.turnsRemaining > 0;
+    if (mod.turnsRemaining <= 0) {
+      battler.stages[mod.stat] = Math.max(-6, Math.min(6, battler.stages[mod.stat] - mod.stages));
+      const name = battler.name || battler.id;
+      messages.push(`${name}'s ${mod.stat} returned to normal!`);
+      return false;
+    }
+    return true;
   });
 }
 
@@ -107,14 +113,17 @@ class PokemonCombatSystem {
         return {
           id: customEnemy.id || 'derseAgent',
           name: customEnemy.name || 'Derse Agent',
-          hp: customEnemy.health || baseStats.hp,
-          maxHp: customEnemy.maxHealth || baseStats.maxHp,
-          attack: customEnemy.attack || baseStats.attack,
-          defense: customEnemy.defense || baseStats.defense,
-          specialAttack: customEnemy.specialAttack || baseStats.specialAttack,
-          specialDefense: customEnemy.specialDefense || baseStats.specialDefense,
-          speed: customEnemy.speed || baseStats.speed,
+          hp: customEnemy.health ?? baseStats.hp,
+          maxHp: customEnemy.maxHealth ?? baseStats.maxHp,
+          attack: customEnemy.attack ?? baseStats.attack,
+          defense: customEnemy.defense ?? baseStats.defense,
+          specialAttack: customEnemy.specialAttack ?? baseStats.specialAttack,
+          specialDefense: customEnemy.specialDefense ?? baseStats.specialDefense,
+          speed: customEnemy.speed ?? baseStats.speed,
           stages: { ...stages },
+          stageModifiers: [],
+          critStage: 0,
+          weapon: DEFAULT_WEAPONS[customEnemy.id] || null,
           ability: { name: 'None', effect: 'none' },
           moves: STRIFE_OPTIONS[customEnemy.id] || STRIFE_OPTIONS.derseAgent,
           statusEffects: {},
@@ -242,19 +251,30 @@ class PokemonCombatSystem {
   }
 
   checkAccuracy(attacker, defender, moveAccuracy) {
-    if (moveAccuracy === 100 && attacker.stages.accuracy === 0 && defender.stages.evasion === 0) {
+    let effectiveMoveAccuracy = moveAccuracy;
+
+    if (attacker.ability && attacker.ability.effect === 'lowAccuracyHighDamage') {
+      effectiveMoveAccuracy = Math.floor(moveAccuracy / 2);
+    }
+
+    if (effectiveMoveAccuracy === 100 && attacker.stages.accuracy === 0 && defender.stages.evasion === 0) {
       return true;
     }
 
     const accuracyMult = this.getAccuracyEvasionMultiplier(attacker.stages.accuracy, defender.stages.evasion);
-    const finalAccuracy = moveAccuracy * accuracyMult;
-    
+    const finalAccuracy = effectiveMoveAccuracy * accuracyMult;
+
     return Math.random() * 100 < finalAccuracy;
   }
 
   checkCritical(attacker, defender) {
     if (defender && defender.ability && defender.ability.effect === 'noCrits') {
       return false;
+    }
+
+    if (attacker.nextAttackCrit) {
+      attacker.nextAttackCrit = false;
+      return true;
     }
 
     const critStage = attacker.critStage || 0;
@@ -302,6 +322,10 @@ class PokemonCombatSystem {
       defense *= defender.statusEffects.defenseBoost.multiplier;
     }
 
+    if (defender.statusEffects.defenseDouble) {
+      defense *= defender.statusEffects.defenseDouble.multiplier;
+    }
+
     let damage = Math.floor(((level * 2 / 5) + 2) * move.power * (attack / defense) / 50);
 
     const randomFactor = 0.85 + Math.random() * 0.15;
@@ -332,15 +356,14 @@ class PokemonCombatSystem {
         actualChange = change * 2;
       }
 
-      if (!target.isPlayer && sourceAbility === 'Tactician' && change < 0) {
-        actualChange = change * 2;
-      }
-
       const oldStage = target.stages[stat];
       target.stages[stat] = Math.max(-6, Math.min(6, target.stages[stat] + actualChange));
       const netChange = target.stages[stat] - oldStage;
 
       if (netChange !== 0) {
+        if (!target.stageModifiers) target.stageModifiers = [];
+        target.stageModifiers.push(createStageModifier(stat, netChange, 4));
+
         const targetName = target.isPlayer ? this.player.id : this.enemy.name;
         const statName = stat.charAt(0).toUpperCase() + stat.slice(1);
         const changeDesc = netChange > 0 ? 'rose' : 'fell';
@@ -357,22 +380,28 @@ class PokemonCombatSystem {
       return { success: false, message: 'Invalid move!' };
     }
 
-    const move = attacker.moves[moveIndex];
-    const results = { success: true, messages: [], damage: 0, critical: false, moveName: move.name };
-    
-    if (move.requiresQuest && attacker.isPlayer) {
+    if (attacker.flinched) {
+      attacker.flinched = false;
+      return { success: true, messages: [`${attacker.isPlayer ? attacker.id : attacker.name} flinched and couldn't move!`], damage: 0, critical: false, flinched: true };
+    }
+
+    const baseMoveData = attacker.moves[moveIndex];
+    const results = { success: true, messages: [], damage: 0, critical: false, moveName: baseMoveData.name };
+
+    if (baseMoveData.requiresQuest && attacker.isPlayer) {
       const hasCompletedQuest = this.gameState.hasItem('lostAnimal');
       if (!hasCompletedQuest) {
         results.success = false;
-        results.messages.push(`Cannot use ${move.name} - quest not completed!`);
+        results.messages.push(`Cannot use ${baseMoveData.name} - quest not completed!`);
         return results;
       }
     }
-    
-    if (move.upgradedPower && attacker.isPlayer) {
-      const hasUpgrade = this.gameState.questProgress.isabelaUpgrade === true;
+
+    let move = baseMoveData;
+    if (baseMoveData.upgradedPower && attacker.isPlayer) {
+      const hasUpgrade = this.gameState.questProgress['isabela']?.completed === true;
       if (hasUpgrade) {
-        move.power = move.upgradedPower;
+        move = { ...baseMoveData, power: baseMoveData.upgradedPower };
       }
     }
 
@@ -588,6 +617,10 @@ class PokemonCombatSystem {
       defense *= defender.statusEffects.defenseBoost.multiplier;
     }
 
+    if (defender.statusEffects.defenseDouble) {
+      defense *= defender.statusEffects.defenseDouble.multiplier;
+    }
+
     let damage = Math.floor(((level * 2 / 5) + 2) * weaponPower * (attack / defense) / 50);
 
     const randomFactor = 0.85 + Math.random() * 0.15;
@@ -597,6 +630,10 @@ class PokemonCombatSystem {
 
     if (isCritical) {
       damage = Math.floor(damage * 1.5);
+      const weapon = WEAPON_DATABASE[attacker.weapon];
+      if (weapon && weapon.ability === 'sniper') {
+        damage = Math.floor(damage * 1.5);
+      }
     }
 
     return Math.max(1, damage);
@@ -658,6 +695,15 @@ class PokemonCombatSystem {
       }
       results.damage = totalDamage;
       results.messages.push(`Hit twice for ${totalDamage} damage!`);
+    } else if (weapon.ability === 'tripleHit') {
+      let totalDamage = 0;
+      for (let i = 0; i < 3; i++) {
+        const damage = this.calculateWeaponDamage(this.player, this.enemy, weapon.power, 1, false);
+        this.enemy.hp = Math.max(0, this.enemy.hp - damage);
+        totalDamage += damage;
+      }
+      results.damage = totalDamage;
+      results.messages.push(`Hit three times for ${totalDamage} damage!`);
     } else {
       const damage = this.calculateWeaponDamage(this.player, this.enemy, weapon.power, 1, isCritical);
       this.enemy.hp = Math.max(0, this.enemy.hp - damage);
@@ -677,6 +723,10 @@ class PokemonCombatSystem {
     if (weapon.ability === 'lowerSpeed') {
       const statMessages = this.changeStats(this.enemy, { speed: -1 });
       results.messages.push(...statMessages);
+    }
+
+    if (weapon.ability === 'critBoost') {
+      this.player.critStage = Math.min(3, this.player.critStage + 1);
     }
 
     return results;
@@ -862,10 +912,10 @@ class PokemonCombatSystem {
 
     results.messages.push(`Dealt ${damage} damage!`);
 
-    const statMessages = this.changeStats(this.player, { accuracy: -1 });
+    const statMessages = this.changeStats(this.player, { specialAttack: -1, accuracy: -1 });
     results.messages.push(...statMessages);
 
-    results.statChanges = { accuracy: -1 };
+    results.statChanges = { specialAttack: -1, accuracy: -1 };
     results.statTarget = 'self';
 
     return results;
@@ -1204,6 +1254,38 @@ class PokemonCombatSystem {
       }
     }
 
+    if (this.player.statusEffects.defenseDouble) {
+      this.player.statusEffects.defenseDouble.turnsRemaining--;
+      if (this.player.statusEffects.defenseDouble.turnsRemaining <= 0) {
+        delete this.player.statusEffects.defenseDouble;
+        messages.push(`${this.player.id}'s defense boost wore off!`);
+      }
+    }
+
+    if (this.player.statusEffects.regeneration) {
+      const regen = this.player.statusEffects.regeneration;
+      const healAmount = Math.floor(this.player.maxHp * regen.healPerTurn);
+      this.player.hp = Math.min(this.player.maxHp, this.player.hp + healAmount);
+      messages.push(`${this.player.id} regenerated ${healAmount} HP!`);
+      regen.turnsRemaining--;
+      if (regen.turnsRemaining <= 0) {
+        delete this.player.statusEffects.regeneration;
+        messages.push(`${this.player.id}'s regeneration wore off!`);
+      }
+    }
+
+    if (this.enemy && this.enemy.statusEffects.residualDamage) {
+      const residual = this.enemy.statusEffects.residualDamage;
+      const damageAmount = Math.floor(this.enemy.maxHp * residual.damagePerTurn);
+      this.enemy.hp = Math.max(0, this.enemy.hp - damageAmount);
+      messages.push(`${this.enemy.name} took ${damageAmount} residual damage!`);
+      residual.turnsRemaining--;
+      if (residual.turnsRemaining <= 0) {
+        delete this.enemy.statusEffects.residualDamage;
+        messages.push(`Residual damage wore off!`);
+      }
+    }
+
     if (this.player.ability.effect === 'endTurnHeal') {
       const healAmount = Math.floor(this.player.maxHp / 16);
       this.player.hp = Math.min(this.player.maxHp, this.player.hp + healAmount);
@@ -1218,6 +1300,13 @@ class PokemonCombatSystem {
       }
       return true;
     });
+
+    if (this.player.stageModifiers && this.player.stageModifiers.length > 0) {
+      decrementStageModifiers(this.player, messages);
+    }
+    if (this.enemy && this.enemy.stageModifiers && this.enemy.stageModifiers.length > 0) {
+      decrementStageModifiers(this.enemy, messages);
+    }
 
     return messages;
   }
@@ -1479,6 +1568,7 @@ class PokemonCombatSystem {
 
     if (this.gameState.characters[this.player.id]) {
       this.gameState.characters[this.player.id].currentHp = Math.max(0, this.player.hp);
+      this.gameState.characters[this.player.id].fraymotifCharge = this.player.fraymotifCharge || 0;
       this.gameState.save();
     }
 

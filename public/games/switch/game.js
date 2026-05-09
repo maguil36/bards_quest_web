@@ -255,6 +255,19 @@ class SwitchGame {
             this.gameOrchestrator.start();
 
             this.gameLoop();
+
+            const pc = this.gameState.pendingCombat;
+            if (pc) {
+                const agent = this.agents.find(a => `${a.spawnX}_${a.spawnY}` === pc.agentKey && !a.defeated);
+                if (agent) {
+                    agent.chasing = true;
+                    agent.alerted = false;
+                    this.gameOrchestrator.switchToBattleMode(agent);
+                } else {
+                    this.gameState.pendingCombat = null;
+                    this.gameState.save();
+                }
+            }
         } catch (error) {
             throw error;
         }
@@ -911,6 +924,8 @@ class SwitchGame {
             const agentY = agent.y * this.tileSize;
             const agentKey = `${agentX}_${agentY}`;
             const isDefeated = this.gameState.defeatedAgents && this.gameState.defeatedAgents.includes(agentKey);
+            const isAlerted = this.gameState.alertedAgents && this.gameState.alertedAgents.includes(agentKey);
+            const isChasing = this.gameState.chasingAgents && this.gameState.chasingAgents.includes(agentKey);
 
             return {
                 x: agentX,
@@ -923,7 +938,9 @@ class SwitchGame {
                 patrolReverse: agent.patrolReverse,
                 speed: agent.speed,
                 detectionRange: agent.detectionRange,
-                chasing: agent.chasing,
+                alerted: isAlerted,
+                alertTime: isAlerted ? Date.now() : undefined,
+                chasing: isChasing,
                 defeated: isDefeated,
                 animationFrame: agent.animationFrame,
                 animationTimer: agent.animationTimer,
@@ -1362,11 +1379,13 @@ class SwitchGame {
             this.npcs = this.npcs.filter(n => n.id !== ghostNPC.id);
             this.npcs.push(ghostNPC);
 
-            // Ensure sprite exists for ghost
+            // Ensure sprite exists for ghost — prefer the pre-loaded character sprite
             if (this.sprites) {
                 if (!this.sprites.npcs) this.sprites.npcs = {};
-                const existing = this.sprites.npcs && this.sprites.npcs[ghostNPC.id];
-                this.sprites.npcs[ghostNPC.id] = existing || this.createHumanSpriteSheet(ghostNPC.color || '#888');
+                this.sprites.npcs[ghostNPC.id] =
+                    (this.sprites.npcs && this.sprites.npcs[ghostNPC.id]) ||
+                    (this.sprites.characters && this.sprites.characters[ghostNPC.id]) ||
+                    this.createHumanSpriteSheet(ghostNPC.color || '#888');
             }
 
             // Update DialogueManager NPC list
@@ -1453,11 +1472,21 @@ class SwitchGame {
                 }
             }
 
+            // Ensure every NPC has a sprite — copy from sprites.characters if not already in sprites.npcs
+            if (this.sprites) {
+                if (!this.sprites.npcs) this.sprites.npcs = {};
+                for (const npc of this.npcs) {
+                    if (!this.sprites.npcs[npc.id] && this.sprites.characters && this.sprites.characters[npc.id]) {
+                        this.sprites.npcs[npc.id] = this.sprites.characters[npc.id];
+                    }
+                }
+            }
+
             // Update dialogue manager NPCs reference
             if (this.dialogueManager) this.dialogueManager.npcs = this.npcs;
 
             // Update player position to new character's saved position
-            const savedPos = this.gameState.characterPositions[characterId];
+            const savedPos = this.gameState.characterPositions[characterId] || CHARACTERS[characterId]?.position;
             if (savedPos) {
                 this.player.x = savedPos.x;
                 this.player.y = savedPos.y;

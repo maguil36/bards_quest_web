@@ -1204,15 +1204,21 @@ class BattleUI {
     this.textRenderer.waitForInput(callback, this.container, timeout);
   }
 
-  showMultiHitMessages(attackerName, moveName, hitData, finalCallback) {
+  showMultiHitMessages(attackerName, moveName, hitData, finalCallback, isPlayerAttacking = true) {
+    const combat = this.gameState.combatSystem;
     const context = {
       onRender: () => this.render(),
       container: this.container,
-      onUpdateCombatData: () => {
-        this.updateCombatData({
-          player: this.gameState.combatSystem.player,
-          enemy: this.gameState.combatSystem.enemy
-        });
+      onUpdateHpSnapshot: (snapshotHp) => {
+        const player = combat.player;
+        const enemy = combat.enemy;
+        const snapshotPlayer = isPlayerAttacking
+          ? { ...player }
+          : { ...player, hp: snapshotHp };
+        const snapshotEnemy = isPlayerAttacking
+          ? { ...enemy, hp: snapshotHp }
+          : { ...enemy };
+        this.updateCombatData({ player: snapshotPlayer, enemy: snapshotEnemy });
       }
     };
 

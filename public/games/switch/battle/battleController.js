@@ -53,6 +53,10 @@ export class BattleController {
 
         const combatData = this.combatSystem.startCombat(enemy, currentChar);
 
+        const pc = this.gameState.pendingCombat;
+        if (pc && pc.playerStages) Object.assign(this.combatSystem.player.stages, pc.playerStages);
+        if (pc && pc.enemyStages) Object.assign(this.combatSystem.enemy.stages, pc.enemyStages);
+
         this.battleUI.combatData = combatData;
         this.battleUI.show(combatData);
 
@@ -75,6 +79,7 @@ export class BattleController {
                     agent.x = agent.spawnX;
                     agent.y = agent.spawnY;
                     agent.chasing = false;
+                    agent.encounterStarted = false;
 
                     this.player.x = this.spawnPosition.x;
                     this.player.y = this.spawnPosition.y;
@@ -161,12 +166,15 @@ export class BattleController {
             this.battleUI.commandPrompt = `==> ${playerName} used ${playerMove.name}!`;
             this.battleUI.render();
 
+            const preAttackEnemyHp = enemy.hp;
             const result = this.combatSystem.executeMove(player, enemy, moveIndex);
+            this._saveCombatSnapshot();
             const didHit = !(result.messages && result.messages.some(msg => msg.includes('missed')));
 
             this.battleUI.playAttackAnimationWithResult(true, playerMove, didHit, () => {
                 if (result.success) {
                     if (result.multiHitData && result.multiHitData.length > 0) {
+                        this.battleUI.updateCombatData({ player, enemy: { ...enemy, hp: preAttackEnemyHp } });
                         const initialMessage = `${playerName} used ${playerMove.name}!`;
                         this.battleUI.addLogMessage(initialMessage, '#0f0');
 
@@ -183,7 +191,7 @@ export class BattleController {
                                 }
 
                                 this.executeEnemyTurn();
-                            });
+                            }, true);
                         }, 5000);
                         return;
                     }
@@ -261,6 +269,7 @@ export class BattleController {
             this.battleUI.commandPrompt = `==> ${playerName} used ${actionName}!`;
             this.battleUI.render();
 
+            const preStrifeEnemyHp = enemy.hp;
             const result = this.combatSystem.executeStrifeOption(action);
 
             console.log('[STRIFE] Action:', action);
@@ -337,6 +346,8 @@ export class BattleController {
     continueAfterStrifeAction(result, player, enemy, playerName, actionName) {
         if (result.success) {
             if (result.multiHitData && result.multiHitData.length > 0) {
+                const preHp = result.multiHitData[0].defenderHp + result.multiHitData[0].damage;
+                this.battleUI.updateCombatData({ player, enemy: { ...enemy, hp: preHp } });
                 const initialMessage = `${playerName} used ${actionName}!`;
                 this.battleUI.addLogMessage(initialMessage, '#0f0');
 
@@ -353,7 +364,7 @@ export class BattleController {
                         }
 
                         this.executeEnemyTurn();
-                    });
+                    }, true);
                 }, 5000);
                 return;
             }
@@ -404,12 +415,15 @@ export class BattleController {
         this.battleUI.commandPrompt = `==> ${enemyName} used ${enemyMove.name}!`;
         this.battleUI.render();
 
+        const preAttackPlayerHp = player.hp;
         const enemyResult = this.combatSystem.executeMove(enemy, player, enemyMoveIndex);
+        this._saveCombatSnapshot();
         const didHit = !(enemyResult.messages && enemyResult.messages.some(msg => msg.includes('missed')));
 
         this.battleUI.playAttackAnimationWithResult(false, enemyMove, didHit, () => {
             if (enemyResult.success) {
                 if (enemyResult.multiHitData && enemyResult.multiHitData.length > 0) {
+                    this.battleUI.updateCombatData({ player: { ...player, hp: preAttackPlayerHp }, enemy });
                     const initialMessage = `${enemyName} used ${enemyMove.name}!`;
                     this.battleUI.addLogMessage(initialMessage, '#0f0');
 
@@ -429,7 +443,7 @@ export class BattleController {
                             this.battleUI.currentPhase = 'selecting';
                             this.battleUI.commandPrompt = '==> What will you do?';
                             this.battleUI.render();
-                        });
+                        }, false);
                     }, 5000);
                     return;
                 }
@@ -568,6 +582,22 @@ export class BattleController {
         }, 300);
     }
 
+    _saveCombatSnapshot() {
+        if (!this.gameState || !this.gameState.pendingCombat) return;
+        const player = this.combatSystem && this.combatSystem.player;
+        const enemy = this.combatSystem && this.combatSystem.enemy;
+        if (!player || !enemy) return;
+        this.gameState.pendingCombat.playerHp = player.hp;
+        this.gameState.pendingCombat.playerStages = { ...player.stages };
+        this.gameState.pendingCombat.enemyHp = enemy.hp;
+        this.gameState.pendingCombat.enemyMaxHp = enemy.maxHp;
+        this.gameState.pendingCombat.enemyStages = { ...enemy.stages };
+        this.gameState.characters[player.id] = this.gameState.characters[player.id] || {};
+        this.gameState.characters[player.id].currentHp = player.hp;
+        this.gameState.characters[player.id].fraymotifCharge = player.fraymotifCharge || 0;
+        this.gameState.save();
+    }
+
     endCombat(playerWon, resetOnly = false) {
         console.log('[BattleController] endCombat called:', { playerWon, resetOnly });
         this.setInCombat(false);
@@ -581,6 +611,7 @@ export class BattleController {
             const currentAgent = this.getCurrentAgent();
             if (currentAgent) {
                 currentAgent.defeated = true;
+                currentAgent.encounterStarted = false;
                 this.gameState.defeatAgent(currentAgent.spawnX, currentAgent.spawnY);
                 this.setCurrentAgent(null);
             }

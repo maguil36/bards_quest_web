@@ -141,13 +141,33 @@ export class GameOrchestrator extends BaseOrchestrator {
         }
 
         const currentChar = this.game.gameState.getCurrentCharacter();
+        const enemyName = agent.type || 'derseAgent';
+        const pc = this.game.gameState.pendingCombat;
+        const isRestore = pc && pc.agentKey === `${agent.spawnX}_${agent.spawnY}`;
 
         this.battleOrchestrator.startBattle({
             playerName: currentChar.id,
             playerLevel: this.game.gameState.levels[currentChar.id] || 100,
-            enemyName: agent.type || 'derseAgent',
-            agent: agent
+            enemyName: enemyName,
+            agent: agent,
+            ...(isRestore && pc.enemyHp != null ? {
+                enemy: {
+                    id: enemyName,
+                    name: enemyName,
+                    health: pc.enemyHp,
+                    maxHealth: pc.enemyMaxHp
+                }
+            } : {})
         });
+
+        if (!isRestore) {
+            this.game.gameState.pendingCombat = {
+                agentKey: `${agent.spawnX}_${agent.spawnY}`,
+                enemyId: enemyName,
+                playerCharacterId: currentChar.id
+            };
+            this.game.gameState.save();
+        }
 
         this.emit('modeChanged', 'battle');
     }
